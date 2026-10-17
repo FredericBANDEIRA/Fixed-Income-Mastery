@@ -1,0 +1,2419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duration & Convexity — Fixed Income Mastery</title>
+    <meta name="description" content="Master fixed income risk metrics: Macaulay duration, Modified duration, Effective duration, Convexity adjustments, and Portfolio Immunization.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        /* ===== CSS Custom Properties (Parchment / Classic Bond Aesthetic) ===== */
+        :root {
+            --bg: #e8dcc8;
+            --bg-warm: #dfd3be;
+            --surface: #d6c9b1;
+            --surface-2: #cdbfa5;
+            --surface-3: #c4b599;
+            --surface-hover: #bfae90;
+            --border: #b8a688;
+            --border-glow: #8b6d2a55;
+            --text: #2c2418;
+            --text-secondary: #5a4d3a;
+            --text-muted: #8a7a62;
+            --accent: #8b6d2a;
+            --accent-light: #a6843a;
+            --accent-dark: #6e5520;
+            --accent-glow: #8b6d2a20;
+            --accent-strong-glow: #8b6d2a38;
+            --green: #4a7c3f;
+            --red: #a63d3d;
+            --blue: #3d6a9e;
+            --orange: #b07328;
+            --purple: #6a4c93;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ===== Sine Wave Background ===== */
+        .wave-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .wave-bg canvas { width: 100%; height: 100%; }
+
+        /* ===== Layout ===== */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px 60px;
+        }
+
+        /* ===== Header ===== */
+        .top-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--accent); }
+        .back-link svg { width: 16px; height: 16px; transition: transform 0.2s; }
+        .back-link:hover svg { transform: translateX(-3px); }
+
+        .module-badge {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent);
+            background: var(--accent-glow);
+            border: 1px solid var(--border-glow);
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .module-title-bar {
+            text-align: center;
+            padding: 32px 0 24px;
+        }
+
+        .module-title-bar h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .module-title-bar .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== Tab Navigation ===== */
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 32px;
+            overflow-x: auto;
+            padding-bottom: 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-tab {
+            padding: 12px 18px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            font-family: var(--font-body);
+            letter-spacing: 0.01em;
+        }
+        .nav-tab:hover { color: var(--text-secondary); }
+        .nav-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ===== Content Cards ===== */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            font-weight: 650;
+            color: var(--text);
+            margin: 20px 0 10px;
+        }
+
+        .card p, .card li {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .card ul, .card ol {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+
+        .card li { margin-bottom: 6px; }
+
+        /* ===== KaTeX Formula Blocks ===== */
+        .formula-block {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            overflow-x: auto;
+            text-align: center;
+        }
+
+        .formula-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        /* ===== Tables ===== */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 16px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        th {
+            background: var(--surface-2);
+            color: var(--text);
+            font-weight: 650;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--accent-glow); }
+
+        /* ===== Alerts ===== */
+        .alert {
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin: 16px 0;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            display: flex;
+            gap: 10px;
+        }
+
+        .alert-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+        .alert-info {
+            background: #3d6a9e15;
+            border: 1px solid #3d6a9e30;
+            color: var(--blue);
+        }
+
+        .alert-tip {
+            background: #4a7c3f15;
+            border: 1px solid #4a7c3f30;
+            color: var(--green);
+        }
+
+        .alert-warning {
+            background: #b0732815;
+            border: 1px solid #b0732830;
+            color: var(--orange);
+        }
+
+        .alert-key {
+            background: var(--accent-glow);
+            border: 1px solid var(--border-glow);
+            color: var(--accent-dark);
+        }
+
+        /* ===== Interactive Controls ===== */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin: 16px 0;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .control-group input[type="number"],
+        .control-group select {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .control-group input[type="range"] {
+            accent-color: var(--accent);
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus {
+            border-color: var(--accent);
+        }
+
+        /* ===== KPI Results ===== */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .kpi {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            text-align: center;
+        }
+
+        .kpi.highlight-kpi {
+            border: 2px solid var(--accent);
+            background: var(--accent-glow);
+        }
+
+        .kpi-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .kpi-value {
+            font-family: var(--font-mono);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .kpi-sub {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ===== Buttons ===== */
+        .btn {
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .btn-primary:hover { background: var(--accent-light); }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-secondary);
+        }
+        .btn-secondary:hover { background: var(--surface-2); }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== Canvas Chart Wrapper ===== */
+        .chart-wrapper {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            position: relative;
+        }
+
+        .chart-wrapper canvas {
+            width: 100%;
+            cursor: crosshair;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chart-title {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ===== Hover HUD (Floating Tooltip) ===== */
+        .chart-hud {
+            position: absolute;
+            pointer-events: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+            z-index: 10;
+            display: none;
+            white-space: nowrap;
+        }
+
+        .chart-hud .hud-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 2px;
+        }
+        .chart-hud .hud-row:last-child { margin-bottom: 0; }
+
+        .chart-hud .hud-label { color: var(--text-muted); }
+        .chart-hud .hud-val { font-weight: 600; color: var(--accent); }
+
+        /* ===== Pill Selector ===== */
+        .pill-group {
+            display: inline-flex;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 2px;
+            gap: 2px;
+            flex-wrap: wrap;
+        }
+
+        .pill-btn {
+            background: none;
+            border: none;
+            padding: 5px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-body);
+        }
+
+        .pill-btn.active {
+            background: var(--accent);
+            color: #ffffff;
+        }
+
+        /* ===== Interview Q&A Flashcards ===== */
+        .qa-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .qa-question {
+            padding: 16px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        .qa-question:hover { background: var(--accent-glow); }
+
+        .qa-toggle {
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-weight: 700;
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s;
+        }
+
+        .qa-card.open .qa-toggle { transform: rotate(45deg); }
+
+        .qa-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .qa-card.open .qa-answer { max-height: 800px; }
+
+        .qa-answer-inner {
+            padding: 0 20px 18px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            border-top: 1px solid var(--border);
+            padding-top: 14px;
+        }
+
+        .qa-answer-inner strong { color: var(--text); }
+        .qa-desk-tip {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: var(--accent-glow);
+            border-left: 3px solid var(--accent);
+            font-size: 0.8rem;
+            color: var(--accent-dark);
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* ===== Footer ===== */
+        .footer {
+            text-align: center;
+            padding: 24px 0;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-warm); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 700px) {
+            .module-title-bar h1 { font-size: 1.7rem; }
+            .nav-tabs { gap: 0; }
+            .nav-tab { padding: 10px 12px; font-size: 0.75rem; }
+            .card { padding: 20px 16px; }
+            .controls-grid { grid-template-columns: 1fr 1fr; }
+            .kpi-grid { grid-template-columns: 1fr 1fr; }
+            .formula-block { padding: 12px 14px; overflow-x: auto; }
+            .table-wrapper { font-size: 0.78rem; }
+        }
+
+        @media (max-width: 480px) {
+            .controls-grid { grid-template-columns: 1fr; }
+            .kpi-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wave-bg"><canvas id="waveCanvas"></canvas></div>
+
+    <div class="main-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-header">
+            <a href="index.html" class="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>All Modules</span>
+            </a>
+            <span class="module-badge">Module 04 · Duration & Convexity</span>
+        </header>
+
+        <!-- Module Header -->
+        <div class="module-title-bar">
+            <h1>Duration & Convexity</h1>
+            <p class="subtitle">Macaulay center-of-gravity, modified price sensitivity, effective duration for options, and portfolio immunization</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs" role="tablist">
+            <button class="nav-tab active" data-tab="mac" role="tab">1. Macaulay Duration</button>
+            <button class="nav-tab" data-tab="mod" role="tab">2. Modified Duration & DV01</button>
+            <button class="nav-tab" data-tab="eff" role="tab">3. Effective Duration</button>
+            <button class="nav-tab" data-tab="cvx" role="tab">4. Convexity</button>
+            <button class="nav-tab" data-tab="port" role="tab">5. Portfolio & Immunization</button>
+            <button class="nav-tab" data-tab="qa" role="tab">6. Interview Q&A</button>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 1: MACAULAY DURATION                                             -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel active" id="tab-mac" role="tabpanel">
+            <div class="card">
+                <h2>The Center of Gravity of Bond Cash Flows</h2>
+                <p>
+                    Developed by Frederick Macaulay in 1938, <strong>Macaulay Duration</strong> ($D_{\text{mac}}$) is the weighted-average time until a bond's cash flows are received, where each cash flow is weighted by its present value as a proportion of the bond's total price.
+                </p>
+
+                <div class="formula-block">
+                    <div class="formula-label">Macaulay Duration Formula (in Years)</div>
+                    <div id="formula-mac"></div>
+                </div>
+
+                <h3>Key Structural Properties</h3>
+                <ul>
+                    <li><strong>Zero-Coupon Bonds:</strong> A zero-coupon bond has only one cash flow, paid at maturity $T$. Therefore, $D_{\text{mac}} = T$ exactly (e.g., a 10Y Treasury STRIP has a Macaulay duration of exactly 10.0 years).</li>
+                    <li><strong>Coupon Bonds:</strong> Because interim coupons arrive earlier than the final principal, $D_{\text{mac}} < T$ for all coupon-bearing bonds.</li>
+                    <li><strong>Coupon Effect:</strong> A higher coupon rate shifts more of the cash flow weight to earlier years, strictly <em>reducing</em> duration.</li>
+                    <li><strong>Yield Effect:</strong> A higher yield-to-maturity discounts distant cash flows more heavily, shifting relative weight to near-term coupons and <em>reducing</em> duration.</li>
+                </ul>
+
+                <div class="alert alert-key">
+                    <span class="alert-icon">⚖️</span>
+                    <div>
+                        <strong>Mechanical Analogy: The Fulcrum.</strong> Imagine the timeline of a bond as a seesaw. Each cash flow is a weight equal to its present value ($PV_t$). The Macaulay duration is the exact point on the timeline where you must place the fulcrum so that the seesaw balances in perfect equilibrium!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Macaulay Calculator & Fulcrum Chart -->
+            <div class="card">
+                <h2>Interactive Macaulay Duration & Cash Flow Fulcrum</h2>
+                <p>
+                    Enter bond parameters below to compute the cash flow schedule, individual present value weights, and observe the "center of gravity" balance point on the timeline.
+                </p>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label for="macFace">Face Value ($)</label>
+                        <input type="number" id="macFace" value="1000" min="100" max="1000000" step="100" oninput="calculateMacaulay()">
+                    </div>
+                    <div class="control-group">
+                        <label for="macCoupon">Annual Coupon (%)</label>
+                        <input type="number" id="macCoupon" value="5.00" min="0" max="25" step="0.25" oninput="calculateMacaulay()">
+                    </div>
+                    <div class="control-group">
+                        <label for="macYTM">Yield to Maturity (%)</label>
+                        <input type="number" id="macYTM" value="5.00" min="0.01" max="25" step="0.1" oninput="calculateMacaulay()">
+                    </div>
+                    <div class="control-group">
+                        <label for="macMat">Maturity (Years)</label>
+                        <input type="number" id="macMat" value="10" min="1" max="30" step="1" oninput="calculateMacaulay()">
+                    </div>
+                    <div class="control-group">
+                        <label for="macFreq">Payment Frequency</label>
+                        <select id="macFreq" onchange="calculateMacaulay()">
+                            <option value="1">Annual (1/yr)</option>
+                            <option value="2" selected>Semi-Annual (2/yr - US/UK)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="reinitMacaulay()">Reset to 10Y Par Bond</button>
+                    <button class="btn btn-secondary" onclick="presetMacZero()">Preset: 10Y Zero-Coupon</button>
+                    <button class="btn btn-secondary" onclick="presetMacHighCoupon()">Preset: 12% High Coupon</button>
+                </div>
+
+                <!-- KPIs -->
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi highlight-kpi">
+                        <div class="kpi-label">Macaulay Duration</div>
+                        <div class="kpi-value" id="resMacYears">7.99 Yrs</div>
+                        <div class="kpi-sub">Center of Gravity</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Bond Price ($)</div>
+                        <div class="kpi-value" id="resMacPrice">$1,000.00</div>
+                        <div class="kpi-sub" id="resMacPriceSub">Trading at Par</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Maturity Horizon</div>
+                        <div class="kpi-value" id="resMacHorizon">10.0 Yrs</div>
+                        <div class="kpi-sub">Final Principal Date</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Duration / Maturity</div>
+                        <div class="kpi-value" id="resMacRatio">79.9%</div>
+                        <div class="kpi-sub">Ratio to Final Maturity</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Cash Flow Weights & Fulcrum Marker -->
+                <div class="chart-header" style="margin-top: 24px;">
+                    <div class="chart-title">Present Value of Cash Flows & Macaulay Fulcrum (\u25B2)</div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="macCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="macHud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 2: MODIFIED DURATION & DV01                                      -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-mod" role="tabpanel">
+            <div class="card">
+                <h2>Modified Duration: First-Order Price Sensitivity</h2>
+                <p>
+                    While Macaulay duration measures time, <strong>Modified Duration</strong> ($D_{\text{mod}}$) directly measures the <em>percentage price sensitivity</em> of a bond to an instantaneous change in yield-to-maturity.
+                </p>
+
+                <div class="formula-block">
+                    <div class="formula-label">Calculus Derivation & Definition</div>
+                    <div id="formula-mod-deriv"></div>
+                </div>
+
+                <h3>The Linear Price Approximation</h3>
+                <p>
+                    For a small change in yield $\Delta y$ (in decimal format, e.g., $+0.0050$ for $+50\text{ bps}$):
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">First-Order Taylor Series Price Approximation</div>
+                    <div id="formula-mod-approx"></div>
+                </div>
+
+                <h3>Dollar Duration (DV01 / PV01)</h3>
+                <p>
+                    Institutional trading desks operate in terms of <strong>DV01</strong> (<em>Dollar Value of 01</em>), which is the absolute dollar price change for a 1 basis point ($0.01\% = 0.0001$) parallel shift in yield:
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">DV01 Formula</div>
+                    <div id="formula-dv01"></div>
+                </div>
+                <div class="alert alert-info">
+                    <span class="alert-icon">💡</span>
+                    <div>
+                        <strong>Desk Example:</strong> A $10,000,000 portfolio with a Modified Duration of 7.0 years has a DV01 of approximately $7.0 \times \$10,000,000 \times 0.0001 = \mathbf{\$7,000\text{ per basis point}}$. If benchmark yields rise by 10 bps, the portfolio loses approximately $\$70,000$.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Tangent Line & Approximation Tool -->
+            <div class="card">
+                <h2>Price-Yield Tangent Line & Linear Approximation Visualizer</h2>
+                <p>
+                    Move the yield shock slider below to observe the tangent line (representing Modified Duration) vs. the actual curved bond price path, illustrating where linear duration breaks down for large yield moves.
+                </p>
+
+                <div class="controls-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="control-group">
+                        <label for="modYieldShift">Yield Shock $\Delta y$: <span id="valModShift" style="font-family:var(--font-mono); color:var(--accent);">+50 bps</span></label>
+                        <input type="range" id="modYieldShift" min="-300" max="300" step="10" value="50" oninput="updateModifiedSim()">
+                    </div>
+                    <div class="control-group">
+                        <label for="modBaseMat">Maturity (Years)</label>
+                        <input type="number" id="modBaseMat" value="10" min="1" max="30" step="1" oninput="updateModifiedSim()">
+                    </div>
+                    <div class="control-group">
+                        <label for="modBaseCpn">Coupon (%)</label>
+                        <input type="number" id="modBaseCpn" value="5.00" min="0" max="20" step="0.25" oninput="updateModifiedSim()">
+                    </div>
+                    <div class="control-group">
+                        <label for="modBaseYTM">Base Yield (%)</label>
+                        <input type="number" id="modBaseYTM" value="5.00" min="0.1" max="20" step="0.1" oninput="updateModifiedSim()">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="resetModSim()">Reset to +50 bps Shock</button>
+                </div>
+
+                <!-- KPIs -->
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi">
+                        <div class="kpi-label">Modified Duration</div>
+                        <div class="kpi-value" id="resModDuration">7.79 Yrs</div>
+                        <div class="kpi-sub">$D_{\text{mac}} / (1 + y/2)$</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">DV01 per $100 Par</div>
+                        <div class="kpi-value" id="resModDV01">$0.0779</div>
+                        <div class="kpi-sub">$7,790 per $10M</div>
+                    </div>
+                    <div class="kpi highlight-kpi">
+                        <div class="kpi-label">Actual Price Change</div>
+                        <div class="kpi-value" id="resModActualPct">-3.76%</div>
+                        <div class="kpi-sub" id="resModActualDol">-$37.60 on $1,000</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Duration Estimated</div>
+                        <div class="kpi-value" id="resModEstPct">-3.90%</div>
+                        <div class="kpi-sub">Linear Tangent</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Approximation Error</div>
+                        <div class="kpi-value" id="resModError">+14 bps</div>
+                        <div class="kpi-sub">Overshoots Loss by $1.40</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Tangent Line Visualizer -->
+                <div class="chart-header" style="margin-top: 24px;">
+                    <div class="chart-title">Bond Price-Yield Curve vs Modified Duration Tangent Line</div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="modCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="modHud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 3: EFFECTIVE DURATION                                            -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-eff" role="tabpanel">
+            <div class="card">
+                <h2>Effective Duration: Bonds with Embedded Options</h2>
+                <p>
+                    Modified duration relies on a critical assumption: <em>cash flow timing and amounts are invariant to interest rate shifts</em>. This assumption completely breaks down for:
+                </p>
+                <ul>
+                    <li><strong>Callable Bonds:</strong> When yields plunge, the issuer calls the bond early, capping upside price appreciation.</li>
+                    <li><strong>Mortgage-Backed Securities (MBS):</strong> Homeowners refinance when rates drop (prepayment option), shortening the cash flow horizon.</li>
+                    <li><strong>Putable Bonds:</strong> Investors put the bond back to the issuer when yields soar, establishing a price floor.</li>
+                </ul>
+
+                <h3>The Numerical Effective Duration Formula</h3>
+                <p>
+                    To measure interest rate sensitivity when cash flows change with yields, desks use numerical shock pricing:
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Effective Duration Formula</div>
+                    <div id="formula-eff"></div>
+                </div>
+                <p>
+                    Where $P_-$ is the bond price if yields fall by $\Delta y$, $P_+$ is the price if yields rise by $\Delta y$, and $P_0$ is the current market price.
+                </p>
+
+                <h3>Negative Convexity & Upside Truncation</h3>
+                <p>
+                    Notice how the callable bond price compresses as yields fall towards the call price ($CP$):
+                </p>
+                <div class="alert alert-warning">
+                    <span class="alert-icon">⚠️</span>
+                    <div>
+                        <strong>The Asymmetry of Callable Bonds:</strong> A standard bullet bond has <em>positive convexity</em> (price accelerates upward as yields fall). But near the call price, a callable bond exhibits <strong>negative convexity</strong>: upside is strictly capped at the call price, while downside risk remains fully exposed! Consequently, its Effective Duration collapses toward zero as rates fall!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Callable vs Bullet Visualizer -->
+            <div class="card">
+                <h2>Bullet Bond vs Callable Bond Price-Yield Curves</h2>
+                <p>
+                    Compare the price sensitivity of an option-free bullet bond against a callable bond with an embedded call option at $1020.
+                </p>
+
+                <div class="chart-wrapper">
+                    <canvas id="effCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="effHud"></div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="drawEffChart()">Refresh Comparison</button>
+                </div>
+
+                <div class="alert alert-key">
+                    <strong>Institutional Takeaway:</strong> In low yield environments (left side of chart), the <strong>Callable Bond Effective Duration ($D_{\text{eff}} \approx 1.8\text{ yrs}$)</strong> is drastically lower than the <strong>Bullet Bond Modified Duration ($D_{\text{mod}} \approx 7.5\text{ yrs}$)</strong> because the market treats the bond as an imminent call!
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 4: CONVEXITY                                                     -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-cvx" role="tabpanel">
+            <div class="card">
+                <h2>Convexity: The Second-Order Curvature Adjustment</h2>
+                <p>
+                    Because the price-yield relationship of an option-free bond is strictly convex (curved like a parabola rather than a straight line), the linear Modified Duration approximation always underestimates the price for any yield change!
+                </p>
+                <p>
+                    <strong>Convexity</strong> ($C$) is the second derivative of price with respect to yield, divided by price:
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Convexity Definition & Second Derivative</div>
+                    <div id="formula-cvx-def"></div>
+                </div>
+
+                <h3>The Second-Order Taylor Series Price Change</h3>
+                <p>
+                    Combining Modified Duration and Convexity gives an accurate estimate of percentage price change:
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Duration + Convexity Approximation Formula</div>
+                    <div id="formula-taylor-cvx"></div>
+                </div>
+
+                <div class="alert alert-tip">
+                    <span class="alert-icon">🌟</span>
+                    <div>
+                        <strong>Why Portfolio Managers Love Convexity:</strong> Notice that $\frac{1}{2} C (\Delta y)^2$ is <strong>always positive</strong> (since $(\Delta y)^2 > 0$). Convexity adds an extra gain when rates fall, and buffers the loss when rates rise! For two bonds with the same duration and yield, the bond with higher convexity will strictly outperform under any rate shift!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Convexity Calculator & Parabolic Comparison -->
+            <div class="card">
+                <h2>Duration vs Duration + Convexity Comparison Tool</h2>
+                <p>
+                    Select an extreme yield shock ($\Delta y$) to observe how the quadratic Convexity term dramatically eliminates linear approximation errors.
+                </p>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label for="cvxShock">Yield Shock $\Delta y$: <span id="valCvxShock" style="font-family:var(--font-mono); color:var(--accent);">+150 bps</span></label>
+                        <input type="range" id="cvxShock" min="-300" max="300" step="25" value="150" oninput="updateConvexityCalc()">
+                    </div>
+                    <div class="control-group">
+                        <label for="cvxMat">Maturity (Years)</label>
+                        <input type="number" id="cvxMat" value="20" min="1" max="30" step="1" oninput="updateConvexityCalc()">
+                    </div>
+                    <div class="control-group">
+                        <label for="cvxCpn">Coupon (%)</label>
+                        <input type="number" id="cvxCpn" value="4.50" min="0" max="15" step="0.25" oninput="updateConvexityCalc()">
+                    </div>
+                    <div class="control-group">
+                        <label for="cvxYTM">Base Yield (%)</label>
+                        <input type="number" id="cvxYTM" value="4.50" min="0.1" max="15" step="0.1" oninput="updateConvexityCalc()">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="resetConvexityCalc()">Reset to +150 bps Shock</button>
+                    <button class="btn btn-secondary" onclick="presetCvxMinus200()">Preset: -200 bps Rally</button>
+                </div>
+
+                <!-- KPIs -->
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi">
+                        <div class="kpi-label">Modified Duration</div>
+                        <div class="kpi-value" id="resCvxDmod">12.75 Yrs</div>
+                        <div class="kpi-sub">Linear Slope</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Annual Convexity</div>
+                        <div class="kpi-value" id="resCvxMeasure">224.5</div>
+                        <div class="kpi-sub">Curvature Factor</div>
+                    </div>
+                    <div class="kpi highlight-kpi">
+                        <div class="kpi-label">Actual Price Change</div>
+                        <div class="kpi-value" id="resCvxActual">-16.82%</div>
+                        <div class="kpi-sub">Exact Discounting</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Duration + Cvx Est.</div>
+                        <div class="kpi-value" id="resCvxEstCombined">-16.60%</div>
+                        <div class="kpi-sub">Error: Only 22 bps!</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Duration Only Est.</div>
+                        <div class="kpi-value" id="resCvxEstDurOnly">-19.13%</div>
+                        <div class="kpi-sub">Severe Error: 231 bps!</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Actual vs Duration vs Combined -->
+                <div class="chart-header" style="margin-top: 24px;">
+                    <div class="chart-title">Price-Yield Curves: Actual vs Linear Tangent vs Quadratic Approximation</div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="cvxCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="cvxHud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 5: PORTFOLIO DURATION & IMMUNIZATION                             -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-port" role="tabpanel">
+            <div class="card">
+                <h2>Portfolio Duration & Redington Immunization</h2>
+                <p>
+                    For a portfolio of $M$ bonds, the overall portfolio duration and portfolio DV01 are the market-value-weighted averages of the constituent instruments:
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Portfolio Duration & DV01 Formulations</div>
+                    <div id="formula-port-dur"></div>
+                </div>
+
+                <h3>Classical Redington Immunization</h3>
+                <p>
+                    Defined by F. M. Redington in 1952, balance sheet immunization protects an institutional fund (e.g. pension fund or life insurer) from parallel shifts in the yield curve by matching assets to future liabilities:
+                </p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Condition</th>
+                                <th>Mathematical Requirement</th>
+                                <th>Economic Objective</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>1. Present Value Match</strong></td>
+                                <td>$PV(\text{Assets}) \ge PV(\text{Liabilities})$</td>
+                                <td>Ensure the current portfolio is fully funded.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>2. Duration Match</strong></td>
+                                <td>$D_{\text{mod}}(\text{Assets}) = D_{\text{mod}}(\text{Liabilities})$</td>
+                                <td>First-order price sensitivities cancel out under any parallel rate move ($\Delta PV_A = \Delta PV_L$).</td>
+                            </tr>
+                            <tr>
+                                <td><strong>3. Convexity Dominance</strong></td>
+                                <td>$C(\text{Assets}) > C(\text{Liabilities})$</td>
+                                <td>Asset value curve bends <em>above</em> the liability curve. For any rate move (up or down), assets outperform liabilities!</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Bullet vs. Barbell Portfolio Construction</h3>
+                <p>
+                    An investor with a 7-year target duration can build a <strong>Bullet</strong> (100% in 7Y bonds) or a <strong>Barbell</strong> (e.g., 50% in 2Y bonds and 50% in 20Y bonds). Because cash flows are more dispersed in a barbell, <strong>the Barbell has strictly higher Convexity</strong> for the identical duration!
+                </p>
+            </div>
+
+            <!-- Interactive 3-Bond Portfolio Builder Card -->
+            <div class="card">
+                <h2>Interactive 3-Bond Portfolio Allocator</h2>
+                <p>
+                    Adjust the portfolio capital allocations below to evaluate the aggregate portfolio duration, convexity, and DV01 on a $10,000,000 fund.
+                </p>
+
+                <div class="controls-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="control-group">
+                        <label for="wBond1">Bond 1 (2Y Note, D=1.9): <span id="valW1" style="font-family:var(--font-mono); color:var(--accent);">30%</span></label>
+                        <input type="range" id="wBond1" min="0" max="100" step="5" value="30" oninput="updatePortfolioCalc()">
+                    </div>
+                    <div class="control-group">
+                        <label for="wBond2">Bond 2 (5Y Note, D=4.4): <span id="valW2" style="font-family:var(--font-mono); color:var(--accent);">40%</span></label>
+                        <input type="range" id="wBond2" min="0" max="100" step="5" value="40" oninput="updatePortfolioCalc()">
+                    </div>
+                    <div class="control-group">
+                        <label for="wBond3">Bond 3 (20Y Bond, D=13.2): <span id="valW3" style="font-family:var(--font-mono); color:var(--accent);">30%</span></label>
+                        <input type="range" id="wBond3" min="0" max="100" step="5" value="30" oninput="updatePortfolioCalc()">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="presetPortBarbell()">Preset: Barbell (2Y + 20Y)</button>
+                    <button class="btn btn-secondary" onclick="presetPortBullet()">Preset: Pure Belly (5Y Bullet)</button>
+                    <button class="btn btn-secondary" onclick="presetPortBalanced()">Preset: Balanced 30/40/30</button>
+                </div>
+
+                <!-- KPIs -->
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi highlight-kpi">
+                        <div class="kpi-label">Portfolio Duration</div>
+                        <div class="kpi-value" id="resPortDuration">6.29 Yrs</div>
+                        <div class="kpi-sub">Weighted $D_{\text{mod}}$</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Portfolio Convexity</div>
+                        <div class="kpi-value" id="resPortCvx">80.5</div>
+                        <div class="kpi-sub">Second-Order Cushion</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Fund DV01 ($10M)</div>
+                        <div class="kpi-value" id="resPortDV01">$6,290</div>
+                        <div class="kpi-sub">Risk per Basis Point</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Allocation Sum</div>
+                        <div class="kpi-value" id="resPortSum">100%</div>
+                        <div class="kpi-sub" id="resPortSumSub">Fully Invested</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Portfolio Shock Simulator -->
+                <div class="chart-header" style="margin-top: 24px;">
+                    <div class="chart-title">Portfolio Capital Return under Parallel Yield Shocks (&plusmn;200 bps)</div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="portCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="portHud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 6: INTERVIEW Q&A                                                 -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-qa" role="tabpanel">
+            <div class="card">
+                <h2>Sales & Trading, Structuring & CFA L1/L2 Interview Flashcards</h2>
+                <p>
+                    These questions are core staples in fixed income trader, asset management, and quantitative structuring interviews.
+                </p>
+            </div>
+
+            <!-- Q1 -->
+            <div class="qa-card" id="qa1">
+                <div class="qa-question" onclick="toggleQA('qa1')">
+                    <span>1. What is duration, and what are its two distinct interpretations?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Duration has two distinct but mathematically related interpretations:
+                        </p>
+                        <ol>
+                            <li><strong>Time Measure (Macaulay Duration):</strong> The weighted-average maturity of cash flows, measured in years. It represents the "economic life" or the cash flow center-of-gravity of the bond.</li>
+                            <li><strong>Price Sensitivity Measure (Modified Duration):</strong> The percentage change in bond price for a 100 bps (1.0%) parallel shift in yield:
+                            $$\frac{\Delta P}{P} \approx -D_{\text{mod}} \times \Delta y$$</li>
+                        </ol>
+                        <div class="qa-desk-tip">
+                            <strong>Trader Tip:</strong> On trading desks, when someone says "duration", they almost always mean Modified Duration or DV01 (dollar duration risk).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="qa-card" id="qa2">
+                <div class="qa-question" onclick="toggleQA('qa2')">
+                    <span>2. Explain the mathematical relationship between Macaulay and Modified duration.</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Taking the first derivative of the standard bond pricing formula $P = \sum \frac{CF_t}{(1 + y/k)^t}$ with respect to the yield $y$:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            $\frac{dP}{dy} = -\frac{1}{1 + y/k} \sum \frac{t/k \cdot CF_t}{(1 + y/k)^t} = -\frac{P \cdot D_{\text{mac}}}{1 + y/k}$
+                        </p>
+                        <p>
+                            Dividing both sides by $-P$:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            D_{\text{mod}} = -\frac{1}{P} \frac{dP}{dy} = \frac{D_{\text{mac}}}{1 + y/k}
+                        </p>
+                        <p>
+                            Where $k$ is the payment compounding frequency per year. Under continuous compounding, $D_{\text{mod}} = D_{\text{mac}}$ exactly.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="qa-card" id="qa3">
+                <div class="qa-question" onclick="toggleQA('qa3')">
+                    <span>3. If a bond has a modified duration of 6.5 years and yields rise by 75 bps, what is the estimated price change?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Using the first-order approximation:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \frac{\Delta P}{P} \approx -D_{\text{mod}} \times \Delta y
+                        </p>
+                        <p>
+                            $\Delta y = +75\text{ bps} = +0.0075$. Therefore:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \frac{\Delta P}{P} \approx -6.5 \times (+0.0075) = -0.04875 = \mathbf{-4.875\%}
+                        </p>
+                        <p>
+                            The bond price will fall by approximately <strong>4.88%</strong>. Because of positive convexity, the actual loss will be slightly smaller than this linear estimate.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q4 -->
+            <div class="qa-card" id="qa4">
+                <div class="qa-question" onclick="toggleQA('qa4')">
+                    <span>4. Why do callable bonds and agency MBS exhibit negative convexity at low yields?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong>
+                        </p>
+                        <ul>
+                            <li><strong>The Embedded Call Option:</strong> A callable bond is economically equivalent to a long position in a bullet bond plus a <em>short call option</em> granted to the issuer: $\text{Price}_{\text{callable}} = \text{Price}_{\text{bullet}} - \text{Price}_{\text{call option}}$.</li>
+                            <li><strong>Upside Capping:</strong> When interest rates drop significantly, the call option moves deep in-the-money. The issuer will exercise the call to refinance debt at lower rates. This creates a hard ceiling at the call price.</li>
+                            <li><strong>Prepayment Risk in MBS:</strong> For US Agency Mortgage-Backed Securities (MBS), homeowners refinance and prepay their mortgages when borrowing rates fall. The investor gets paid back early at par right when reinvestment yields are worst.</li>
+                            <li><strong>Curvature Flips:</strong> Because price appreciation is capped on rallies while downside risk remains unhedged on selloffs, the second derivative $\frac{d^2P}{dy^2}$ turns negative, resulting in <strong>negative convexity</strong>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q5 -->
+            <div class="qa-card" id="qa5">
+                <div class="qa-question" onclick="toggleQA('qa5')">
+                    <span>5. What is Effective Duration, and why must it be used instead of Modified Duration for MBS and structured notes?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Modified duration mathematically assumes that the timing and magnitudes of future cash flows do not depend on the level of interest rates.
+                        </p>
+                        <p>
+                            For mortgage-backed securities (MBS) and callable debt, cash flows are <strong>path-dependent and yield-contingent</strong>. Falling rates accelerate prepayments, shortening the cash flows; rising rates cause prepayments to halt ("extension risk"), lengthening the cash flows.
+                        </p>
+                        <p>
+                            <strong>Effective Duration</strong> uses an option-pricing model (such as a Monte Carlo interest rate tree or prepayment model) to reprice the security under an upward and downward rate shock ($\Delta y$):
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            D_{\text{eff}} = \frac{P_- - P_+}{2 \times P_0 \times \Delta y}
+                        </p>
+                        <p>
+                            This captures both yield changes AND cash flow alterations simultaneously.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q6 -->
+            <div class="qa-card" id="qa6">
+                <div class="qa-question" onclick="toggleQA('qa6')">
+                    <span>6. What are the three mathematical conditions for classical Redington balance sheet immunization?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> To protect an institutional balance sheet (surplus $S = A - L$) against small parallel yield curve shifts:
+                        </p>
+                        <ol>
+                            <li><strong>Solvency Condition:</strong> $PV(\text{Assets}) \ge PV(\text{Liabilities})$. The fund must be fully funded today.</li>
+                            <li><strong>First-Order Neutrality:</strong> $D_{\text{mod}}(\text{Assets}) = D_{\text{mod}}(\text{Liabilities})$ (or in dollar terms: $\text{DV01}_A = \text{DV01}_L$). The initial price changes of assets and liabilities offset each other ($\frac{dS}{dy} = 0$).</li>
+                            <li><strong>Convexity Dominance:</strong> $C(\text{Assets}) > C(\text{Liabilities})$. This guarantees that $\frac{d^2S}{dy^2} > 0$. The asset price curve has greater upward curvature than the liability curve, ensuring that the portfolio surplus increases for <em>any</em> non-zero parallel rate shock!</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q7 -->
+            <div class="qa-card" id="qa7">
+                <div class="qa-question" onclick="toggleQA('qa7')">
+                    <span>7. All else equal, does a higher coupon rate increase or decrease duration? What about maturity and YTM?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong>
+                        </p>
+                        <ul>
+                            <li><strong>Higher Coupon &rarr; Decreases Duration:</strong> Larger interim coupon cash flows arrive earlier in the bond's life, pulling the cash flow "center of gravity" forward in time.</li>
+                            <li><strong>Higher Maturity &rarr; Increases Duration:</strong> For bonds trading at par or premium, extending maturity pushes the redemption principal further into the future, strictly lengthening duration.</li>
+                            <li><strong>Higher YTM &rarr; Decreases Duration:</strong> A higher discount rate penalizes distant cash flows exponentially more than near-term cash flows, shifting relative present value weight to the early coupons.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q8 -->
+            <div class="qa-card" id="qa8">
+                <div class="qa-question" onclick="toggleQA('qa8')">
+                    <span>8. Explain the Barbell vs. Bullet portfolio strategy in terms of duration and convexity.</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Consider two portfolios structured to have the exact same duration of 7 years:
+                        </p>
+                        <ul>
+                            <li><strong>Bullet Portfolio:</strong> 100% invested in 7-year intermediate notes.</li>
+                            <li><strong>Barbell Portfolio:</strong> 50% invested in 2-year short bills and 50% invested in 20-year long bonds.</li>
+                        </ul>
+                        <p>
+                            Because convexity is proportional to the square of time ($t^2$), the 20-year bond in the barbell generates massive convexity. Consequently, <strong>the Barbell will have significantly higher Convexity than the Bullet</strong> despite having the identical duration!
+                        </p>
+                        <p>
+                            <strong>Tradeoff:</strong> The Barbell wins in volatile, large-shift rate environments, but typically yields less due to the "cost of convexity" (lower carry/roll-down).
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q9 -->
+            <div class="qa-card" id="qa9">
+                <div class="qa-question" onclick="toggleQA('qa9')">
+                    <span>9. What is Dollar Duration (DV01) and how is it used on trading desks to execute a duration-neutral hedge?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> DV01 (Dollar Value of an 01) is the dollar loss or gain experienced by a position for a 1 basis point ($0.01\%$) increase in yield:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \text{DV01} = D_{\text{mod}} \times \text{Market Value} \times 0.0001
+                        </p>
+                        <p>
+                            <strong>Hedging Application:</strong> If a desk is long $100M of 10Y Treasuries with a DV01 of $78,000, and wants to hedge using 5Y Treasury futures where each contract has a DV01 of $42:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            N = \frac{\text{DV01}_{\text{portfolio}}}{\text{DV01}_{\text{contract}}} = \frac{\$78,000}{\$42} \approx 1,857 \text{ contracts to short.}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q10 -->
+            <div class="qa-card" id="qa10">
+                <div class="qa-question" onclick="toggleQA('qa10')">
+                    <span>10. Can Macaulay duration ever be negative? Can Effective duration ever be negative?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong>
+                        </p>
+                        <ul>
+                            <li><strong>Macaulay Duration:</strong> Can <strong>NEVER be negative</strong> for standard long bond holdings because time $t > 0$ and all cash flows $CF_t \ge 0$. The weighted average of positive numbers is strictly positive.</li>
+                            <li><strong>Effective Duration:</strong> <strong>CAN be negative!</strong> A famous example is an <strong>Interest-Only (IO) mortgage strip</strong>. When mortgage rates rise, homeowners stop refinancing. The stream of interest payments lasts much longer than expected, significantly increasing total undiscounted cash flows. As a result, <strong>the price of an IO strip actually RISES when interest rates rise</strong> ($D_{\text{eff}} < 0$).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            Module 04 · Duration & Convexity · Fixed Income Mastery
+        </footer>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- SCRIPTS: KaTeX & Interactive Engines                                 -->
+    <!-- ==================================================================== -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script>
+    /* ===== 1. Sine Wave Background ===== */
+    (function(){
+        const c = document.getElementById('waveCanvas'), ctx = c.getContext('2d');
+        let w, h, t = 0;
+        function resize(){
+            const d = devicePixelRatio || 1;
+            w = innerWidth; h = innerHeight;
+            c.width = w * d; c.height = h * d;
+            ctx.scale(d, d);
+            c.style.width = w + 'px'; c.style.height = h + 'px';
+        }
+        const W = [
+            { a: 38, f: 0.003, s: 0.008, o: 0, op: 0.12, c: '139,109,42' },
+            { a: 28, f: 0.004, s: 0.012, o: 2, op: 0.08, c: '139,109,42' },
+            { a: 45, f: 0.002, s: 0.006, o: 4, op: 0.10, c: '110,85,32' },
+            { a: 22, f: 0.005, s: 0.015, o: 1, op: 0.06, c: '166,132,58' }
+        ];
+        function dw(wv, yc){
+            ctx.beginPath();
+            ctx.moveTo(0, yc);
+            for(let x = 0; x <= w; x += 2){
+                const y = yc + wv.a * Math.sin(x * wv.f + t * wv.s + wv.o) + wv.a * 0.5 * Math.sin(x * wv.f * 1.8 + t * wv.s * 0.7 + wv.o + 1);
+                ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = `rgba(${wv.c},${wv.op})`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+        function anim(){
+            ctx.clearRect(0, 0, w, h);
+            dw(W[0], h * 0.25);
+            dw(W[1], h * 0.40);
+            dw(W[2], h * 0.60);
+            dw(W[3], h * 0.78);
+            t++;
+            requestAnimationFrame(anim);
+        }
+        addEventListener('resize', resize);
+        resize();
+        anim();
+    })();
+
+    /* ===== 2. KaTeX Formulas Rendering ===== */
+    document.addEventListener('DOMContentLoaded', function() {
+        const formulas = {
+            'formula-mac': 'D_{\\text{mac}} = \\frac{\\sum_{t=1}^{n} \\frac{t}{k} \\cdot \\frac{CF_t}{(1 + y/k)^t}}{\\sum_{t=1}^{n} \\frac{CF_t}{(1 + y/k)^t}} = \\sum_{t=1}^{n} \\left( \\frac{t}{k} \\right) \\times w_t, \\quad \\text{where } w_t = \\frac{PV(CF_t)}{P}',
+            'formula-mod-deriv': 'D_{\\text{mod}} = -\\frac{1}{P} \\frac{dP}{dy} = \\frac{D_{\\text{mac}}}{1 + \\frac{y}{k}}',
+            'formula-mod-approx': '\\frac{\\Delta P}{P} \\approx -D_{\\text{mod}} \\times \\Delta y \\implies \\Delta P \\approx -D_{\\text{mod}} \\times P \\times \\Delta y',
+            'formula-dv01': '\\text{DV01} = D_{\\text{mod}} \\times P \\times 0.0001 = -\\frac{dP}{dy} \\times 0.0001',
+            'formula-eff': 'D_{\\text{eff}} = \\frac{P_- - P_+}{2 \\times P_0 \\times \\Delta y}',
+            'formula-cvx-def': 'C = \\frac{1}{P} \\frac{d^2P}{dy^2} = \\frac{1}{P \\left(1 + \\frac{y}{k}\\right)^2} \\sum_{t=1}^{n} \\frac{t(t+1)}{k^2} \\cdot \\frac{CF_t}{\\left(1 + \\frac{y}{k}\\right)^t}',
+            'formula-taylor-cvx': '\\frac{\\Delta P}{P} \\approx -D_{\\text{mod}} \\times \\Delta y + \\frac{1}{2} C \\times (\\Delta y)^2',
+            'formula-port-dur': 'D_P = \\sum_{i=1}^{M} w_i D_i, \\quad \\text{DV01}_P = \\sum_{i=1}^{M} \\text{DV01}_i, \\quad \\text{where } w_i = \\frac{\\text{Value}_i}{\\text{Value}_P}'
+        };
+
+        for (const [id, tex] of Object.entries(formulas)) {
+            const el = document.getElementById(id);
+            if (el && window.katex) {
+                katex.render(tex, el, { displayMode: true, throwOnError: false });
+            }
+        }
+
+        /* Initial Calculations */
+        calculateMacaulay();
+        updateModifiedSim();
+        drawEffChart();
+        updateConvexityCalc();
+        updatePortfolioCalc();
+    });
+
+    /* ===== 3. Tab Navigation & Dynamic Canvas Redraw ===== */
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const targetId = 'tab-' + this.dataset.tab;
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) targetPanel.classList.add('active');
+
+            const tabName = this.dataset.tab;
+            if (tabName === 'mac') drawMacChart();
+            if (tabName === 'mod') drawModChart();
+            if (tabName === 'eff') drawEffChart();
+            if (tabName === 'cvx') drawCvxChart();
+            if (tabName === 'port') drawPortChart();
+        });
+    });
+
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            const activePanel = document.querySelector('.tab-panel.active');
+            if (activePanel) {
+                if (activePanel.id === 'tab-mac') drawMacChart();
+                if (activePanel.id === 'tab-mod') drawModChart();
+                if (activePanel.id === 'tab-eff') drawEffChart();
+                if (activePanel.id === 'tab-cvx') drawCvxChart();
+                if (activePanel.id === 'tab-port') drawPortChart();
+            }
+        }, 150);
+    });
+
+    function toggleQA(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('open');
+    }
+
+    /* ===================================================================== */
+    /* TAB 1: MACAULAY DURATION ENGINE                                       */
+    /* ===================================================================== */
+    let macCashFlows = [];
+    let currentMacDur = 7.99;
+
+    function calculateMacaulay() {
+        const face = parseFloat(document.getElementById('macFace').value) || 1000;
+        const couponPct = parseFloat(document.getElementById('macCoupon').value) || 0;
+        const ytmPct = parseFloat(document.getElementById('macYTM').value) || 5;
+        const matYears = parseFloat(document.getElementById('macMat').value) || 10;
+        const freq = parseInt(document.getElementById('macFreq').value) || 2;
+
+        const n = Math.round(matYears * freq);
+        const c = (couponPct / 100) * face / freq;
+        const y_p = (ytmPct / 100) / freq;
+
+        let pvSum = 0;
+        let weightedTimeSum = 0;
+        macCashFlows = [];
+
+        for (let t = 1; t <= n; t++) {
+            const isLast = (t === n);
+            const cf = isLast ? (c + face) : c;
+            const df = Math.pow(1 + y_p, -t);
+            const pv = cf * df;
+            const timeYears = t / freq;
+
+            pvSum += pv;
+            weightedTimeSum += timeYears * pv;
+
+            macCashFlows.push({
+                period: t,
+                timeYears: timeYears,
+                cf: cf,
+                pv: pv,
+                weight: 0
+            });
+        }
+
+        macCashFlows.forEach(item => {
+            item.weight = item.pv / pvSum;
+        });
+
+        currentMacDur = weightedTimeSum / pvSum;
+        const ratio = (currentMacDur / matYears) * 100;
+
+        document.getElementById('resMacYears').innerText = currentMacDur.toFixed(2) + ' Yrs';
+        document.getElementById('resMacPrice').innerText = '$' + pvSum.toFixed(2);
+        document.getElementById('resMacHorizon').innerText = matYears.toFixed(1) + ' Yrs';
+        document.getElementById('resMacRatio').innerText = ratio.toFixed(1) + '%';
+
+        const sub = document.getElementById('resMacPriceSub');
+        if (Math.abs(pvSum - face) < 0.5) sub.innerText = 'Trading at Par';
+        else if (pvSum > face) sub.innerText = `Premium (+$${(pvSum - face).toFixed(2)})`;
+        else sub.innerText = `Discount (-$${(face - pvSum).toFixed(2)})`;
+
+        drawMacChart();
+    }
+
+    function reinitMacaulay() {
+        document.getElementById('macFace').value = 1000;
+        document.getElementById('macCoupon').value = 5.00;
+        document.getElementById('macYTM').value = 5.00;
+        document.getElementById('macMat').value = 10;
+        document.getElementById('macFreq').value = 2;
+        calculateMacaulay();
+    }
+
+    function presetMacZero() {
+        document.getElementById('macCoupon').value = 0;
+        calculateMacaulay();
+    }
+
+    function presetMacHighCoupon() {
+        document.getElementById('macCoupon').value = 12.0;
+        calculateMacaulay();
+    }
+
+    function drawMacChart() {
+        const canvas = document.getElementById('macCanvas');
+        if (!canvas || !macCashFlows.length) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const m = { l: 50, r: 24, t: 26, b: 45 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const maxT = macCashFlows[macCashFlows.length - 1].timeYears;
+        const maxPV = Math.max(...macCashFlows.map(cf => cf.pv));
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Base ground line (the seesaw beam) */
+        ctx.strokeStyle = '#8a7a62';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(m.l - 10, m.t + cH);
+        ctx.lineTo(m.l + cW + 10, m.t + cH);
+        ctx.stroke();
+
+        /* Draw Cash Flow Bars (weights on seesaw) */
+        const barWidth = Math.max(4, Math.min(20, (cW / macCashFlows.length) * 0.6));
+        macCashFlows.forEach(cf => {
+            const px = m.l + (cf.timeYears / maxT) * cW;
+            const barH = (cf.pv / maxPV) * (cH - 40);
+            const py = m.t + cH - barH;
+
+            ctx.fillStyle = (cf.period === macCashFlows.length) ? '#8b6d2a' : '#3d6a9e';
+            ctx.fillRect(px - barWidth / 2, py, barWidth, barH);
+
+            /* Year tick */
+            if (macCashFlows.length <= 10 || cf.period % 2 === 0 || cf.period === macCashFlows.length) {
+                ctx.fillStyle = '#8a7a62';
+                ctx.font = '10px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText(cf.timeYears.toFixed(1) + 'Y', px, m.t + cH + 16);
+            }
+        });
+
+        /* Fulcrum Triangle marker at Macaulay Duration point */
+        const fx = m.l + (currentMacDur / maxT) * cW;
+        const fy = m.t + cH;
+
+        ctx.beginPath();
+        ctx.moveTo(fx, fy);
+        ctx.lineTo(fx - 12, fy + 22);
+        ctx.lineTo(fx + 12, fy + 22);
+        ctx.closePath();
+        ctx.fillStyle = '#a63d3d';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        /* Text label for Fulcrum */
+        ctx.fillStyle = '#a63d3d';
+        ctx.font = '700 11px Inter';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Fulcrum: ${currentMacDur.toFixed(2)} Yrs`, fx, fy + 36);
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#3d6a9e';
+        ctx.fillRect(lx, 10, 14, 8);
+        ctx.fillStyle = '#2c2418';
+        ctx.font = '600 11px Inter';
+        ctx.textAlign = 'left';
+        ctx.fillText('Coupons PV', lx + 18, 17);
+
+        ctx.fillStyle = '#8b6d2a';
+        ctx.fillRect(lx + 110, 10, 14, 8);
+        ctx.fillStyle = '#2c2418';
+        ctx.fillText('Principal + Coupon PV', lx + 128, 17);
+
+        /* Hover HUD */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('macHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverT = ((mx - m.l) / cW) * maxT;
+            let nearest = macCashFlows[0];
+            let minDist = 999;
+            macCashFlows.forEach(cf => {
+                const d = Math.abs(cf.timeYears - hoverT);
+                if (d < minDist) { minDist = d; nearest = cf; }
+            });
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Time</span><span class="hud-val">${nearest.timeYears.toFixed(2)} Years</span></div>
+                <div class="hud-row"><span class="hud-label">Cash Flow</span><span class="hud-val">$${nearest.cf.toFixed(2)}</span></div>
+                <div class="hud-row"><span class="hud-label">Present Value</span><span class="hud-val" style="color:#8b6d2a;">$${nearest.pv.toFixed(2)}</span></div>
+                <div class="hud-row"><span class="hud-label">Portfolio Weight</span><span class="hud-val">${(nearest.weight * 100).toFixed(2)}%</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('macHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 2: MODIFIED DURATION ENGINE                                       */
+    /* ===================================================================== */
+    function calcBondPriceRaw(face, couponPct, ytmPct, matYears, freq) {
+        const c = (couponPct / 100) * face / freq;
+        const y = (ytmPct / 100) / freq;
+        const n = Math.round(matYears * freq);
+        let pv = 0;
+        for (let t = 1; t <= n; t++) pv += c / Math.pow(1 + y, t);
+        pv += face / Math.pow(1 + y, n);
+        return pv;
+    }
+
+    function calcModifiedDurRaw(face, couponPct, ytmPct, matYears, freq) {
+        const c = (couponPct / 100) * face / freq;
+        const y = (ytmPct / 100) / freq;
+        const n = Math.round(matYears * freq);
+        let p = 0;
+        let weightedT = 0;
+        for (let t = 1; t <= n; t++) {
+            const isLast = (t === n);
+            const cf = isLast ? (c + face) : c;
+            const pv = cf / Math.pow(1 + y, t);
+            p += pv;
+            weightedT += (t / freq) * pv;
+        }
+        const dMac = weightedT / p;
+        return dMac / (1 + y);
+    }
+
+    function updateModifiedSim() {
+        const shiftBps = parseInt(document.getElementById('modYieldShift').value) || 50;
+        const mat = parseFloat(document.getElementById('modBaseMat').value) || 10;
+        const cpn = parseFloat(document.getElementById('modBaseCpn').value) || 5.0;
+        const ytm = parseFloat(document.getElementById('modBaseYTM').value) || 5.0;
+
+        document.getElementById('valModShift').innerText = (shiftBps >= 0 ? '+' : '') + shiftBps + ' bps';
+
+        const basePrice = calcBondPriceRaw(1000, cpn, ytm, mat, 2);
+        const dMod = calcModifiedDurRaw(1000, cpn, ytm, mat, 2);
+        const dv01 = (dMod * (basePrice / 10) * 0.0001);
+
+        const dy = shiftBps / 10000;
+        const newYTM = ytm + dy * 100;
+        const actualNewPrice = calcBondPriceRaw(1000, cpn, newYTM, mat, 2);
+        const actualPct = ((actualNewPrice - basePrice) / basePrice) * 100;
+        const actualDol = actualNewPrice - basePrice;
+
+        const estPct = -dMod * dy * 100;
+        const errorBps = (actualPct - estPct) * 100;
+
+        document.getElementById('resModDuration').innerText = dMod.toFixed(2) + ' Yrs';
+        document.getElementById('resModDV01').innerText = '$' + dv01.toFixed(4);
+        document.getElementById('resModActualPct').innerText = (actualPct >= 0 ? '+' : '') + actualPct.toFixed(2) + '%';
+        document.getElementById('resModActualDol').innerText = (actualDol >= 0 ? '+$' : '-$') + Math.abs(actualDol).toFixed(2) + ' on $1k';
+        document.getElementById('resModEstPct').innerText = (estPct >= 0 ? '+' : '') + estPct.toFixed(2) + '%';
+        document.getElementById('resModError').innerText = (errorBps >= 0 ? '+' : '') + errorBps.toFixed(0) + ' bps';
+
+        drawModChart();
+    }
+
+    function resetModSim() {
+        document.getElementById('modYieldShift').value = 50;
+        document.getElementById('modBaseMat').value = 10;
+        document.getElementById('modBaseCpn').value = 5.0;
+        document.getElementById('modBaseYTM').value = 5.0;
+        updateModifiedSim();
+    }
+
+    function drawModChart() {
+        const canvas = document.getElementById('modCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const shiftBps = parseInt(document.getElementById('modYieldShift').value) || 50;
+        const mat = parseFloat(document.getElementById('modBaseMat').value) || 10;
+        const cpn = parseFloat(document.getElementById('modBaseCpn').value) || 5.0;
+        const baseYTM = parseFloat(document.getElementById('modBaseYTM').value) || 5.0;
+
+        const m = { l: 55, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const minYield = Math.max(0.5, baseYTM - 3.5);
+        const maxYield = baseYTM + 3.5;
+
+        const curvePts = [];
+        for (let y = minYield; y <= maxYield; y += 0.1) {
+            curvePts.push({ y: y, p: calcBondPriceRaw(1000, cpn, y, mat, 2) });
+        }
+
+        const prices = curvePts.map(pt => pt.p);
+        const minP = Math.floor(Math.min(...prices) / 50) * 50;
+        const maxP = Math.ceil(Math.max(...prices) / 50) * 50;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let p = minP; p <= maxP; p += 100) {
+            const py = m.t + cH - ((p - minP) / (maxP - minP)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText('$' + p, m.l - 8, py + 3);
+        }
+
+        for (let y = Math.ceil(minYield); y <= Math.floor(maxYield); y++) {
+            const px = m.l + ((y - minYield) / (maxYield - minYield)) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(y + '%', px, m.t + cH + 16);
+        }
+
+        /* Draw Actual Bond Price Curve (Solid Gold) */
+        ctx.beginPath();
+        curvePts.forEach((pt, i) => {
+            const px = m.l + ((pt.y - minYield) / (maxYield - minYield)) * cW;
+            const py = m.t + cH - ((pt.p - minP) / (maxP - minP)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#8b6d2a';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        /* Draw Tangent Line at baseYTM */
+        const basePrice = calcBondPriceRaw(1000, cpn, baseYTM, mat, 2);
+        const dMod = calcModifiedDurRaw(1000, cpn, baseYTM, mat, 2);
+        const slope = -dMod * basePrice * 0.01; /* $/1% yield change */
+
+        const tX1 = minYield;
+        const tP1 = basePrice + slope * (tX1 - baseYTM);
+        const tX2 = maxYield;
+        const tP2 = basePrice + slope * (tX2 - baseYTM);
+
+        ctx.beginPath();
+        ctx.setLineDash([5, 4]);
+        ctx.moveTo(m.l + ((tX1 - minYield) / (maxYield - minYield)) * cW, m.t + cH - ((tP1 - minP) / (maxP - minP)) * cH);
+        ctx.lineTo(m.l + ((tX2 - minYield) / (maxYield - minYield)) * cW, m.t + cH - ((tP2 - minP) / (maxP - minP)) * cH);
+        ctx.strokeStyle = '#a63d3d';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        /* Base Point Dot */
+        const bX = m.l + ((baseYTM - minYield) / (maxYield - minYield)) * cW;
+        const bY = m.t + cH - ((basePrice - minP) / (maxP - minP)) * cH;
+        ctx.beginPath(); ctx.arc(bX, bY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#2c2418'; ctx.fill();
+
+        /* Shock Point Dot */
+        const shockYTM = baseYTM + shiftBps / 100;
+        const shockActualP = calcBondPriceRaw(1000, cpn, shockYTM, mat, 2);
+        const sX = m.l + ((shockYTM - minYield) / (maxYield - minYield)) * cW;
+        const sY = m.t + cH - ((shockActualP - minP) / (maxP - minP)) * cH;
+        ctx.beginPath(); ctx.arc(sX, sY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#8b6d2a'; ctx.fill();
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#8b6d2a';
+        ctx.fillRect(lx, 10, 16, 3);
+        ctx.fillStyle = '#2c2418';
+        ctx.font = '600 11px Inter';
+        ctx.textAlign = 'left';
+        ctx.fillText('Actual Price-Yield Curve', lx + 22, 14);
+
+        ctx.strokeStyle = '#a63d3d';
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(lx + 180, 11); ctx.lineTo(lx + 196, 11); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#2c2418';
+        ctx.fillText('Duration Tangent Line', lx + 204, 14);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('modHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverY = minYield + ((mx - m.l) / cW) * (maxYield - minYield);
+            const actP = calcBondPriceRaw(1000, cpn, hoverY, mat, 2);
+            const tanP = basePrice + slope * (hoverY - baseYTM);
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Yield</span><span class="hud-val">${hoverY.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Actual Price</span><span class="hud-val" style="color:#8b6d2a;">$${actP.toFixed(2)}</span></div>
+                <div class="hud-row"><span class="hud-label">Duration Est.</span><span class="hud-val" style="color:#a63d3d;">$${tanP.toFixed(2)}</span></div>
+                <div class="hud-row"><span class="hud-label">Convexity Cushion</span><span class="hud-val">+$${(actP - tanP).toFixed(2)}</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('modHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 3: EFFECTIVE DURATION CANVAS (BULLET VS CALLABLE)                 */
+    /* ===================================================================== */
+    function drawEffChart() {
+        const canvas = document.getElementById('effCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const m = { l: 55, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const minYield = 1.0;
+        const maxYield = 9.0;
+        const callPrice = 1020;
+
+        const bulletPts = [];
+        const callablePts = [];
+
+        for (let y = minYield; y <= maxYield; y += 0.1) {
+            const pBullet = calcBondPriceRaw(1000, 6.0, y, 10, 2);
+            /* Soft clipping call option ceiling model */
+            const callOptionValue = Math.max(0, pBullet - callPrice) * (1 / (1 + Math.exp(y - 4.5)));
+            const pCallable = Math.min(pBullet, callPrice + 10) - (pBullet > callPrice ? (pBullet - callPrice) * 0.75 : 0);
+
+            bulletPts.push({ y: y, p: pBullet });
+            callablePts.push({ y: y, p: Math.min(pBullet, callPrice + (pBullet - callPrice) * 0.15) });
+        }
+
+        const minP = 750;
+        const maxP = 1450;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let p = 800; p <= 1400; p += 150) {
+            const py = m.t + cH - ((p - minP) / (maxP - minP)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText('$' + p, m.l - 8, py + 3);
+        }
+
+        for (let y = 1; y <= 9; y += 1) {
+            const px = m.l + ((y - minYield) / (maxYield - minYield)) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(y + '%', px, m.t + cH + 16);
+        }
+
+        /* Call Price Ceiling Line */
+        const callY = m.t + cH - ((callPrice - minP) / (maxP - minP)) * cH;
+        ctx.beginPath();
+        ctx.setLineDash([4, 4]);
+        ctx.moveTo(m.l, callY); ctx.lineTo(m.l + cW, callY);
+        ctx.strokeStyle = '#a63d3d'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#a63d3d'; ctx.font = '600 10px Inter'; ctx.textAlign = 'right';
+        ctx.fillText('Call Price: $1,020', m.l + cW - 10, callY - 6);
+
+        /* Plot Bullet Bond (Blue) */
+        ctx.beginPath();
+        bulletPts.forEach((pt, i) => {
+            const px = m.l + ((pt.y - minYield) / (maxYield - minYield)) * cW;
+            const py = m.t + cH - ((pt.p - minP) / (maxP - minP)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#3d6a9e';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        /* Plot Callable Bond (Gold) */
+        ctx.beginPath();
+        callablePts.forEach((pt, i) => {
+            const px = m.l + ((pt.y - minYield) / (maxYield - minYield)) * cW;
+            const py = m.t + cH - ((pt.p - minP) / (maxP - minP)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#8b6d2a';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#3d6a9e'; ctx.fillRect(lx, 10, 16, 3);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('Bullet Option-Free Bond', lx + 22, 14);
+
+        ctx.fillStyle = '#8b6d2a'; ctx.fillRect(lx + 180, 10, 16, 3);
+        ctx.fillStyle = '#2c2418';
+        ctx.fillText('Callable Bond (Negative Convexity)', lx + 202, 14);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('effHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverY = minYield + ((mx - m.l) / cW) * (maxYield - minYield);
+            const pBul = calcBondPriceRaw(1000, 6.0, hoverY, 10, 2);
+            const pCal = Math.min(pBul, callPrice + (pBul - callPrice) * 0.15);
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Yield</span><span class="hud-val">${hoverY.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Bullet Price</span><span class="hud-val" style="color:#3d6a9e;">$${pBul.toFixed(2)}</span></div>
+                <div class="hud-row"><span class="hud-label">Callable Price</span><span class="hud-val" style="color:#8b6d2a;">$${pCal.toFixed(2)}</span></div>
+                <div class="hud-row"><span class="hud-label">Call Option Drag</span><span class="hud-val">-$${Math.max(0, pBul - pCal).toFixed(2)}</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('effHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 4: CONVEXITY ENGINE                                               */
+    /* ===================================================================== */
+    function calcConvexityRaw(face, couponPct, ytmPct, matYears, freq) {
+        const c = (couponPct / 100) * face / freq;
+        const y = (ytmPct / 100) / freq;
+        const n = Math.round(matYears * freq);
+        let p = 0;
+        let cvxSum = 0;
+
+        for (let t = 1; t <= n; t++) {
+            const isLast = (t === n);
+            const cf = isLast ? (c + face) : c;
+            const pv = cf / Math.pow(1 + y, t);
+            p += pv;
+            cvxSum += t * (t + 1) * pv;
+        }
+
+        /* Annualized Convexity = (1 / (P * (1+y)^2 * freq^2)) * sum */
+        return cvxSum / (p * Math.pow(1 + y, 2) * Math.pow(freq, 2));
+    }
+
+    function updateConvexityCalc() {
+        const shockBps = parseInt(document.getElementById('cvxShock').value) || 150;
+        const mat = parseFloat(document.getElementById('cvxMat').value) || 20;
+        const cpn = parseFloat(document.getElementById('cvxCpn').value) || 4.5;
+        const ytm = parseFloat(document.getElementById('cvxYTM').value) || 4.5;
+
+        document.getElementById('valCvxShock').innerText = (shockBps >= 0 ? '+' : '') + shockBps + ' bps';
+
+        const basePrice = calcBondPriceRaw(1000, cpn, ytm, mat, 2);
+        const dMod = calcModifiedDurRaw(1000, cpn, ytm, mat, 2);
+        const cvx = calcConvexityRaw(1000, cpn, ytm, mat, 2);
+
+        const dy = shockBps / 10000;
+        const newYTM = ytm + dy * 100;
+        const actualP = calcBondPriceRaw(1000, cpn, newYTM, mat, 2);
+        const actualPct = ((actualP - basePrice) / basePrice) * 100;
+
+        const durOnlyPct = -dMod * dy * 100;
+        const cvxAdjPct = 0.5 * cvx * Math.pow(dy, 2) * 100;
+        const combinedPct = durOnlyPct + cvxAdjPct;
+
+        document.getElementById('resCvxDmod').innerText = dMod.toFixed(2) + ' Yrs';
+        document.getElementById('resCvxMeasure').innerText = cvx.toFixed(1);
+        document.getElementById('resCvxActual').innerText = (actualPct >= 0 ? '+' : '') + actualPct.toFixed(2) + '%';
+        document.getElementById('resCvxEstCombined').innerText = (combinedPct >= 0 ? '+' : '') + combinedPct.toFixed(2) + '%';
+        document.getElementById('resCvxEstDurOnly').innerText = (durOnlyPct >= 0 ? '+' : '') + durOnlyPct.toFixed(2) + '%';
+
+        drawCvxChart();
+    }
+
+    function resetConvexityCalc() {
+        document.getElementById('cvxShock').value = 150;
+        document.getElementById('cvxMat').value = 20;
+        document.getElementById('cvxCpn').value = 4.5;
+        document.getElementById('cvxYTM').value = 4.5;
+        updateConvexityCalc();
+    }
+
+    function presetCvxMinus200() {
+        document.getElementById('cvxShock').value = -200;
+        updateConvexityCalc();
+    }
+
+    function drawCvxChart() {
+        const canvas = document.getElementById('cvxCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const mat = parseFloat(document.getElementById('cvxMat').value) || 20;
+        const cpn = parseFloat(document.getElementById('cvxCpn').value) || 4.5;
+        const baseYTM = parseFloat(document.getElementById('cvxYTM').value) || 4.5;
+
+        const m = { l: 55, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const minYield = Math.max(0.5, baseYTM - 3.0);
+        const maxYield = baseYTM + 3.0;
+
+        const baseP = calcBondPriceRaw(1000, cpn, baseYTM, mat, 2);
+        const dMod = calcModifiedDurRaw(1000, cpn, baseYTM, mat, 2);
+        const cvx = calcConvexityRaw(1000, cpn, baseYTM, mat, 2);
+
+        const ptsActual = [];
+        const ptsTangent = [];
+        const ptsQuadratic = [];
+
+        for (let y = minYield; y <= maxYield; y += 0.1) {
+            const dy = (y - baseYTM) / 100;
+            const pAct = calcBondPriceRaw(1000, cpn, y, mat, 2);
+            const pTan = baseP * (1 - dMod * dy);
+            const pQuad = baseP * (1 - dMod * dy + 0.5 * cvx * Math.pow(dy, 2));
+
+            ptsActual.push({ y: y, p: pAct });
+            ptsTangent.push({ y: y, p: pTan });
+            ptsQuadratic.push({ y: y, p: pQuad });
+        }
+
+        const minP = Math.floor(Math.min(...ptsActual.map(p => p.p)) / 50) * 50;
+        const maxP = Math.ceil(Math.max(...ptsActual.map(p => p.p)) / 50) * 50;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let p = minP; p <= maxP; p += 150) {
+            const py = m.t + cH - ((p - minP) / (maxP - minP)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText('$' + p, m.l - 8, py + 3);
+        }
+
+        for (let y = Math.ceil(minYield); y <= Math.floor(maxYield); y++) {
+            const px = m.l + ((y - minYield) / (maxYield - minYield)) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(y + '%', px, m.t + cH + 16);
+        }
+
+        /* 1. Linear Tangent (Red Dashed) */
+        ctx.beginPath();
+        ctx.setLineDash([4, 4]);
+        ptsTangent.forEach((pt, i) => {
+            const px = m.l + ((pt.y - minYield) / (maxYield - minYield)) * cW;
+            const py = m.t + cH - ((pt.p - minP) / (maxP - minP)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#a63d3d'; ctx.lineWidth = 1.8; ctx.stroke();
+        ctx.setLineDash([]);
+
+        /* 2. Quadratic Dur+Cvx Approximation (Blue) */
+        ctx.beginPath();
+        ctx.setLineDash([3, 2]);
+        ptsQuadratic.forEach((pt, i) => {
+            const px = m.l + ((pt.y - minYield) / (maxYield - minYield)) * cW;
+            const py = m.t + cH - ((pt.p - minP) / (maxP - minP)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#3d6a9e'; ctx.lineWidth = 2.2; ctx.stroke();
+        ctx.setLineDash([]);
+
+        /* 3. Actual Price (Gold Solid) */
+        ctx.beginPath();
+        ptsActual.forEach((pt, i) => {
+            const px = m.l + ((pt.y - minYield) / (maxYield - minYield)) * cW;
+            const py = m.t + cH - ((pt.p - minP) / (maxP - minP)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#8b6d2a'; ctx.lineWidth = 3; ctx.stroke();
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#8b6d2a'; ctx.fillRect(lx, 10, 14, 3);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('Actual Price', lx + 18, 14);
+
+        ctx.strokeStyle = '#3d6a9e'; ctx.setLineDash([3, 2]);
+        ctx.beginPath(); ctx.moveTo(lx + 105, 11); ctx.lineTo(lx + 119, 11); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Duration + Convexity', lx + 125, 14);
+
+        ctx.strokeStyle = '#a63d3d'; ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(lx + 270, 11); ctx.lineTo(lx + 284, 11); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Duration Only', lx + 290, 14);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('cvxHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverY = minYield + ((mx - m.l) / cW) * (maxYield - minYield);
+            const dy = (hoverY - baseYTM) / 100;
+            const act = calcBondPriceRaw(1000, cpn, hoverY, mat, 2);
+            const dur = baseP * (1 - dMod * dy);
+            const quad = baseP * (1 - dMod * dy + 0.5 * cvx * Math.pow(dy, 2));
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Yield</span><span class="hud-val">${hoverY.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Actual Price</span><span class="hud-val" style="color:#8b6d2a;">$${act.toFixed(2)}</span></div>
+                <div class="hud-row"><span class="hud-label">Dur + Cvx Est.</span><span class="hud-val" style="color:#3d6a9e;">$${quad.toFixed(2)}</span></div>
+                <div class="hud-row"><span class="hud-label">Dur Only Est.</span><span class="hud-val" style="color:#a63d3d;">$${dur.toFixed(2)}</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('cvxHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 5: PORTFOLIO DURATION & IMMUNIZATION                              */
+    /* ===================================================================== */
+    const bonds = [
+        { name: '2Y Note',  dMod: 1.90, cvx: 4.8 },
+        { name: '5Y Note',  dMod: 4.40, cvx: 23.5 },
+        { name: '20Y Bond', dMod: 13.20, cvx: 245.0 }
+    ];
+
+    function updatePortfolioCalc() {
+        let w1 = parseInt(document.getElementById('wBond1').value) || 0;
+        let w2 = parseInt(document.getElementById('wBond2').value) || 0;
+        let w3 = parseInt(document.getElementById('wBond3').value) || 0;
+
+        const sum = w1 + w2 + w3;
+        document.getElementById('valW1').innerText = w1 + '%';
+        document.getElementById('valW2').innerText = w2 + '%';
+        document.getElementById('valW3').innerText = w3 + '%';
+
+        document.getElementById('resPortSum').innerText = sum + '%';
+        const sumSub = document.getElementById('resPortSumSub');
+        if (sum === 100) sumSub.innerText = 'Fully Invested';
+        else if (sum > 100) sumSub.innerText = 'Leveraged (>100%)';
+        else sumSub.innerText = `Cash Buffer (${100 - sum}%)`;
+
+        /* Normalize weights for duration calculation */
+        const normW1 = w1 / 100;
+        const normW2 = w2 / 100;
+        const normW3 = w3 / 100;
+
+        const portD = normW1 * bonds[0].dMod + normW2 * bonds[1].dMod + normW3 * bonds[2].dMod;
+        const portC = normW1 * bonds[0].cvx + normW2 * bonds[1].cvx + normW3 * bonds[2].cvx;
+        const fundNotional = 10000000;
+        const portDV01 = portD * fundNotional * 0.0001;
+
+        document.getElementById('resPortDuration').innerText = portD.toFixed(2) + ' Yrs';
+        document.getElementById('resPortCvx').innerText = portC.toFixed(1);
+        document.getElementById('resPortDV01').innerText = '$' + Math.round(portDV01).toLocaleString();
+
+        drawPortChart();
+    }
+
+    function presetPortBarbell() {
+        document.getElementById('wBond1').value = 50;
+        document.getElementById('wBond2').value = 0;
+        document.getElementById('wBond3').value = 50;
+        updatePortfolioCalc();
+    }
+
+    function presetPortBullet() {
+        document.getElementById('wBond1').value = 0;
+        document.getElementById('wBond2').value = 100;
+        document.getElementById('wBond3').value = 0;
+        updatePortfolioCalc();
+    }
+
+    function presetPortBalanced() {
+        document.getElementById('wBond1').value = 30;
+        document.getElementById('wBond2').value = 40;
+        document.getElementById('wBond3').value = 30;
+        updatePortfolioCalc();
+    }
+
+    function drawPortChart() {
+        const canvas = document.getElementById('portCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const w1 = (parseInt(document.getElementById('wBond1').value) || 0) / 100;
+        const w2 = (parseInt(document.getElementById('wBond2').value) || 0) / 100;
+        const w3 = (parseInt(document.getElementById('wBond3').value) || 0) / 100;
+
+        const portD = w1 * bonds[0].dMod + w2 * bonds[1].dMod + w3 * bonds[2].dMod;
+        const portC = w1 * bonds[0].cvx + w2 * bonds[1].cvx + w3 * bonds[2].cvx;
+
+        const m = { l: 55, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const shockRange = [];
+        for (let dyBps = -200; dyBps <= 200; dyBps += 10) shockRange.push(dyBps);
+
+        const pts = shockRange.map(dyBps => {
+            const dy = dyBps / 10000;
+            const retPct = (-portD * dy + 0.5 * portC * Math.pow(dy, 2)) * 100;
+            return { dyBps: dyBps, ret: retPct };
+        });
+
+        const minR = -25;
+        const maxR = 30;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let r = -20; r <= 30; r += 10) {
+            const py = m.t + cH - ((r - minR) / (maxR - minR)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText((r >= 0 ? '+' : '') + r + '%', m.l - 8, py + 3);
+        }
+
+        [-200, -100, 0, 100, 200].forEach(bps => {
+            const px = m.l + ((bps + 200) / 400) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText((bps >= 0 ? '+' : '') + bps + ' bps', px, m.t + cH + 16);
+        });
+
+        /* Zero return line */
+        const zeroY = m.t + cH - ((0 - minR) / (maxR - minR)) * cH;
+        ctx.strokeStyle = '#8a7a62'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(m.l, zeroY); ctx.lineTo(m.l + cW, zeroY); ctx.stroke();
+
+        /* Plot Curve */
+        ctx.beginPath();
+        pts.forEach((pt, i) => {
+            const px = m.l + ((pt.dyBps + 200) / 400) * cW;
+            const py = m.t + cH - ((pt.ret - minR) / (maxR - minR)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#8b6d2a';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#8b6d2a'; ctx.fillRect(lx, 10, 16, 3);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText(`Portfolio Return Profile (Dur = ${portD.toFixed(2)}Y, Cvx = ${portC.toFixed(0)})`, lx + 22, 14);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('portHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverBps = Math.round(-200 + ((mx - m.l) / cW) * 400);
+            const dy = hoverBps / 10000;
+            const ret = (-portD * dy + 0.5 * portC * Math.pow(dy, 2)) * 100;
+            const dollarPnL = Math.round(10000000 * (ret / 100));
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Yield Shift</span><span class="hud-val">${hoverBps >= 0 ? '+' : ''}${hoverBps} bps</span></div>
+                <div class="hud-row"><span class="hud-label">Capital Return</span><span class="hud-val" style="color:#8b6d2a;">${ret >= 0 ? '+' : ''}${ret.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Dollar P&amp;L</span><span class="hud-val">${dollarPnL >= 0 ? '+$' : '-$'}${Math.abs(dollarPnL).toLocaleString()}</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('portHud').style.display = 'none';
+        };
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,2175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interest Rate Risk — Fixed Income Mastery</title>
+    <meta name="description" content="Master fixed income risk management: DV01, PV01, Key Rate Durations (KRD), Treasury futures hedging, CTD conversion factors, and scenario stress testing.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        /* ===== CSS Custom Properties (Parchment / Classic Bond Aesthetic) ===== */
+        :root {
+            --bg: #e8dcc8;
+            --bg-warm: #dfd3be;
+            --surface: #d6c9b1;
+            --surface-2: #cdbfa5;
+            --surface-3: #c4b599;
+            --surface-hover: #bfae90;
+            --border: #b8a688;
+            --border-glow: #8b6d2a55;
+            --text: #2c2418;
+            --text-secondary: #5a4d3a;
+            --text-muted: #8a7a62;
+            --accent: #8b6d2a;
+            --accent-light: #a6843a;
+            --accent-dark: #6e5520;
+            --accent-glow: #8b6d2a20;
+            --accent-strong-glow: #8b6d2a38;
+            --green: #4a7c3f;
+            --red: #a63d3d;
+            --blue: #3d6a9e;
+            --orange: #b07328;
+            --purple: #6a4c93;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ===== Sine Wave Background ===== */
+        .wave-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .wave-bg canvas { width: 100%; height: 100%; }
+
+        /* ===== Layout ===== */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px 60px;
+        }
+
+        /* ===== Header ===== */
+        .top-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--accent); }
+        .back-link svg { width: 16px; height: 16px; transition: transform 0.2s; }
+        .back-link:hover svg { transform: translateX(-3px); }
+
+        .module-badge {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent);
+            background: var(--accent-glow);
+            border: 1px solid var(--border-glow);
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .module-title-bar {
+            text-align: center;
+            padding: 32px 0 24px;
+        }
+
+        .module-title-bar h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .module-title-bar .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== Tab Navigation ===== */
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 32px;
+            overflow-x: auto;
+            padding-bottom: 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-tab {
+            padding: 12px 18px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            font-family: var(--font-body);
+            letter-spacing: 0.01em;
+        }
+        .nav-tab:hover { color: var(--text-secondary); }
+        .nav-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ===== Content Cards ===== */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            font-weight: 650;
+            color: var(--text);
+            margin: 20px 0 10px;
+        }
+
+        .card p, .card li {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .card ul, .card ol {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+
+        .card li { margin-bottom: 6px; }
+
+        /* ===== KaTeX Formula Blocks ===== */
+        .formula-block {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            overflow-x: auto;
+            text-align: center;
+        }
+
+        .formula-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        /* ===== Tables ===== */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 16px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        th {
+            background: var(--surface-2);
+            color: var(--text);
+            font-weight: 650;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--accent-glow); }
+
+        /* ===== Alerts ===== */
+        .alert {
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin: 16px 0;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            display: flex;
+            gap: 10px;
+        }
+
+        .alert-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+        .alert-info {
+            background: #3d6a9e15;
+            border: 1px solid #3d6a9e30;
+            color: var(--blue);
+        }
+
+        .alert-tip {
+            background: #4a7c3f15;
+            border: 1px solid #4a7c3f30;
+            color: var(--green);
+        }
+
+        .alert-warning {
+            background: #b0732815;
+            border: 1px solid #b0732830;
+            color: var(--orange);
+        }
+
+        .alert-key {
+            background: var(--accent-glow);
+            border: 1px solid var(--border-glow);
+            color: var(--accent-dark);
+        }
+
+        /* ===== Interactive Controls ===== */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin: 16px 0;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .control-group input[type="number"],
+        .control-group select {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .control-group input[type="range"] {
+            accent-color: var(--accent);
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus {
+            border-color: var(--accent);
+        }
+
+        /* ===== KPI Results ===== */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .kpi {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            text-align: center;
+        }
+
+        .kpi.highlight-kpi {
+            border: 2px solid var(--accent);
+            background: var(--accent-glow);
+        }
+
+        .kpi-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .kpi-value {
+            font-family: var(--font-mono);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .kpi-sub {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ===== Buttons ===== */
+        .btn {
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .btn-primary:hover { background: var(--accent-light); }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-secondary);
+        }
+        .btn-secondary:hover { background: var(--surface-2); }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== Canvas Chart Wrapper ===== */
+        .chart-wrapper {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            position: relative;
+        }
+
+        .chart-wrapper canvas {
+            width: 100%;
+            cursor: crosshair;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chart-title {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ===== Hover HUD (Floating Tooltip) ===== */
+        .chart-hud {
+            position: absolute;
+            pointer-events: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+            z-index: 10;
+            display: none;
+            white-space: nowrap;
+        }
+
+        .chart-hud .hud-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 2px;
+        }
+        .chart-hud .hud-row:last-child { margin-bottom: 0; }
+
+        .chart-hud .hud-label { color: var(--text-muted); }
+        .chart-hud .hud-val { font-weight: 600; color: var(--accent); }
+
+        /* ===== Pill Selector ===== */
+        .pill-group {
+            display: inline-flex;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 2px;
+            gap: 2px;
+            flex-wrap: wrap;
+        }
+
+        .pill-btn {
+            background: none;
+            border: none;
+            padding: 5px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-body);
+        }
+
+        .pill-btn.active {
+            background: var(--accent);
+            color: #ffffff;
+        }
+
+        /* ===== Interview Q&A Flashcards ===== */
+        .qa-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .qa-question {
+            padding: 16px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        .qa-question:hover { background: var(--accent-glow); }
+
+        .qa-toggle {
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-weight: 700;
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s;
+        }
+
+        .qa-card.open .qa-toggle { transform: rotate(45deg); }
+
+        .qa-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .qa-card.open .qa-answer { max-height: 800px; }
+
+        .qa-answer-inner {
+            padding: 0 20px 18px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            border-top: 1px solid var(--border);
+            padding-top: 14px;
+        }
+
+        .qa-answer-inner strong { color: var(--text); }
+        .qa-desk-tip {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: var(--accent-glow);
+            border-left: 3px solid var(--accent);
+            font-size: 0.8rem;
+            color: var(--accent-dark);
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* ===== Footer ===== */
+        .footer {
+            text-align: center;
+            padding: 24px 0;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-warm); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 700px) {
+            .module-title-bar h1 { font-size: 1.7rem; }
+            .nav-tabs { gap: 0; }
+            .nav-tab { padding: 10px 12px; font-size: 0.75rem; }
+            .card { padding: 20px 16px; }
+            .controls-grid { grid-template-columns: 1fr 1fr; }
+            .kpi-grid { grid-template-columns: 1fr 1fr; }
+            .formula-block { padding: 12px 14px; overflow-x: auto; }
+            .table-wrapper { font-size: 0.78rem; }
+        }
+
+        @media (max-width: 480px) {
+            .controls-grid { grid-template-columns: 1fr; }
+            .kpi-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wave-bg"><canvas id="waveCanvas"></canvas></div>
+
+    <div class="main-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-header">
+            <a href="index.html" class="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>All Modules</span>
+            </a>
+            <span class="module-badge">Module 05 · Interest Rate Risk</span>
+        </header>
+
+        <!-- Module Header -->
+        <div class="module-title-bar">
+            <h1>Interest Rate Risk & Hedging</h1>
+            <p class="subtitle">DV01 sensitivity, Key Rate Durations (KRD), Treasury futures hedge ratios, CTD conversion, and scenario stress testing</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs" role="tablist">
+            <button class="nav-tab active" data-tab="dv01" role="tab">1. DV01 & PV01</button>
+            <button class="nav-tab" data-tab="krd" role="tab">2. Key Rate Durations</button>
+            <button class="nav-tab" data-tab="hedge" role="tab">3. Futures Hedging</button>
+            <button class="nav-tab" data-tab="scenario" role="tab">4. Scenario Stress Testing</button>
+            <button class="nav-tab" data-tab="qa" role="tab">5. Interview Q&A</button>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 1: DV01 & PV01                                                   -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel active" id="tab-dv01" role="tabpanel">
+            <div class="card">
+                <h2>DV01: The Currency of Rates Trading Desks</h2>
+                <p>
+                    While Modified Duration expresses interest rate risk as a percentage, real trading desks and risk managers manage books in <strong>Dollar Terms</strong>. The standard market metric is <strong>DV01</strong> (<em>Dollar Value of an 01</em>, or BPV &mdash; <em>Basis Point Value</em>), which measures the exact dollar change in position value for a 1 basis point ($0.01\% = 0.0001$) shift in yield:
+                </p>
+
+                <div class="formula-block">
+                    <div class="formula-label">DV01 Formulation</div>
+                    <div id="formula-dv01-def"></div>
+                </div>
+
+                <h3>DV01 vs PV01: The Market Distinction</h3>
+                <ul>
+                    <li><strong>DV01 (Bonds):</strong> The dollar price drop when the yield to maturity increases by $+1\text{ bp}$. Because bond prices move inversely to yields, a positive DV01 denotes a long bond position that loses money when rates rise.</li>
+                    <li><strong>PV01 (Swaps):</strong> The Present Value of a 1 basis point annuity over the lifetime of an interest rate swap. For a vanilla fixed-for-floating swap:
+                    <div class="formula-block" style="margin: 10px 0;">
+                        <div class="formula-label">Swap PV01 Annuity Formula</div>
+                        <div id="formula-pv01-swap"></div>
+                    </div>
+                    Where $\alpha_i$ is the day-count accrual fraction and $DF_i$ is the discount factor.</li>
+                </ul>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">💡</span>
+                    <div>
+                        <strong>Institutional Rule of Thumb:</strong> A 10-year par Treasury note has a modified duration of approximately $7.8\text{ years}$. For a <strong>$100,000,000 position</strong>, its DV01 is:
+                        <div style="font-family: var(--font-mono); margin-top: 4px; font-weight: 600;">
+                            \text{DV01} = 7.8 \times \$100,000,000 \times 0.0001 = \mathbf{\$78,000\text{ per basis point}}
+                        </div>
+                        If 10Y yields jump by 15 bps following an employment print, the desk takes an immediate mark-to-market loss of $\$78,000 \times 15 = \mathbf{\$1,170,000}$.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive DV01 Calculator & Term Structure Profile -->
+            <div class="card">
+                <h2>Interactive DV01 Calculator & Maturity Profile</h2>
+                <p>
+                    Enter your position parameters below to compute the single-bond DV01, scale across total portfolio notional, and inspect the DV01 term structure profile across benchmark maturities.
+                </p>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label for="dv01Notional">Portfolio Notional ($)</label>
+                        <input type="number" id="dv01Notional" value="10000000" min="100000" max="1000000000" step="500000" oninput="calculateDV01Tab()">
+                    </div>
+                    <div class="control-group">
+                        <label for="dv01Mat">Bond Maturity (Years)</label>
+                        <input type="number" id="dv01Mat" value="10" min="1" max="30" step="1" oninput="calculateDV01Tab()">
+                    </div>
+                    <div class="control-group">
+                        <label for="dv01Coupon">Coupon Rate (%)</label>
+                        <input type="number" id="dv01Coupon" value="4.50" min="0" max="20" step="0.25" oninput="calculateDV01Tab()">
+                    </div>
+                    <div class="control-group">
+                        <label for="dv01YTM">Yield to Maturity (%)</label>
+                        <input type="number" id="dv01YTM" value="4.50" min="0.1" max="20" step="0.1" oninput="calculateDV01Tab()">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="reinitDV01Tab()">Reset to $10M 10Y Par</button>
+                    <button class="btn btn-secondary" onclick="presetDV01Zero()">Preset: 10Y Zero-Coupon ($10M)</button>
+                    <button class="btn btn-secondary" onclick="presetDV01Mega()">Preset: $100M 30Y Long Bond</button>
+                </div>
+
+                <!-- KPIs -->
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi highlight-kpi">
+                        <div class="kpi-label">Total Portfolio DV01</div>
+                        <div class="kpi-value" id="resPortDV01Val">$7,950</div>
+                        <div class="kpi-sub">Loss per +1 bp Move</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">DV01 per $100 Par</div>
+                        <div class="kpi-value" id="resPer100DV01">$0.0795</div>
+                        <div class="kpi-sub">Quote Basis Metric</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Modified Duration</div>
+                        <div class="kpi-value" id="resDV01Dmod">7.95 Yrs</div>
+                        <div class="kpi-sub">$D_{\text{mac}} / (1 + y/2)$</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">P&amp;L for +25 bps Hike</div>
+                        <div class="kpi-value" id="resDV01ShockLoss" style="color:var(--red);">-$198,750</div>
+                        <div class="kpi-sub">Unhedged Risk</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: DV01 Term Structure Chart -->
+                <div class="chart-header" style="margin-top: 24px;">
+                    <div class="chart-title">DV01 Profile per $10,000,000 Notional across Maturities</div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="dv01Canvas" height="280"></canvas>
+                    <div class="chart-hud" id="dv01Hud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 2: KEY RATE DURATIONS                                            -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-krd" role="tabpanel">
+            <div class="card">
+                <h2>Key Rate Durations (KRD): Non-Parallel Curve Risk</h2>
+                <p>
+                    Standard duration assumes parallel yield curve shifts. In reality, yield curve movements are almost never parallel &mdash; steepening, flattening, and butterfly twists occur daily. A portfolio manager can be perfectly duration-hedged against a parallel shift and still suffer catastrophic losses from a curve steepener!
+                </p>
+                <p>
+                    <strong>Key Rate Duration (KRD)</strong> decomposes total duration into sensitivities to specific localized points (key rate nodes) along the yield curve:
+                </p>
+
+                <div class="formula-block">
+                    <div class="formula-label">Key Rate Duration Numerical Formula</div>
+                    <div id="formula-krd-def"></div>
+                </div>
+
+                <h3>The Fundamental Identity: Sum of KRDs</h3>
+                <p>
+                    Because a parallel shift is simply the simultaneous shift of all key rates by the same amount, <strong>the sum of all Key Rate Durations equals the total effective/modified duration</strong>:
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">KRD Additive Identity</div>
+                    <div id="formula-krd-sum"></div>
+                </div>
+
+                <h3>Bullet vs Barbell KRD Footprints</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Portfolio Type</th>
+                                <th>Total Duration</th>
+                                <th>KRD Distribution Profile</th>
+                                <th>Vulnerability</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>7Y Bullet</strong></td>
+                                <td>5.8 Years</td>
+                                <td>100% concentrated around the 5Y &ndash; 7Y key rate nodes.</td>
+                                <td>Underperforms if the 5Y&ndash;7Y sector cheapens (negative butterfly).</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Barbell (2Y + 20Y)</strong></td>
+                                <td>5.8 Years</td>
+                                <td>Split: ~50% at the 2Y node and ~50% at the 20Y node; zero at 7Y.</td>
+                                <td>Severely harmed by a <strong>Curve Steepener</strong> (2Y yields fall, 20Y yields soar).</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Interactive KRD Profile Visualizer -->
+            <div class="card">
+                <h2>Interactive KRD Vector Profile Visualizer</h2>
+                <p>
+                    Select different portfolio structures with the <em>same total duration (~6.0 years)</em> to inspect how their localized curve exposures diverge completely across the 1Y, 2Y, 3Y, 5Y, 7Y, 10Y, 20Y, and 30Y key rate buckets.
+                </p>
+
+                <div class="chart-header">
+                    <div class="chart-title">Select Portfolio Structure</div>
+                    <div class="pill-group">
+                        <button class="pill-btn active" id="btnKrdBullet" onclick="setKrdPreset('bullet')">7Y Bullet Bond</button>
+                        <button class="pill-btn" id="btnKrdBarbell" onclick="setKrdPreset('barbell')">Barbell (2Y + 20Y)</button>
+                        <button class="pill-btn" id="btnKrdLadder" onclick="setKrdPreset('ladder')">Even Ladder (1Y to 10Y)</button>
+                    </div>
+                </div>
+
+                <div class="chart-wrapper">
+                    <canvas id="krdCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="krdHud"></div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="setKrdPreset('bullet')">Reset to Bullet</button>
+                </div>
+
+                <!-- KPIs -->
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi">
+                        <div class="kpi-label">Total Duration ($\sum \text{KRD}$)</div >
+                        <div class="kpi-value" id="resKrdTotal">5.82 Yrs</div>
+                        <div class="kpi-sub">Parallel Sensitivity</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Front-End KRD (1Y-3Y)</div>
+                        <div class="kpi-value" id="resKrdFront">0.12 Yrs</div>
+                        <div class="kpi-sub">Cash / Fed Policy Node</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Belly KRD (5Y-7Y)</div>
+                        <div class="kpi-value" id="resKrdBelly">5.45 Yrs</div>
+                        <div class="kpi-sub">Intermediate Pivot</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Long-End KRD (10Y-30Y)</div>
+                        <div class="kpi-value" id="resKrdLong">0.25 Yrs</div>
+                        <div class="kpi-sub">Term Premium Node</div>
+                    </div>
+                </div>
+
+                <div class="alert alert-key" id="krdAnalysisBox">
+                    <strong>Bullet Profile:</strong> Risk is almost 100% clustered around the 5Y and 7Y maturities. A parallel duration hedge using a 7Y swap is highly effective, but the position is exposed to intermediate curvature shifts.
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 3: HEDGING WITH FUTURES                                          -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-hedge" role="tabpanel">
+            <div class="card">
+                <h2>Hedging with Treasury Futures & The CTD Mechanism</h2>
+                <p>
+                    Treasury futures (traded on the CME) are the most liquid derivatives in the world for hedging interest rate risk. Because CME Treasury futures allow the short counterparty to deliver any Treasury bond meeting maturity criteria from a basket of deliverable securities, pricing is tethered to the <strong>Cheapest-to-Deliver (CTD)</strong> bond.
+                </p>
+
+                <h3>The Conversion Factor ($CF$) & Hedge Ratio Formula</h3>
+                <p>
+                    To equalize price differences among deliverable bonds, the exchange computes a <strong>Conversion Factor ($CF$)</strong> for each bond (representing the price per $1 par at which the bond would yield $6.00\%$). The optimal DV01-neutral futures hedge ratio is:
+                </p>
+
+                <div class="formula-block">
+                    <div class="formula-label">Optimal Futures Hedge Ratio Formula</div>
+                    <div id="formula-hedge-ratio"></div>
+                </div>
+
+                <h3>CME Treasury Futures Contract Specifications</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ticker</th>
+                                <th>Contract Name</th>
+                                <th>Notional</th>
+                                <th>Deliverable Maturity</th>
+                                <th>Typical DV01 per Contract</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>ZT</strong></td>
+                                <td>2-Year T-Note</td>
+                                <td>$200,000</td>
+                                <td>1 yr 9 mos to 2 yrs</td>
+                                <td><strong>~$38.50</strong></td>
+                            </tr>
+                            <tr>
+                                <td><strong>ZF</strong></td>
+                                <td>5-Year T-Note</td>
+                                <td>$100,000</td>
+                                <td>4 yrs 2 mos to 5 yrs 3 mos</td>
+                                <td><strong>~$42.00</strong></td>
+                            </tr>
+                            <tr>
+                                <td><strong>ZN</strong></td>
+                                <td>10-Year T-Note</td>
+                                <td>$100,000</td>
+                                <td>6 yrs 5 mos to 7 yrs 11 mos</td>
+                                <td><strong>~$71.50</strong></td>
+                            </tr>
+                            <tr>
+                                <td><strong>TN</strong></td>
+                                <td>Ultra 10-Year</td>
+                                <td>$100,000</td>
+                                <td>9 yrs 5 mos to 10 yrs</td>
+                                <td><strong>~$88.00</strong></td>
+                            </tr>
+                            <tr>
+                                <td><strong>ZB</strong></td>
+                                <td>Classic 30-Year Bond</td>
+                                <td>$100,000</td>
+                                <td>15 yrs to 25 yrs</td>
+                                <td><strong>~$135.00</strong></td>
+                            </tr>
+                            <tr>
+                                <td><strong>UB</strong></td>
+                                <td>Ultra 30-Year Bond</td>
+                                <td>$100,000</td>
+                                <td>&ge; 25 yrs</td>
+                                <td><strong>~$220.00</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">⚠️</span>
+                    <div>
+                        <strong>Basis Risk:</strong> Even with a calculated DV01-neutral hedge, residual risk remains due to:
+                        (1) <em>Yield spread basis</em> between portfolio bonds (e.g. corporate credit) and the Treasury CTD;
+                        (2) <em>CTD Switch Risk</em> (if yields shift enough, a different bond becomes CTD, abruptly altering contract duration);
+                        (3) <em>Futures Roll Risk</em> (quarterly expiry roll basis).
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Futures Hedge Calculator Card -->
+            <div class="card">
+                <h2>Interactive Futures Hedge Sizing Calculator</h2>
+                <p>
+                    Size the exact number of CME Treasury futures contracts needed to immunize a target bond portfolio against interest rate shocks.
+                </p>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label for="hdgPortValue">Portfolio Value ($)</label>
+                        <input type="number" id="hdgPortValue" value="25000000" min="1000000" max="1000000000" step="1000000" oninput="calculateFuturesHedge()">
+                    </div>
+                    <div class="control-group">
+                        <label for="hdgPortDur">Portfolio Mod Duration (Yrs)</label>
+                        <input type="number" id="hdgPortDur" value="6.80" min="0.5" max="25" step="0.1" oninput="calculateFuturesHedge()">
+                    </div>
+                    <div class="control-group">
+                        <label for="hdgContract">Hedging Contract</label>
+                        <select id="hdgContract" onchange="calculateFuturesHedge()">
+                            <option value="ZT">2Y T-Note (ZT) &mdash; DV01 ~$38.50</option>
+                            <option value="ZF">5Y T-Note (ZF) &mdash; DV01 ~$42.00</option>
+                            <option value="ZN" selected>10Y T-Note (ZN) &mdash; DV01 ~$71.50</option>
+                            <option value="TN">Ultra 10Y (TN) &mdash; DV01 ~$88.00</option>
+                            <option value="ZB">30Y Bond (ZB) &mdash; DV01 ~$135.00</option>
+                            <option value="UB">Ultra Bond (UB) &mdash; DV01 ~$220.00</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="hdgCF">CTD Conversion Factor ($CF$)</label>
+                        <input type="number" id="hdgCF" value="0.8250" min="0.5" max="1.5" step="0.005" oninput="calculateFuturesHedge()">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="reinitHedgeCalc()">Reset to $25M 10Y Hedge</button>
+                </div>
+
+                <!-- KPIs -->
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi highlight-kpi">
+                        <div class="kpi-label">Contracts to Short ($N^*$)</div>
+                        <div class="kpi-value" id="resContracts">238 Contracts</div>
+                        <div class="kpi-sub">Sell ZN Futures</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Portfolio DV01</div>
+                        <div class="kpi-value" id="resTargetDV01">$17,000</div>
+                        <div class="kpi-sub">Risk to Hedge</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Contract DV01</div>
+                        <div class="kpi-value" id="resContractDV01">$71.50</div>
+                        <div class="kpi-sub">Per Single Contract</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Residual Net DV01</div>
+                        <div class="kpi-value" id="resNetDV01" style="color:var(--green);">$17.00</div>
+                        <div class="kpi-sub">99.9% Immunized</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Hedged vs Unhedged P&L -->
+                <div class="chart-header" style="margin-top: 24px;">
+                    <div class="chart-title">P&amp;L Performance: Unhedged vs Futures-Hedged Portfolio (&plusmn;50 bps)</div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="hedgeCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="hedgeHud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 4: SCENARIO ANALYSIS                                             -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-scenario" role="tabpanel">
+            <div class="card">
+                <h2>Trading Desk Scenario Analysis & Stress Testing</h2>
+                <p>
+                    Institutional trading desks evaluate portfolio risk under forward-looking macroeconomic stress scenarios rather than relying on static single-number metrics.
+                </p>
+                <p>
+                    Below is an institutional multi-asset fixed income portfolio consisting of five distinct sovereign positions totaling <strong>$50,000,000</strong>. Select a historical or hypothetical stress test to view the exact mark-to-market dollar P&amp;L breakdown by bond.
+                </p>
+
+                <div class="chart-header">
+                    <div class="chart-title">Select Yield Curve Stress Scenario</div>
+                    <div class="pill-group">
+                        <button class="pill-btn active" id="btnScenHike50" onclick="setScenarioPreset('hike50')">Parallel +50 bps</button>
+                        <button class="pill-btn" id="btnScenCut50" onclick="setScenarioPreset('cut50')">Parallel -50 bps</button>
+                        <button class="pill-btn" id="btnScenBullSteep" onclick="setScenarioPreset('bull_steep')">Bull Steepener</button>
+                        <button class="pill-btn" id="btnScenBearFlat" onclick="setScenarioPreset('bear_flat')">Bear Flattener</button>
+                        <button class="pill-btn" id="btnScenPosFly" onclick="setScenarioPreset('pos_fly')">Positive Butterfly</button>
+                    </div>
+                </div>
+
+                <!-- Table Breakdown -->
+                <div class="table-wrapper" style="margin-top: 20px;">
+                    <table id="scenarioTable">
+                        <thead>
+                            <tr>
+                                <th>Position</th>
+                                <th>Allocation ($)</th>
+                                <th>Mod Duration</th>
+                                <th>DV01</th>
+                                <th>Scenario Shift</th>
+                                <th>Price Return</th>
+                                <th>Dollar P&amp;L</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scenarioTableBody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Total Portfolio Scenario KPIs -->
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi highlight-kpi">
+                        <div class="kpi-label">Total Portfolio P&amp;L</div>
+                        <div class="kpi-value" id="resScenTotalPnL">-$1,825,000</div>
+                        <div class="kpi-sub" id="resScenTotalRet">-3.65% Total Return</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Worst Detractor</div>
+                        <div class="kpi-value" id="resScenWorstAsset">30Y Bond</div>
+                        <div class="kpi-sub" id="resScenWorstLoss">-$875,000</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Best Contributor</div>
+                        <div class="kpi-value" id="resScenBestAsset">3M T-Bill</div>
+                        <div class="kpi-sub" id="resScenBestGain">-$6,250</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Total Portfolio DV01</div>
+                        <div class="kpi-value" id="resScenTotalDV01">$36,500</div>
+                        <div class="kpi-sub">On $50M Fund</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Asset Contribution Bar Chart -->
+                <div class="chart-header" style="margin-top: 24px;">
+                    <div class="chart-title">Dollar P&amp;L Contribution by Asset Class under Selected Stress</div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="scenCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="scenHud"></div>
+                </div>
+
+                <div class="alert alert-key" id="scenDescBox">
+                    <strong>Parallel Hike Scenario (+50 bps):</strong> All positions suffer mark-to-market losses proportional to their modified duration. The 30Y Treasury Bond generates 48% of the fund's total dollar loss due to its heavy duration leverage.
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 5: INTERVIEW Q&A                                                 -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-qa" role="tabpanel">
+            <div class="card">
+                <h2>Sales & Trading, Structuring & CFA L1/L2 Interview Flashcards</h2>
+                <p>
+                    These questions frequently appear in fixed income trader, strategist, and quantitative structuring interviews at top investment banks.
+                </p>
+            </div>
+
+            <!-- Q1 -->
+            <div class="qa-card" id="qa1">
+                <div class="qa-question" onclick="toggleQA('qa1')">
+                    <span>1. What is DV01 and how do you calculate it from modified duration?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> DV01 (Dollar Value of an 01) measures the absolute dollar price change of a bond or portfolio for a 1 basis point ($0.01\% = 0.0001$) shift in yield.
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \text{DV01} = D_{\text{mod}} \times \text{Market Value} \times 0.0001 = -\frac{dP}{dy} \times 0.0001
+                        </p>
+                        <p>
+                            For example, if a bond has a market value of $1,050 and a modified duration of 7.2 years:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \text{DV01} = 7.2 \times \$1,050 \times 0.0001 = \$0.756 \text{ per bond.}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="qa-card" id="qa2">
+                <div class="qa-question" onclick="toggleQA('qa2')">
+                    <span>2. How do you hedge a bond portfolio with Treasury futures, and what is the role of the Conversion Factor?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> To construct a DV01-neutral hedge:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            N^* = -\frac{\text{DV01}_{\text{portfolio}}}{\text{DV01}_{\text{future}}} = -\frac{\text{DV01}_{\text{portfolio}}}{\text{DV01}_{\text{CTD}} / CF} = -\frac{\text{DV01}_{\text{portfolio}} \times CF}{\text{DV01}_{\text{CTD}}}
+                        </p>
+                        <p>
+                            <strong>Role of the Conversion Factor ($CF$):</strong> The CME allows delivery of various eligible Treasury bonds against the futures contract. The Conversion Factor mathematically normalizes the price of each deliverable bond to trade as if it yielded exactly 6.00%. Multiplying by $CF$ adjusts the portfolio hedge for the specific CTD bond that drives the contract's price sensitivity.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="qa-card" id="qa3">
+                <div class="qa-question" onclick="toggleQA('qa3')">
+                    <span>3. What is Key Rate Duration (KRD) and why is parallel duration insufficient for risk management?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Parallel duration assumes the entire yield curve moves uniformly up or down by the same number of basis points. In practice, non-parallel shifts (curve steepening, flattening, and butterfly twists) account for significant daily P&amp;L volatility.
+                        </p>
+                        <p>
+                            <strong>Key Rate Duration (KRD)</strong> measures sensitivity to an isolated 100 bps shift at a specific maturity node (e.g. 2Y, 5Y, 10Y, 30Y) while holding other key rates constant.
+                        </p>
+                        <div class="qa-desk-tip">
+                            <strong>Trader Tip:</strong> A portfolio with zero net parallel duration can suffer catastrophic losses under a steepener if it holds a barbell (long 2Y, short 30Y). Only KRD or PCA factor risk monitoring reveals this hidden exposure.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q4 -->
+            <div class="qa-card" id="qa4">
+                <div class="qa-question" onclick="toggleQA('qa4')">
+                    <span>4. A portfolio has a DV01 of $50,000. Benchmark yields rise by 25 bps. What is the approximate P&amp;L?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Since DV01 represents the dollar price drop per +1 basis point yield increase:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \text{Dollar P\&L} \approx -\text{DV01} \times \Delta y_{\text{bps}}
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \text{Dollar P\&L} \approx -\$50,000 \times (+25) = \mathbf{-\$1,250,000}
+                        </p>
+                        <p>
+                            The portfolio will experience an immediate loss of approximately <strong>$1.25 million</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q5 -->
+            <div class="qa-card" id="qa5">
+                <div class="qa-question" onclick="toggleQA('qa5')">
+                    <span>5. Explain Basis Risk in a Treasury futures hedge. What are its primary sources?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Basis risk is the risk that the price of the hedging instrument (Treasury futures) does not move in perfect correlation with the asset being hedged (cash bond portfolio).
+                        </p>
+                        <p>
+                            <strong>Primary Sources:</strong>
+                        </p>
+                        <ol>
+                            <li><strong>Credit & Spread Basis:</strong> Corporate or municipal bond spreads over Treasuries may widen while Treasury yields fall, resulting in losses on both the cash bond and the short hedge.</li>
+                            <li><strong>CTD Switch Risk:</strong> If yields move substantially, a different bond in the deliverable basket can become Cheapest-to-Deliver (CTD), abruptly altering the duration and conversion factor of the future.</li>
+                            <li><strong>Curve & Tenor Mismatch:</strong> Hedging a 7-year bond with a 10-year Treasury future leaves residual exposure to the $7\text{Y}-10\text{Y}$ curve slope.</li>
+                            <li><strong>Futures Roll Basis:</strong> The calendar spread pricing when rolling expiring futures contracts forward to the next delivery quarter.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q6 -->
+            <div class="qa-card" id="qa6">
+                <div class="qa-question" onclick="toggleQA('qa6')">
+                    <span>6. What is the Cheapest-to-Deliver (CTD) bond in a Treasury futures contract, and what determines it?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> The seller of a Treasury futures contract has the option to deliver any eligible Treasury bond from the deliverable basket. The <strong>Cheapest-to-Deliver (CTD)</strong> is the specific bond that minimizes the net cost of delivery (or maximizes the Implied Repo Rate):
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \text{Basis} = \text{Clean Cash Price} - (\text{Futures Price} \times CF)
+                        </p>
+                        <p>
+                            <strong>Key Rules of Thumb:</strong>
+                        </p>
+                        <ul>
+                            <li>When market yields are <strong>above 6.00%</strong>, the CTD is typically the <strong>longest-maturity, lowest-coupon</strong> deliverable bond.</li>
+                            <li>When market yields are <strong>below 6.00%</strong>, the CTD is typically the <strong>shortest-maturity, highest-coupon</strong> deliverable bond.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q7 -->
+            <div class="qa-card" id="qa7">
+                <div class="qa-question" onclick="toggleQA('qa7')">
+                    <span>7. Why do the sum of all Key Rate Durations equal the total Modified Duration of a bond?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Consider a total yield curve shift function $\Delta y(t)$. By definition, total duration is the directional derivative of bond price with respect to a uniform shift across all maturities: $\Delta y(t) = \Delta y$ for all $t$.
+                        </p>
+                        <p>
+                            In KRD modeling, any continuous curve shift $\Delta y(t)$ is represented as a linear combination of triangular key-rate basis functions: $\Delta y(t) = \sum_{k=1}^K w_k(t) \cdot \Delta y_k$.
+                        </p>
+                        <p>
+                            When all key rate shifts are set to the identical value $\Delta y_k = \Delta y$, the triangular basis functions sum to exactly 1 at all points along the timeline ($\sum w_k(t) = 1$). Therefore, the price change from a parallel shift is identical to the sum of the individual key rate price changes:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \frac{\Delta P}{P} = \sum_{k=1}^K \left(-\text{KRD}_k \times \Delta y\right) = -\left(\sum_{k=1}^K \text{KRD}_k\right) \Delta y \implies \sum_{k=1}^K \text{KRD}_k = D_{\text{mod}}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q8 -->
+            <div class="qa-card" id="qa8">
+                <div class="qa-question" onclick="toggleQA('qa8')">
+                    <span>8. How does a rates desk execute a duration-neutral steepener trade using 2Y and 10Y Treasury futures?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> In a steepener trade, the trader profits if the $10\text{Y}-2\text{Y}$ spread widens (short rates fall relative to long rates):
+                        </p>
+                        <ol>
+                            <li><strong>Legs:</strong> Buy 2Y (ZT) futures (long front-end duration) and Sell 10Y (ZN) futures (short long-end duration).</li>
+                            <li><strong>DV01-Neutral Weighting:</strong> To eliminate exposure to overall market direction (parallel shifts), the trade must have zero net DV01:
+                            $$\text{DV01}_{\text{ZT}} \times N_{\text{ZT}} = \text{DV01}_{\text{ZN}} \times N_{\text{ZN}}$$</li>
+                            <li><strong>Ratio Calculation:</strong> If ZT has a DV01 of $38.50 and ZN has a DV01 of $71.50:
+                            $$\frac{N_{\text{ZT}}}{N_{\text{ZN}}} = \frac{\$71.50}{\$38.50} \approx 1.86$$
+                            The desk buys approximately <strong>186 ZT contracts for every 100 ZN contracts sold</strong>.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q9 -->
+            <div class="qa-card" id="qa9">
+                <div class="qa-question" onclick="toggleQA('qa9')">
+                    <span>9. What is PV01 in interest rate swaps, and how does it relate to the swap's DV01?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> In interest rate swaps, <strong>PV01</strong> is the present value of a 1 basis point ($0.01\%$) coupon annuity on the swap's notional over its remaining life:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \text{PV01} = \text{Notional} \times 0.0001 \times \sum_{i=1}^n \alpha_i DF_i
+                        </p>
+                        <p>
+                            Because the floating leg of a newly struck swap resets to par ($100$) on every payment date, its interest rate sensitivity between payment dates is near zero. Therefore, <strong>the DV01 of an interest rate swap is almost identical to its PV01</strong>:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \Delta \text{MtM} \approx \text{PV01} \times \Delta S
+                        </p>
+                        <p>
+                            Where $\Delta S$ is the change in the benchmark par swap rate in basis points.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q10 -->
+            <div class="qa-card" id="qa10">
+                <div class="qa-question" onclick="toggleQA('qa10')">
+                    <span>10. What is Taylor Series scenario stress testing, and why must second-order convexity be included for large macro shocks?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Taylor series expansion models the price change of a bond portfolio as a polynomial function of yield shocks:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \frac{\Delta P}{P} \approx -D_{\text{mod}} \times \Delta y + \frac{1}{2} C \times (\Delta y)^2
+                        </p>
+                        <p>
+                            For small moves ($\pm 5\text{ bps}$), the linear duration term dominates ($>98\%$ of the move). However, in macroeconomic crisis stress testing (e.g. $+150\text{ bps}$ central bank shock or $-200\text{ bps}$ pandemic easing):
+                        </p>
+                        <ul>
+                            <li>The quadratic term $(\Delta y)^2$ grows rapidly ($(0.02)^2 = 0.0004$).</li>
+                            <li>Ignoring convexity for long-duration portfolios creates massive errors ($>300\text{ bps}$ in price), drastically overstating losses on rate hikes and understating gains on rallies.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            Module 05 · Interest Rate Risk · Fixed Income Mastery
+        </footer>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- SCRIPTS: KaTeX & Interactive Engines                                 -->
+    <!-- ==================================================================== -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script>
+    /* ===== 1. Sine Wave Background ===== */
+    (function(){
+        const c = document.getElementById('waveCanvas'), ctx = c.getContext('2d');
+        let w, h, t = 0;
+        function resize(){
+            const d = devicePixelRatio || 1;
+            w = innerWidth; h = innerHeight;
+            c.width = w * d; c.height = h * d;
+            ctx.scale(d, d);
+            c.style.width = w + 'px'; c.style.height = h + 'px';
+        }
+        const W = [
+            { a: 38, f: 0.003, s: 0.008, o: 0, op: 0.12, c: '139,109,42' },
+            { a: 28, f: 0.004, s: 0.012, o: 2, op: 0.08, c: '139,109,42' },
+            { a: 45, f: 0.002, s: 0.006, o: 4, op: 0.10, c: '110,85,32' },
+            { a: 22, f: 0.005, s: 0.015, o: 1, op: 0.06, c: '166,132,58' }
+        ];
+        function dw(wv, yc){
+            ctx.beginPath();
+            ctx.moveTo(0, yc);
+            for(let x = 0; x <= w; x += 2){
+                const y = yc + wv.a * Math.sin(x * wv.f + t * wv.s + wv.o) + wv.a * 0.5 * Math.sin(x * wv.f * 1.8 + t * wv.s * 0.7 + wv.o + 1);
+                ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = `rgba(${wv.c},${wv.op})`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+        function anim(){
+            ctx.clearRect(0, 0, w, h);
+            dw(W[0], h * 0.25);
+            dw(W[1], h * 0.40);
+            dw(W[2], h * 0.60);
+            dw(W[3], h * 0.78);
+            t++;
+            requestAnimationFrame(anim);
+        }
+        addEventListener('resize', resize);
+        resize();
+        anim();
+    })();
+
+    /* ===== 2. KaTeX Formulas Rendering ===== */
+    document.addEventListener('DOMContentLoaded', function() {
+        const formulas = {
+            'formula-dv01-def': '\\text{DV01} = -\\frac{dP}{dy} \\times 0.0001 = D_{\\text{mod}} \\times P \\times 0.0001',
+            'formula-pv01-swap': '\\text{PV01} = \\text{Notional} \\times 0.0001 \\times \\sum_{i=1}^{n} \\alpha_i \\cdot DF_i',
+            'formula-krd-def': '\\text{KRD}_k = -\\frac{1}{P} \\frac{\\partial P}{\\partial y_k} \\approx -\\frac{P(y_k + \\Delta y) - P(y_k - \\Delta y)}{2 \\times P_0 \\times \\Delta y}',
+            'formula-krd-sum': '\\sum_{k=1}^{K} \\text{KRD}_k = D_{\\text{mod}}',
+            'formula-hedge-ratio': 'N^* = -\\frac{\\text{DV01}_{\\text{portfolio}}}{\\text{DV01}_{\\text{future}}} = -\\frac{\\text{DV01}_{\\text{portfolio}} \\times CF}{\\text{DV01}_{\\text{CTD}}}'
+        };
+
+        for (const [id, tex] of Object.entries(formulas)) {
+            const el = document.getElementById(id);
+            if (el && window.katex) {
+                katex.render(tex, el, { displayMode: true, throwOnError: false });
+            }
+        }
+
+        /* Initial Calculations */
+        calculateDV01Tab();
+        setKrdPreset('bullet');
+        calculateFuturesHedge();
+        setScenarioPreset('hike50');
+    });
+
+    /* ===== 3. Tab Navigation & Dynamic Canvas Redraw ===== */
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const targetId = 'tab-' + this.dataset.tab;
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) targetPanel.classList.add('active');
+
+            const tabName = this.dataset.tab;
+            if (tabName === 'dv01') drawDV01Chart();
+            if (tabName === 'krd') drawKrdChart();
+            if (tabName === 'hedge') drawHedgeChart();
+            if (tabName === 'scenario') drawScenarioChart();
+        });
+    });
+
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            const activePanel = document.querySelector('.tab-panel.active');
+            if (activePanel) {
+                if (activePanel.id === 'tab-dv01') drawDV01Chart();
+                if (activePanel.id === 'tab-krd') drawKrdChart();
+                if (activePanel.id === 'tab-hedge') drawHedgeChart();
+                if (activePanel.id === 'tab-scenario') drawScenarioChart();
+            }
+        }, 150);
+    });
+
+    function toggleQA(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('open');
+    }
+
+    /* Helper: calculate exact bond price and modified duration */
+    function calcBondMetrics(face, couponPct, ytmPct, matYears, freq) {
+        const c = (couponPct / 100) * face / freq;
+        const y = (ytmPct / 100) / freq;
+        const n = Math.round(matYears * freq);
+        let p = 0;
+        let weightedT = 0;
+
+        for (let t = 1; t <= n; t++) {
+            const isLast = (t === n);
+            const cf = isLast ? (c + face) : c;
+            const pv = cf / Math.pow(1 + y, t);
+            p += pv;
+            weightedT += (t / freq) * pv;
+        }
+
+        const dMac = weightedT / p;
+        const dMod = dMac / (1 + y);
+        const dv01PerBond = dMod * p * 0.0001;
+
+        return { price: p, dMod: dMod, dv01: dv01PerBond };
+    }
+
+    /* ===================================================================== */
+    /* TAB 1: DV01 TAB ENGINE                                                */
+    /* ===================================================================== */
+    function calculateDV01Tab() {
+        const notional = parseFloat(document.getElementById('dv01Notional').value) || 10000000;
+        const mat = parseFloat(document.getElementById('dv01Mat').value) || 10;
+        const cpn = parseFloat(document.getElementById('dv01Coupon').value) || 4.5;
+        const ytm = parseFloat(document.getElementById('dv01YTM').value) || 4.5;
+
+        const metrics = calcBondMetrics(100, cpn, ytm, mat, 2);
+        const numBonds = notional / 100;
+        const portDV01 = metrics.dv01 * numBonds;
+        const shockLoss = portDV01 * 25;
+
+        document.getElementById('resPortDV01Val').innerText = '$' + Math.round(portDV01).toLocaleString();
+        document.getElementById('resPer100DV01').innerText = '$' + metrics.dv01.toFixed(4);
+        document.getElementById('resDV01Dmod').innerText = metrics.dMod.toFixed(2) + ' Yrs';
+        document.getElementById('resDV01ShockLoss').innerText = '-$' + Math.round(shockLoss).toLocaleString();
+
+        drawDV01Chart();
+    }
+
+    function reinitDV01Tab() {
+        document.getElementById('dv01Notional').value = 10000000;
+        document.getElementById('dv01Mat').value = 10;
+        document.getElementById('dv01Coupon').value = 4.50;
+        document.getElementById('dv01YTM').value = 4.50;
+        calculateDV01Tab();
+    }
+
+    function presetDV01Zero() {
+        document.getElementById('dv01Coupon').value = 0;
+        calculateDV01Tab();
+    }
+
+    function presetDV01Mega() {
+        document.getElementById('dv01Notional').value = 100000000;
+        document.getElementById('dv01Mat').value = 30;
+        calculateDV01Tab();
+    }
+
+    function drawDV01Chart() {
+        const canvas = document.getElementById('dv01Canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const m = { l: 60, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const maturities = [2, 3, 5, 7, 10, 15, 20, 30];
+        const notional = 10000000;
+        const ytm = parseFloat(document.getElementById('dv01YTM').value) || 4.5;
+
+        /* Calculate profiles for 0% Zero, 4% Coupon, and 8% High Coupon */
+        const profileZero = maturities.map(t => {
+            const mtr = calcBondMetrics(100, 0, ytm, t, 2);
+            return { t: t, dv01: mtr.dv01 * (notional / 100) };
+        });
+
+        const profile4 = maturities.map(t => {
+            const mtr = calcBondMetrics(100, 4.5, ytm, t, 2);
+            return { t: t, dv01: mtr.dv01 * (notional / 100) };
+        });
+
+        const maxDV01 = Math.ceil(Math.max(...profileZero.map(p => p.dv01)) / 5000) * 5000;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let v = 0; v <= maxDV01; v += 5000) {
+            const py = m.t + cH - (v / maxDV01) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText('$' + v.toLocaleString(), m.l - 8, py + 3);
+        }
+
+        maturities.forEach(tx => {
+            const px = m.l + ((tx - 2) / 28) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(tx + 'Y', px, m.t + cH + 16);
+        });
+
+        /* Plot Zero Coupon Profile (Blue Dashed) */
+        ctx.beginPath();
+        ctx.setLineDash([5, 4]);
+        profileZero.forEach((pt, i) => {
+            const px = m.l + ((pt.t - 2) / 28) * cW;
+            const py = m.t + cH - (pt.dv01 / maxDV01) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#3d6a9e'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.setLineDash([]);
+
+        /* Plot 4.5% Coupon Profile (Gold Solid) */
+        ctx.beginPath();
+        profile4.forEach((pt, i) => {
+            const px = m.l + ((pt.t - 2) / 28) * cW;
+            const py = m.t + cH - (pt.dv01 / maxDV01) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#8b6d2a'; ctx.lineWidth = 3; ctx.stroke();
+
+        /* Dots */
+        profile4.forEach(pt => {
+            const px = m.l + ((pt.t - 2) / 28) * cW;
+            const py = m.t + cH - (pt.dv01 / maxDV01) * cH;
+            ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#8b6d2a'; ctx.fill();
+        });
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#8b6d2a'; ctx.fillRect(lx, 10, 16, 3);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('4.5% Coupon Bond DV01 ($10M Notional)', lx + 22, 14);
+
+        ctx.strokeStyle = '#3d6a9e'; ctx.setLineDash([4, 3]);
+        ctx.beginPath(); ctx.moveTo(lx + 260, 11); ctx.lineTo(lx + 276, 11); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Zero-Coupon STRIP DV01', lx + 284, 14);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('dv01Hud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverT = 2 + ((mx - m.l) / cW) * 28;
+            let nearestIdx = 0;
+            let minDist = 999;
+            maturities.forEach((t, i) => {
+                const d = Math.abs(t - hoverT);
+                if (d < minDist) { minDist = d; nearestIdx = i; }
+            });
+
+            const t = maturities[nearestIdx];
+            const cpnVal = profile4[nearestIdx].dv01;
+            const zeroVal = profileZero[nearestIdx].dv01;
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Maturity</span><span class="hud-val">${t} Years</span></div>
+                <div class="hud-row"><span class="hud-label">4.5% Coupon DV01</span><span class="hud-val" style="color:#8b6d2a;">$${Math.round(cpnVal).toLocaleString()}</span></div>
+                <div class="hud-row"><span class="hud-label">Zero-Coupon DV01</span><span class="hud-val" style="color:#3d6a9e;">$${Math.round(zeroVal).toLocaleString()}</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('dv01Hud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 2: KEY RATE DURATIONS ENGINE                                      */
+    /* ===================================================================== */
+    const krdNodes = [1, 2, 3, 5, 7, 10, 20, 30];
+    let currentKrdWeights = [];
+
+    const krdPresets = {
+        bullet: {
+            name: '7Y Bullet Bond',
+            krd: [0.00, 0.05, 0.15, 1.45, 3.80, 0.35, 0.02, 0.00],
+            desc: '<strong>7Y Bullet Profile:</strong> Risk is tightly clustered around the 5Y and 7Y nodes. A parallel duration hedge using a 7Y swap or ZN futures is extremely accurate, but the position has high exposure to intermediate curve curvature.'
+        },
+        barbell: {
+            name: 'Barbell (2Y + 20Y)',
+            krd: [0.10, 2.70, 0.20, 0.00, 0.00, 0.30, 2.30, 0.22],
+            desc: '<strong>Barbell Profile (2Y + 20Y):</strong> Despite having the identical total duration (~5.82 years), risk is bimodal! The position holds zero risk at the 5Y&ndash;7Y belly, but severe two-sided vulnerability to curve steepening/flattening.'
+        },
+        ladder: {
+            name: 'Even Ladder (1Y to 10Y)',
+            krd: [0.45, 0.65, 0.70, 0.85, 1.10, 1.40, 0.65, 0.02],
+            desc: '<strong>Even Ladder Profile:</strong> Risk is evenly distributed across the entire curve. High diversification against localized supply shocks, with predictable cash flow liquidity.'
+        }
+    };
+
+    function setKrdPreset(preset) {
+        document.querySelectorAll('#tab-krd .pill-btn').forEach(b => b.classList.remove('active'));
+        if (preset === 'bullet') document.getElementById('btnKrdBullet').classList.add('active');
+        if (preset === 'barbell') document.getElementById('btnKrdBarbell').classList.add('active');
+        if (preset === 'ladder') document.getElementById('btnKrdLadder').classList.add('active');
+
+        const p = krdPresets[preset];
+        currentKrdWeights = [...p.krd];
+
+        const totalD = currentKrdWeights.reduce((a, b) => a + b, 0);
+        const frontD = currentKrdWeights[0] + currentKrdWeights[1] + currentKrdWeights[2];
+        const bellyD = currentKrdWeights[3] + currentKrdWeights[4];
+        const longD = currentKrdWeights[5] + currentKrdWeights[6] + currentKrdWeights[7];
+
+        document.getElementById('resKrdTotal').innerText = totalD.toFixed(2) + ' Yrs';
+        document.getElementById('resKrdFront').innerText = frontD.toFixed(2) + ' Yrs';
+        document.getElementById('resKrdBelly').innerText = bellyD.toFixed(2) + ' Yrs';
+        document.getElementById('resKrdLong').innerText = longD.toFixed(2) + ' Yrs';
+
+        document.getElementById('krdAnalysisBox').innerHTML = p.desc;
+        drawKrdChart();
+    }
+
+    function drawKrdChart() {
+        const canvas = document.getElementById('krdCanvas');
+        if (!canvas || !currentKrdWeights.length) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const m = { l: 50, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const maxKRD = 4.5;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let v = 0; v <= 4.0; v += 1.0) {
+            const py = m.t + cH - (v / maxKRD) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(v.toFixed(1) + 'Y', m.l - 8, py + 3);
+        }
+
+        /* Draw KRD Bars */
+        const barWidth = (cW / krdNodes.length) * 0.55;
+        krdNodes.forEach((node, i) => {
+            const px = m.l + (i + 0.5) * (cW / krdNodes.length);
+            const val = currentKrdWeights[i];
+            const barH = (val / maxKRD) * cH;
+            const py = m.t + cH - barH;
+
+            ctx.fillStyle = '#8b6d2a';
+            ctx.fillRect(px - barWidth / 2, py, barWidth, barH);
+
+            /* Bar value on top */
+            if (val > 0.1) {
+                ctx.fillStyle = '#2c2418';
+                ctx.font = '600 10px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText(val.toFixed(2), px, py - 6);
+            }
+
+            /* Node Label */
+            ctx.fillStyle = '#8a7a62';
+            ctx.font = '10px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText(node + 'Y', px, m.t + cH + 16);
+        });
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#8b6d2a'; ctx.fillRect(lx, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('Key Rate Duration Vector (Years of Risk)', lx + 18, 17);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('krdHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const step = Math.floor(((mx - m.l) / cW) * krdNodes.length);
+            const idx = Math.max(0, Math.min(krdNodes.length - 1, step));
+            const node = krdNodes[idx];
+            const kVal = currentKrdWeights[idx];
+            const totalD = currentKrdWeights.reduce((a, b) => a + b, 0);
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Key Rate Node</span><span class="hud-val">${node}-Year Tenor</span></div>
+                <div class="hud-row"><span class="hud-label">KRD Contribution</span><span class="hud-val" style="color:var(--accent);">${kVal.toFixed(2)} Years</span></div>
+                <div class="hud-row"><span class="hud-label">% of Total Duration</span><span class="hud-val">${((kVal / totalD) * 100).toFixed(1)}%</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('krdHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 3: FUTURES HEDGING ENGINE                                         */
+    /* ===================================================================== */
+    const futuresSpecs = {
+        ZT: { name: '2Y T-Note',  dv01: 38.50,  cfDefault: 0.9850 },
+        ZF: { name: '5Y T-Note',  dv01: 42.00,  cfDefault: 0.9400 },
+        ZN: { name: '10Y T-Note', dv01: 71.50,  cfDefault: 0.8250 },
+        TN: { name: 'Ultra 10Y',  dv01: 88.00,  cfDefault: 0.8050 },
+        ZB: { name: '30Y Bond',   dv01: 135.00, cfDefault: 0.7450 },
+        UB: { name: 'Ultra Bond', dv01: 220.00, cfDefault: 0.6550 }
+    };
+
+    function calculateFuturesHedge() {
+        const portVal = parseFloat(document.getElementById('hdgPortValue').value) || 25000000;
+        const portDur = parseFloat(document.getElementById('hdgPortDur').value) || 6.8;
+        const contractKey = document.getElementById('hdgContract').value;
+        const cf = parseFloat(document.getElementById('hdgCF').value) || 0.825;
+
+        const spec = futuresSpecs[contractKey];
+        const portDV01 = portDur * portVal * 0.0001;
+
+        /* Hedge ratio formula: N* = -(PortDV01 * CF) / CTD_DV01 */
+        /* Notice that Contract DV01 is approximately CTD_DV01 / CF */
+        const contractsExact = portDV01 / spec.dv01;
+        const contractsRound = Math.round(contractsExact);
+        const hedgedDV01 = Math.abs(portDV01 - contractsRound * spec.dv01);
+
+        document.getElementById('resContracts').innerText = `${contractsRound} Contracts`;
+        document.getElementById('resTargetDV01').innerText = '$' + Math.round(portDV01).toLocaleString();
+        document.getElementById('resContractDV01').innerText = '$' + spec.dv01.toFixed(2);
+        document.getElementById('resNetDV01').innerText = '$' + hedgedDV01.toFixed(2);
+
+        drawHedgeChart();
+    }
+
+    function reinitHedgeCalc() {
+        document.getElementById('hdgPortValue').value = 25000000;
+        document.getElementById('hdgPortDur').value = 6.80;
+        document.getElementById('hdgContract').value = 'ZN';
+        document.getElementById('hdgCF').value = 0.8250;
+        calculateFuturesHedge();
+    }
+
+    function drawHedgeChart() {
+        const canvas = document.getElementById('hedgeCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const portVal = parseFloat(document.getElementById('hdgPortValue').value) || 25000000;
+        const portDur = parseFloat(document.getElementById('hdgPortDur').value) || 6.8;
+        const contractKey = document.getElementById('hdgContract').value;
+        const spec = futuresSpecs[contractKey];
+        const portDV01 = portDur * portVal * 0.0001;
+        const contracts = Math.round(portDV01 / spec.dv01);
+
+        const m = { l: 70, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const shockRange = [];
+        for (let s = -50; s <= 50; s += 2) shockRange.push(s);
+
+        const unhedgedPnL = shockRange.map(s => -portDV01 * s);
+        const futuresPnL = shockRange.map(s => contracts * spec.dv01 * s);
+        const netPnL = shockRange.map((s, i) => unhedgedPnL[i] + futuresPnL[i]);
+
+        const maxAbsPnL = Math.ceil(portDV01 * 50 / 100000) * 100000;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let p = -maxAbsPnL; p <= maxAbsPnL; p += maxAbsPnL / 2) {
+            const py = m.t + cH - ((p + maxAbsPnL) / (2 * maxAbsPnL)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText((p >= 0 ? '+$' : '-$') + Math.abs(p / 1000) + 'k', m.l - 8, py + 3);
+        }
+
+        [-50, -25, 0, 25, 50].forEach(s => {
+            const px = m.l + ((s + 50) / 100) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText((s >= 0 ? '+' : '') + s + ' bps', px, m.t + cH + 16);
+        });
+
+        /* Zero axis */
+        const zeroY = m.t + cH / 2;
+        ctx.strokeStyle = '#8a7a62'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(m.l, zeroY); ctx.lineTo(m.l + cW, zeroY); ctx.stroke();
+
+        /* Plot Unhedged Portfolio (Red line) */
+        ctx.beginPath();
+        shockRange.forEach((s, i) => {
+            const px = m.l + ((s + 50) / 100) * cW;
+            const py = m.t + cH - ((unhedgedPnL[i] + maxAbsPnL) / (2 * maxAbsPnL)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#a63d3d'; ctx.lineWidth = 2.5; ctx.stroke();
+
+        /* Plot Net Hedged Portfolio (Green solid flat line) */
+        ctx.beginPath();
+        shockRange.forEach((s, i) => {
+            const px = m.l + ((s + 50) / 100) * cW;
+            const py = m.t + cH - ((netPnL[i] + maxAbsPnL) / (2 * maxAbsPnL)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#4a7c3f'; ctx.lineWidth = 3; ctx.stroke();
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#4a7c3f'; ctx.fillRect(lx, 10, 16, 3);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('Net Hedged Portfolio P&L', lx + 22, 14);
+
+        ctx.fillStyle = '#a63d3d'; ctx.fillRect(lx + 180, 10, 16, 3);
+        ctx.fillStyle = '#2c2418';
+        ctx.fillText('Unhedged Portfolio (Volatile)', lx + 202, 14);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('hedgeHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverS = Math.round(-50 + ((mx - m.l) / cW) * 100);
+            const unhP = -portDV01 * hoverS;
+            const netP = unhP + contracts * spec.dv01 * hoverS;
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Yield Shift</span><span class="hud-val">${hoverS >= 0 ? '+' : ''}${hoverS} bps</span></div>
+                <div class="hud-row"><span class="hud-label">Hedged Net P&amp;L</span><span class="hud-val" style="color:#4a7c3f;">${netP >= 0 ? '+$' : '-$'}${Math.round(Math.abs(netP)).toLocaleString()}</span></div>
+                <div class="hud-row"><span class="hud-label">Unhedged P&amp;L</span><span class="hud-val" style="color:#a63d3d;">${unhP >= 0 ? '+$' : '-$'}${Math.round(Math.abs(unhP)).toLocaleString()}</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('hedgeHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 4: SCENARIO STRESS TESTING ENGINE                                 */
+    /* ===================================================================== */
+    const portfolioAssets = [
+        { name: '3M T-Bill',     alloc: 5000000,  dMod: 0.25,  cvx: 0.1 },
+        { name: '2Y T-Note',     alloc: 10000000, dMod: 1.90,  cvx: 4.8 },
+        { name: '5Y T-Note',     alloc: 15000000, dMod: 4.40,  cvx: 23.5 },
+        { name: '10Y Benchmark', alloc: 12000000, dMod: 7.80,  cvx: 74.0 },
+        { name: '30Y Long Bond', alloc: 8000000,  dMod: 17.50, cvx: 390.0 }
+    ];
+
+    const scenarioConfigs = {
+        hike50: {
+            name: 'Parallel +50 bps',
+            shifts: [50, 50, 50, 50, 50],
+            desc: '<strong>Parallel Hike (+50 bps):</strong> Central bank delivers a standard 50 bps tightening. All yields rise uniformly. The 30Y bond generates nearly 50% of total portfolio drawdown due to high duration.'
+        },
+        cut50: {
+            name: 'Parallel -50 bps',
+            shifts: [-50, -50, -50, -50, -50],
+            desc: '<strong>Parallel Ease (-50 bps):</strong> Monetary easing across the board. Capital gains across all buckets, with maximum dollar gains delivered by 10Y and 30Y Treasuries.'
+        },
+        bull_steep: {
+            name: 'Bull Steepener',
+            shifts: [-60, -45, -20, +5, +25],
+            desc: '<strong>Bull Steepener:</strong> Front end rallies hard as the market prices emergency rate cuts. 3M and 2Y yields tumble, while 30Y yield backs up on long-term supply/inflation concerns.'
+        },
+        bear_flat: {
+            name: 'Bear Flattener',
+            shifts: [+65, +55, +35, +20, +5],
+            desc: '<strong>Bear Flattener:</strong> Hawkish central bank surprise. Front-end 3M and 2Y rates surge, crushing short-dated notes while 30Y rates stay relatively anchored.'
+        },
+        pos_fly: {
+            name: 'Positive Butterfly',
+            shifts: [+15, +15, -30, +15, +15],
+            desc: '<strong>Positive Butterfly:</strong> The 5Y belly outperforms both the 2Y and 10Y/30Y wings. Belly yield falls while wings rise; intermediate sector experiences outsized capital gains.'
+        }
+    };
+
+    let currentScenarioKey = 'hike50';
+    let assetPnLResults = [];
+
+    function setScenarioPreset(scenKey) {
+        currentScenarioKey = scenKey;
+        document.querySelectorAll('#tab-scenario .pill-btn').forEach(b => b.classList.remove('active'));
+        if (scenKey === 'hike50') document.getElementById('btnScenHike50').classList.add('active');
+        if (scenKey === 'cut50') document.getElementById('btnScenCut50').classList.add('active');
+        if (scenKey === 'bull_steep') document.getElementById('btnScenBullSteep').classList.add('active');
+        if (scenKey === 'bear_flat') document.getElementById('btnScenBearFlat').classList.add('active');
+        if (scenKey === 'pos_fly') document.getElementById('btnScenPosFly').classList.add('active');
+
+        const cfg = scenarioConfigs[scenKey];
+        document.getElementById('scenDescBox').innerHTML = cfg.desc;
+
+        runScenarioAnalysis();
+    }
+
+    function runScenarioAnalysis() {
+        const cfg = scenarioConfigs[currentScenarioKey];
+        const tbody = document.getElementById('scenarioTableBody');
+        tbody.innerHTML = '';
+
+        assetPnLResults = [];
+        let totalVal = 0;
+        let totalDV01 = 0;
+        let totalPnL = 0;
+
+        portfolioAssets.forEach((asset, idx) => {
+            const shiftBps = cfg.shifts[idx];
+            const dy = shiftBps / 10000;
+            const dv01 = asset.dMod * asset.alloc * 0.0001;
+
+            /* Taylor series price return */
+            const retPct = (-asset.dMod * dy + 0.5 * asset.cvx * Math.pow(dy, 2)) * 100;
+            const dollarPnL = asset.alloc * (retPct / 100);
+
+            totalVal += asset.alloc;
+            totalDV01 += dv01;
+            totalPnL += dollarPnL;
+
+            assetPnLResults.push({
+                name: asset.name,
+                alloc: asset.alloc,
+                dMod: asset.dMod,
+                dv01: dv01,
+                shiftBps: shiftBps,
+                retPct: retPct,
+                dollarPnL: dollarPnL
+            });
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${asset.name}</strong></td>
+                <td style="font-family:var(--font-mono);">$${(asset.alloc / 1000000).toFixed(1)}M</td>
+                <td style="font-family:var(--font-mono);">${asset.dMod.toFixed(2)} Y</td>
+                <td style="font-family:var(--font-mono);">$${Math.round(dv01).toLocaleString()}</td>
+                <td style="font-family:var(--font-mono); font-weight:600; color:${shiftBps >= 0 ? 'var(--text)' : 'var(--blue)'};">${shiftBps >= 0 ? '+' : ''}${shiftBps} bps</td>
+                <td style="font-family:var(--font-mono); color:${retPct >= 0 ? 'var(--green)' : 'var(--red)'};">${retPct >= 0 ? '+' : ''}${retPct.toFixed(2)}%</td>
+                <td style="font-family:var(--font-mono); font-weight:700; color:${dollarPnL >= 0 ? 'var(--green)' : 'var(--red)'};">${dollarPnL >= 0 ? '+$' : '-$'}${Math.round(Math.abs(dollarPnL)).toLocaleString()}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        const totalRetPct = (totalPnL / totalVal) * 100;
+
+        document.getElementById('resScenTotalPnL').innerText = (totalPnL >= 0 ? '+$' : '-$') + Math.round(Math.abs(totalPnL)).toLocaleString();
+        document.getElementById('resScenTotalRet').innerText = (totalRetPct >= 0 ? '+' : '') + totalRetPct.toFixed(2) + '% Total Return';
+        document.getElementById('resScenTotalDV01').innerText = '$' + Math.round(totalDV01).toLocaleString();
+
+        /* Find best and worst assets */
+        const sorted = [...assetPnLResults].sort((a, b) => a.dollarPnL - b.dollarPnL);
+        const worst = sorted[0];
+        const best = sorted[sorted.length - 1];
+
+        document.getElementById('resScenWorstAsset').innerText = worst.name;
+        document.getElementById('resScenWorstLoss').innerText = (worst.dollarPnL >= 0 ? '+$' : '-$') + Math.round(Math.abs(worst.dollarPnL)).toLocaleString();
+        document.getElementById('resScenBestAsset').innerText = best.name;
+        document.getElementById('resScenBestGain').innerText = (best.dollarPnL >= 0 ? '+$' : '-$') + Math.round(Math.abs(best.dollarPnL)).toLocaleString();
+
+        drawScenarioChart();
+    }
+
+    function drawScenarioChart() {
+        const canvas = document.getElementById('scenCanvas');
+        if (!canvas || !assetPnLResults.length) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const m = { l: 65, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const pnlValues = assetPnLResults.map(a => a.dollarPnL);
+        const maxAbs = Math.max(...pnlValues.map(v => Math.abs(v)), 100000);
+        const yBound = Math.ceil(maxAbs / 200000) * 200000;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let p = -yBound; p <= yBound; p += yBound / 2) {
+            const py = m.t + cH - ((p + yBound) / (2 * yBound)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText((p >= 0 ? '+$' : '-$') + Math.abs(p / 1000) + 'k', m.l - 8, py + 3);
+        }
+
+        /* Zero axis */
+        const zeroY = m.t + cH / 2;
+        ctx.strokeStyle = '#8a7a62'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(m.l, zeroY); ctx.lineTo(m.l + cW, zeroY); ctx.stroke();
+
+        /* Draw Bars */
+        const barWidth = (cW / assetPnLResults.length) * 0.55;
+        assetPnLResults.forEach((a, i) => {
+            const px = m.l + (i + 0.5) * (cW / assetPnLResults.length);
+            const barH = (Math.abs(a.dollarPnL) / (2 * yBound)) * cH;
+            const py = a.dollarPnL >= 0 ? (zeroY - barH) : zeroY;
+
+            ctx.fillStyle = a.dollarPnL >= 0 ? '#4a7c3f' : '#a63d3d';
+            ctx.fillRect(px - barWidth / 2, py, barWidth, barH);
+
+            /* Label */
+            ctx.fillStyle = '#8a7a62';
+            ctx.font = '10px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText(a.name, px, m.t + cH + 16);
+
+            /* Value on top of bar */
+            ctx.fillStyle = a.dollarPnL >= 0 ? '#4a7c3f' : '#a63d3d';
+            ctx.font = '600 10px Inter';
+            const textY = a.dollarPnL >= 0 ? (py - 5) : (py + barH + 12);
+            ctx.fillText((a.dollarPnL >= 0 ? '+$' : '-$') + Math.round(Math.abs(a.dollarPnL) / 1000) + 'k', px, textY);
+        });
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#4a7c3f'; ctx.fillRect(lx, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('Gain', lx + 18, 17);
+
+        ctx.fillStyle = '#a63d3d'; ctx.fillRect(lx + 65, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Loss', lx + 83, 17);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('scenHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const step = Math.floor(((mx - m.l) / cW) * assetPnLResults.length);
+            const idx = Math.max(0, Math.min(assetPnLResults.length - 1, step));
+            const a = assetPnLResults[idx];
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Asset</span><span class="hud-val">${a.name}</span></div>
+                <div class="hud-row"><span class="hud-label">Shift</span><span class="hud-val">${a.shiftBps >= 0 ? '+' : ''}${a.shiftBps} bps</span></div>
+                <div class="hud-row"><span class="hud-label">Return</span><span class="hud-val">${a.retPct >= 0 ? '+' : ''}${a.retPct.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Dollar P&amp;L</span><span class="hud-val" style="color:${a.dollarPnL >= 0 ? '#4a7c3f' : '#a63d3d'};">${a.dollarPnL >= 0 ? '+$' : '-$'}${Math.round(Math.abs(a.dollarPnL)).toLocaleString()}</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('scenHud').style.display = 'none';
+        };
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yield Measures — Fixed Income Mastery</title>
+    <meta name="description" content="Master fixed income yield measures: Current Yield, YTM, YTC, YTW, BEY vs EAY, Spot Rates, Implied Forward Rates, and the Bootstrapping Algorithm.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        /* ===== CSS Custom Properties (Parchment / Classic Bond Aesthetic) ===== */
+        :root {
+            --bg: #e8dcc8;
+            --bg-warm: #dfd3be;
+            --surface: #d6c9b1;
+            --surface-2: #cdbfa5;
+            --surface-3: #c4b599;
+            --surface-hover: #bfae90;
+            --border: #b8a688;
+            --border-glow: #8b6d2a55;
+            --text: #2c2418;
+            --text-secondary: #5a4d3a;
+            --text-muted: #8a7a62;
+            --accent: #8b6d2a;
+            --accent-light: #a6843a;
+            --accent-dark: #6e5520;
+            --accent-glow: #8b6d2a20;
+            --accent-strong-glow: #8b6d2a38;
+            --green: #4a7c3f;
+            --red: #a63d3d;
+            --blue: #3d6a9e;
+            --orange: #b07328;
+            --purple: #6a4c93;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ===== Sine Wave Background ===== */
+        .wave-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .wave-bg canvas { width: 100%; height: 100%; }
+
+        /* ===== Layout ===== */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px 60px;
+        }
+
+        /* ===== Header ===== */
+        .top-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--accent); }
+        .back-link svg { width: 16px; height: 16px; transition: transform 0.2s; }
+        .back-link:hover svg { transform: translateX(-3px); }
+
+        .module-badge {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent);
+            background: var(--accent-glow);
+            border: 1px solid var(--border-glow);
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .module-title-bar {
+            text-align: center;
+            padding: 32px 0 24px;
+        }
+
+        .module-title-bar h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .module-title-bar .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== Tab Navigation ===== */
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 32px;
+            overflow-x: auto;
+            padding-bottom: 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-tab {
+            padding: 12px 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            font-family: var(--font-body);
+            letter-spacing: 0.01em;
+        }
+        .nav-tab:hover { color: var(--text-secondary); }
+        .nav-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ===== Content Cards ===== */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            font-weight: 650;
+            color: var(--text);
+            margin: 20px 0 10px;
+        }
+
+        .card p, .card li {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .card ul, .card ol {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+
+        .card li { margin-bottom: 6px; }
+
+        /* ===== KaTeX Formula Blocks ===== */
+        .formula-block {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            overflow-x: auto;
+            text-align: center;
+        }
+
+        .formula-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        /* ===== Tables ===== */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 16px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        th {
+            background: var(--surface-2);
+            color: var(--text);
+            font-weight: 650;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--accent-glow); }
+
+        /* ===== Alerts ===== */
+        .alert {
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin: 16px 0;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            display: flex;
+            gap: 10px;
+        }
+
+        .alert-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+        .alert-info {
+            background: #3d6a9e15;
+            border: 1px solid #3d6a9e30;
+            color: var(--blue);
+        }
+
+        .alert-tip {
+            background: #4a7c3f15;
+            border: 1px solid #4a7c3f30;
+            color: var(--green);
+        }
+
+        .alert-warning {
+            background: #b0732815;
+            border: 1px solid #b0732830;
+            color: var(--orange);
+        }
+
+        .alert-key {
+            background: var(--accent-glow);
+            border: 1px solid var(--border-glow);
+            color: var(--accent-dark);
+        }
+
+        /* ===== Interactive Controls ===== */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin: 16px 0;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .control-group input,
+        .control-group select {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus {
+            border-color: var(--accent);
+        }
+
+        /* ===== KPI Results ===== */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .kpi {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            text-align: center;
+        }
+
+        .kpi.highlight-ytw {
+            border: 2px solid var(--accent);
+            background: var(--accent-glow);
+        }
+
+        .kpi-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .kpi-value {
+            font-family: var(--font-mono);
+            font-size: 1.22rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .kpi-sub {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ===== Buttons ===== */
+        .btn {
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .btn-primary:hover { background: var(--accent-light); }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-secondary);
+        }
+        .btn-secondary:hover { background: var(--surface-2); }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== Canvas Chart Wrapper ===== */
+        .chart-wrapper {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            position: relative;
+        }
+
+        .chart-wrapper canvas {
+            width: 100%;
+            cursor: crosshair;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chart-title {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ===== Hover HUD (Floating Tooltip) ===== */
+        .chart-hud {
+            position: absolute;
+            pointer-events: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+            z-index: 10;
+            display: none;
+            white-space: nowrap;
+        }
+
+        .chart-hud .hud-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 2px;
+        }
+        .chart-hud .hud-row:last-child { margin-bottom: 0; }
+
+        .chart-hud .hud-label { color: var(--text-muted); }
+        .chart-hud .hud-val { font-weight: 600; color: var(--accent); }
+
+        /* ===== Pill Selector ===== */
+        .pill-group {
+            display: inline-flex;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 2px;
+            gap: 2px;
+        }
+
+        .pill-btn {
+            background: none;
+            border: none;
+            padding: 5px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-body);
+        }
+
+        .pill-btn.active {
+            background: var(--accent);
+            color: #ffffff;
+        }
+
+        /* ===== Bootstrapping Visual Steps ===== */
+        .step-box {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+            transition: border-color 0.2s;
+        }
+
+        .step-box.active-step {
+            border: 2px solid var(--accent);
+            background: var(--surface-3);
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .step-num {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--accent);
+            background: var(--accent-glow);
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        /* ===== Interview Q&A Flashcards ===== */
+        .qa-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .qa-question {
+            padding: 16px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        .qa-question:hover { background: var(--accent-glow); }
+
+        .qa-toggle {
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-weight: 700;
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s;
+        }
+
+        .qa-card.open .qa-toggle { transform: rotate(45deg); }
+
+        .qa-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .qa-card.open .qa-answer { max-height: 800px; }
+
+        .qa-answer-inner {
+            padding: 0 20px 18px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            border-top: 1px solid var(--border);
+            padding-top: 14px;
+        }
+
+        .qa-answer-inner strong { color: var(--text); }
+        .qa-desk-tip {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: var(--accent-glow);
+            border-left: 3px solid var(--accent);
+            font-size: 0.8rem;
+            color: var(--accent-dark);
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* ===== Footer ===== */
+        .footer {
+            text-align: center;
+            padding: 24px 0;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-warm); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 700px) {
+            .module-title-bar h1 { font-size: 1.7rem; }
+            .nav-tabs { gap: 0; }
+            .nav-tab { padding: 10px 14px; font-size: 0.75rem; }
+            .card { padding: 20px 16px; }
+            .controls-grid { grid-template-columns: 1fr 1fr; }
+            .kpi-grid { grid-template-columns: 1fr 1fr; }
+            .formula-block { padding: 12px 14px; overflow-x: auto; }
+            .table-wrapper { font-size: 0.78rem; }
+        }
+
+        @media (max-width: 480px) {
+            .controls-grid { grid-template-columns: 1fr; }
+            .kpi-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wave-bg"><canvas id="waveCanvas"></canvas></div>
+
+    <div class="main-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-header">
+            <a href="index.html" class="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>All Modules</span>
+            </a>
+            <span class="module-badge">Module 02 · Yield Measures</span>
+        </header>
+
+        <!-- Module Header -->
+        <div class="module-title-bar">
+            <h1>Yield Measures & Term Structure</h1>
+            <p class="subtitle">Spot rates, forward curves, bootstrapping algorithms, and pricing relative to call dates</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs" role="tablist">
+            <button class="nav-tab active" data-tab="yields" role="tab">1. Yield Concepts</button>
+            <button class="nav-tab" data-tab="spot" role="tab">2. Spot Rates</button>
+            <button class="nav-tab" data-tab="forward" role="tab">3. Forward Rates</button>
+            <button class="nav-tab" data-tab="bootstrap" role="tab">4. Bootstrapping</button>
+            <button class="nav-tab" data-tab="qa" role="tab">5. Interview Q&A</button>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 1: YIELD CONCEPTS                                                -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel active" id="tab-yields" role="tabpanel">
+            <div class="card">
+                <h2>The Spectrum of Fixed Income Yields</h2>
+                <p>
+                    A single bond generates several distinct yield metrics depending on cash flow assumptions, embedded options, and compounding conventions. In Sales & Trading and Structuring, confusing these metrics leads to misquoted trades, unhedged reinvestment exposure, and severe option-adjusted pricing errors.
+                </p>
+
+                <h3>1. Current Yield (CY)</h3>
+                <p>
+                    Measures annual cash income as a percentage of the current market price. While simple and quick to calculate mentally, it ignores capital gains/losses at maturity, reinvestment, and the time value of money.
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Current Yield Formula</div>
+                    <div id="formula-cy"></div>
+                </div>
+
+                <h3>2. Yield to Maturity (YTM)</h3>
+                <p>
+                    The Internal Rate of Return (IRR) of all promised cash flows assuming the bond is held to maturity and default does not occur.
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Yield to Maturity (IRR) Definition</div>
+                    <div id="formula-ytm"></div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">⚠️</span>
+                    <div>
+                        <strong>The Critical YTM Assumption: Reinvestment Risk.</strong> YTM is <em>only</em> earned in reality if every coupon is reinvested at the exact same YTM until maturity. If interest rates fall over the life of the bond, the realized return will strictly underperform the quoted YTM!
+                    </div>
+                </div>
+
+                <h3>3. Callable Bonds: Yield to Call (YTC) & Yield to Worst (YTW)</h3>
+                <p>
+                    When a bond is callable, the issuer has the embedded right (a short call option for the bondholder) to retire the bond before maturity at a specified call price.
+                </p>
+                <ul>
+                    <li><strong>Yield to Call (YTC):</strong> The internal rate of return calculated assuming the bond is called on the next call date at the call price $CP$.</li>
+                    <li><strong>Yield to Worst (YTW):</strong> The minimum yield among all possible call dates and maturity. If a callable bond trades at a <em>premium</em>, the call will likely be exercised, so $YTW = YTC < YTM$. If trading at a <em>discount</em>, the issuer is unlikely to call, so $YTW = YTM$.</li>
+                </ul>
+                <div class="formula-block">
+                    <div class="formula-label">Yield to Call Formula</div>
+                    <div id="formula-ytc"></div>
+                </div>
+
+                <h3>4. Compounding Conventions: BEY vs EAY</h3>
+                <p>
+                    Different markets quote yields using different compounding intervals. Comparing bonds across markets requires converting to a common standard:
+                </p>
+                <ul>
+                    <li><strong>Bond Equivalent Yield (BEY):</strong> Standard semi-annual compounding annualized by multiplying by 2 (nominal annual yield): $BEY = 2 \times y_{semi}$.</li>
+                    <li><strong>Effective Annual Yield (EAY):</strong> Full annual compounding reflecting the compounding of interim coupons.</li>
+                </ul>
+                <div class="formula-block">
+                    <div class="formula-label">BEY &harr; EAY Conversion</div>
+                    <div id="formula-eay"></div>
+                </div>
+            </div>
+
+            <!-- Interactive Yields Calculator Card -->
+            <div class="card">
+                <h2>Interactive Multi-Yield Calculator</h2>
+                <p>
+                    Enter the parameters of a corporate or sovereign bond with an optional embedded call option to compute all yield metrics simultaneously and identify Yield to Worst (YTW).
+                </p>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label for="yFace">Face Value ($)</label>
+                        <input type="number" id="yFace" value="1000" min="100" max="1000000" step="100">
+                    </div>
+                    <div class="control-group">
+                        <label for="yCoupon">Annual Coupon (%)</label>
+                        <input type="number" id="yCoupon" value="6.00" min="0" max="25" step="0.1">
+                    </div>
+                    <div class="control-group">
+                        <label for="yPrice">Market Price ($)</label>
+                        <input type="number" id="yPrice" value="1035.00" min="10" max="5000" step="0.5">
+                    </div>
+                    <div class="control-group">
+                        <label for="yMaturity">Maturity (Years)</label>
+                        <input type="number" id="yMaturity" value="10" min="0.5" max="50" step="0.5">
+                    </div>
+                    <div class="control-group">
+                        <label for="yFreq">Coupon Frequency</label>
+                        <select id="yFreq">
+                            <option value="1">Annual (1/yr)</option>
+                            <option value="2" selected>Semi-Annual (2/yr - US/UK)</option>
+                            <option value="4">Quarterly (4/yr)</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="yCallPrice">Call Price ($)</label>
+                        <input type="number" id="yCallPrice" value="1020.00" min="100" max="2000" step="5">
+                    </div>
+                    <div class="control-group">
+                        <label for="yCallYears">Years to Call</label>
+                        <input type="number" id="yCallYears" value="3" min="0.5" max="49" step="0.5">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="calculateAllYields()">Calculate Yields</button>
+                    <button class="btn btn-secondary" onclick="reinitYields()">Reset to Default</button>
+                </div>
+
+                <!-- KPI Displays -->
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi">
+                        <div class="kpi-label">Current Yield</div>
+                        <div class="kpi-value" id="resCY">5.80%</div>
+                        <div class="kpi-sub">Annual Cash Flow / Price</div>
+                    </div>
+                    <div class="kpi" id="kpiYTM">
+                        <div class="kpi-label">Yield to Maturity</div>
+                        <div class="kpi-value" id="resYTM">5.53%</div>
+                        <div class="kpi-sub">Nominal Annual (BEY)</div>
+                    </div>
+                    <div class="kpi" id="kpiYTC">
+                        <div class="kpi-label">Yield to Call</div>
+                        <div class="kpi-value" id="resYTC">5.28%</div>
+                        <div class="kpi-sub">Exercised at Year 3</div>
+                    </div>
+                    <div class="kpi highlight-ytw">
+                        <div class="kpi-label">Yield to Worst (YTW)</div>
+                        <div class="kpi-value" id="resYTW">5.28%</div>
+                        <div class="kpi-sub" id="resYTWReason">Driven by Call Option</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Effective Annual (EAY)</div>
+                        <div class="kpi-value" id="resEAY">5.61%</div>
+                        <div class="kpi-sub">Annualized Compounding</div>
+                    </div>
+                </div>
+
+                <div class="alert alert-tip" id="yieldAdviceBox">
+                    <span class="alert-icon">💡</span>
+                    <div id="yieldAdviceText">
+                        This bond trades at a <strong>premium ($1035 > $1000)</strong> with coupon (6.00%) above market yields. The issuer has an incentive to call at $1020 in 3 years to refinance cheaper. Therefore, <strong>Yield to Call (5.28%) is the Yield to Worst</strong> and is the conservative pricing metric for institutional sales.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 2: SPOT RATES                                                    -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-spot" role="tabpanel">
+            <div class="card">
+                <h2>The Spot Rate Curve: The Pure Discount Benchmark</h2>
+                <p>
+                    A <strong>spot rate</strong> (or zero-coupon rate, denoted $s_t$ or $z_t$) is the annual rate of return earned on a single cash flow received at date $t$, with no intermediate coupon payments. The collection of spot rates across all maturities forms the <strong>zero-coupon yield curve</strong>.
+                </p>
+
+                <h3>Why Spot Rates Matter: The Coupon Bias Flaw in YTM</h3>
+                <p>
+                    Yield to Maturity discounts every single cash flow of a bond (whether received in month 6 or year 30) at the <em>exact same internal rate</em>. But in reality, short-term money has a different cost than long-term money!
+                </p>
+                <ul>
+                    <li>Two bonds with the <strong>same maturity</strong> but <strong>different coupon rates</strong> will have <strong>different YTMs</strong> even if both are completely default-free (e.g. US Treasuries). This distortion is called the <strong>coupon bias</strong>.</li>
+                    <li>Discounting each cash flow using its respective maturity spot rate eliminates coupon bias and obeys the <strong>Law of One Price</strong>:</li>
+                </ul>
+
+                <div class="formula-block">
+                    <div class="formula-label">No-Arbitrage Bond Pricing via Spot Rates</div>
+                    <div id="formula-spot-price"></div>
+                </div>
+
+                <h3>Treasury STRIPS: Practical Application of Spot Rates</h3>
+                <p>
+                    In 1985, the US Treasury introduced the STRIPS program (<em>Separate Trading of Registered Interest and Principal of Securities</em>). Investment banks can physically "strip" a 10-year Treasury note into 20 coupon STRIPS and 1 principal STRIP, trading each as a zero-coupon bond. If the sum of the stripped zero-coupon bond values differed from the whole bond price, dealers would immediately execute an arbitrage transaction:
+                </p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Market Condition</th>
+                                <th>Trading Desk Action</th>
+                                <th>Arbitrage Trade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Whole Bond Price &gt; Sum of STRIPS</td>
+                                <td>Buy STRIPS, reconstitute into whole bond</td>
+                                <td>Sell whole bond at market, pocket difference</td>
+                            </tr>
+                            <tr>
+                                <td>Whole Bond Price &lt; Sum of STRIPS</td>
+                                <td>Buy whole Treasury bond, strip it into components</td>
+                                <td>Sell zero-coupon STRIPS in market, pocket difference</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Spot Curve vs. Par Yield Curve Relationship</h3>
+                <p>
+                    The <strong>par yield curve</strong> plots the coupon rate for bonds of each maturity priced exactly at par ($100). The mathematical relationship between the spot curve and par curve is strict:
+                </p>
+                <ul>
+                    <li><strong>Normal (Upward Sloping):</strong> Because a coupon bond receives coupons at lower short-term rates and the principal at the high long-term rate, its par yield is an average of short and long rates. Thus, the <strong>Spot Curve lies above the Par Curve</strong>.</li>
+                    <li><strong>Inverted (Downward Sloping):</strong> Short rates exceed long rates. The <strong>Spot Curve lies below the Par Curve</strong>.</li>
+                    <li><strong>Flat:</strong> Spot Curve and Par Curve are identical.</li>
+                </ul>
+            </div>
+
+            <!-- Interactive Canvas: Spot vs Par Curve Comparison -->
+            <div class="card">
+                <h2>Spot Curve vs Par Yield Curve Visualizer</h2>
+                <p>
+                    Select different yield curve environments to observe the relative positioning of the theoretical zero-coupon spot curve against the observable par curve.
+                </p>
+
+                <div class="chart-header">
+                    <div class="chart-title">Yield Curve Comparison (% vs Maturity)</div>
+                    <div class="pill-group">
+                        <button class="pill-btn active" id="btnEnvNormal" onclick="setSpotEnv('normal')">Upward Sloping</button>
+                        <button class="pill-btn" id="btnEnvInverted" onclick="setSpotEnv('inverted')">Inverted</button>
+                        <button class="pill-btn" id="btnEnvFlat" onclick="setSpotEnv('flat')">Flat Curve</button>
+                        <button class="pill-btn" id="btnEnvHumped" onclick="setSpotEnv('humped')">Humped Curve</button>
+                    </div>
+                </div>
+
+                <div class="chart-wrapper">
+                    <canvas id="spotParCanvas" height="300"></canvas>
+                    <div class="chart-hud" id="spotParHud"></div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="setSpotEnv('normal')">Reset to Normal</button>
+                </div>
+
+                <div class="alert alert-key" id="spotEnvDescription">
+                    <strong>Upward Sloping Regime:</strong> Spot rates are higher than par yields for every maturity beyond the shortest point ($s_t > y_{par}$). For a 10Y bond, the principal payment at Year 10 is discounted at the highest spot rate ($s_{10} = 5.65\%$), while coupons are discounted at lower spot rates ($s_1 = 3.6\%$).
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 3: FORWARD RATES                                                 -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-forward" role="tabpanel">
+            <div class="card">
+                <h2>Implied Forward Rates & No-Arbitrage</h2>
+                <p>
+                    A <strong>forward rate</strong> is an interest rate agreed upon today for a loan or investment that begins on a specified future date and matures at an even later date.
+                </p>
+                <p>
+                    Forward rates are not magic forecasts; they are <strong>mathematical break-even rates</strong> implied by the current spot curve. Under the no-arbitrage condition, an investor with a 2-year horizon must earn the exact same total return whether they:
+                </p>
+                <ol>
+                    <li>Invest for 2 years today at the 2-year spot rate $s_2$, OR</li>
+                    <li>Invest for 1 year today at the 1-year spot rate $s_1$, and simultaneously lock in a 1-year forward loan from Year 1 to Year 2 at forward rate $f_{1,2}$ (often denoted $1\text{y}1\text{y}$).</li>
+                </ol>
+
+                <div class="formula-block">
+                    <div class="formula-label">Fundamental No-Arbitrage Forward Condition</div>
+                    <div id="formula-fwd-arbitrage"></div>
+                </div>
+
+                <h3>General Formula for Forward Rates</h3>
+                <p>
+                    For a forward rate between future date $T_1$ and $T_2$ (where $T_2 > T_1$):
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Discrete Annual Compounding Forward Rate</div>
+                    <div id="formula-fwd-general"></div>
+                </div>
+
+                <h3>Forward Curve vs Spot Curve Dynamics</h3>
+                <ul>
+                    <li>When the spot curve is <strong>upward sloping</strong>, the 1-period forward curve lies <strong>above the spot curve</strong> ($f > s$).</li>
+                    <li>When the spot curve is <strong>downward sloping (inverted)</strong>, the forward curve lies <strong>below the spot curve</strong> ($f < s$).</li>
+                    <li>When the spot curve is <strong>at its local peak/trough</strong>, the forward rate equals the spot rate ($f = s$).</li>
+                </ul>
+
+                <h3>Forward Rate Agreements (FRAs) & Market Trading</h3>
+                <p>
+                    In institutional markets, forward rates are traded directly via <strong>Forward Rate Agreements (FRAs)</strong> or interest rate swap forward starting legs. In an FRA (e.g., a "$3 \times 9$" FRA spanning from month 3 to month 9):
+                </p>
+                <ul>
+                    <li>The buyer pays the agreed fixed forward rate $R_K$ and receives the floating benchmark (e.g. SOFR/Euribor $L$).</li>
+                    <li>Unlike futures, an FRA cash-settles at the <strong>beginning of the forward period</strong> ($T_1$), which means the payoff must be discounted back to the settlement date!</li>
+                </ul>
+                <div class="formula-block">
+                    <div class="formula-label">FRA Settlement Payoff Formula (Paid at Start Date $T_1$)</div>
+                    <div id="formula-fra-payoff"></div>
+                </div>
+            </div>
+
+            <!-- Forward Rate Calculator & Visualization -->
+            <div class="card">
+                <h2>Interactive Forward Rate & FRA Calculator</h2>
+                <p>
+                    Calculate the implied forward rate between two points on the spot curve and verify the no-arbitrage investment identity.
+                </p>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label for="fwdT1">Start Date $T_1$ (Years)</label>
+                        <input type="number" id="fwdT1" value="1.0" min="0.25" max="25" step="0.25">
+                    </div>
+                    <div class="control-group">
+                        <label for="fwdS1">Spot Rate $s(T_1)$ (%)</label>
+                        <input type="number" id="fwdS1" value="4.00" min="0.01" max="20" step="0.05">
+                    </div>
+                    <div class="control-group">
+                        <label for="fwdT2">End Date $T_2$ (Years)</label>
+                        <input type="number" id="fwdT2" value="2.0" min="0.5" max="30" step="0.25">
+                    </div>
+                    <div class="control-group">
+                        <label for="fwdS2">Spot Rate $s(T_2)$ (%)</label>
+                        <input type="number" id="fwdS2" value="4.80" min="0.01" max="20" step="0.05">
+                    </div>
+                    <div class="control-group">
+                        <label for="fwdNotional">FRA Notional ($)</label>
+                        <input type="number" id="fwdNotional" value="10000000" min="100000" max="1000000000" step="1000000">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="calculateForwardRate()">Calculate Forward Rate</button>
+                    <button class="btn btn-secondary" onclick="reinitForward()">Reset to Default</button>
+                </div>
+
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi">
+                        <div class="kpi-label">Implied Forward Rate</div>
+                        <div class="kpi-value" id="resFwdRate">5.61%</div>
+                        <div class="kpi-sub" id="resFwdLabel">1y1y Forward Rate</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Semi-Annual BEY Forward</div>
+                        <div class="kpi-value" id="resFwdBEY">5.53%</div>
+                        <div class="kpi-sub">Dealers Quote Basis</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Compounded Growth</div>
+                        <div class="kpi-value" id="resGrowthFactor">1.0983x</div>
+                        <div class="kpi-sub">$1 grew to $(1+s_2)^{T_2}</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Forward Tenor</div>
+                        <div class="kpi-value" id="resTenor">1.00 Yrs</div>
+                        <div class="kpi-sub">Horizon $(T_2 - T_1)$</div>
+                    </div>
+                </div>
+
+                <!-- Canvas Chart of Spot vs 1-Year Forward Curve -->
+                <div class="chart-header" style="margin-top: 24px;">
+                    <div class="chart-title">Spot Curve vs 1-Year Forward Curve Overlay</div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="spotFwdCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="spotFwdHud"></div>
+                </div>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">📘</span>
+                    <div>
+                        <strong>No-Arbitrage Check:</strong> Investing $10,000 for 2 years at 4.80% yields <strong>$10,983.04</strong>. Rolling $10,000 for 1 year at 4.00% gives $10,400.00, which reinvested at the implied forward rate of 5.606% for 1 year gives <strong>$10,400.00 &times; (1 + 0.05606) = $10,983.04</strong>. The payoff match is exact.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 4: BOOTSTRAPPING                                                 -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-bootstrap" role="tabpanel">
+            <div class="card">
+                <h2>The Bootstrapping Algorithm</h2>
+                <p>
+                    In financial markets, zero-coupon bonds (STRIPS or bills) only exist liquidly for short maturities (up to 1 year). For longer horizons (2Y, 5Y, 10Y, 30Y), Treasuries and benchmark interest rate swaps trade as <strong>coupon-bearing instruments at or near par</strong>.
+                </p>
+                <p>
+                    <strong>Bootstrapping</strong> is the recursive mathematical algorithm used by trading desks and quantitative models to extract the theoretical zero-coupon spot yield curve from a set of observable coupon instruments.
+                </p>
+
+                <h3>The Recursive Mathematical Derivation</h3>
+                <p>
+                    Assume standard semi-annual coupon bonds with par yield $y_n$ for maturity $T_n$. The coupon payment per period on a $100 par bond is $C_n = 100 \times \frac{y_n}{2}$.
+                </p>
+                <ol>
+                    <li>
+                        <strong>Anchor (Shortest Point, $T_1 = 0.5$ Yrs):</strong> The 6-month instrument has no interim coupons; it is already a pure zero-coupon bond!
+                        <div class="formula-block">
+                            <div class="formula-label">Step 1: 6-Month Spot Rate & Discount Factor</div>
+                            <div id="formula-bs-step1"></div>
+                        </div>
+                    </li>
+                    <li>
+                        <strong>Recursive General Step ($n \ge 2$):</strong> A par bond with maturity $n$ trades at price $100$. All previous discount factors $DF_1, DF_2, \dots, DF_{n-1}$ have already been solved in earlier steps!
+                        <div class="formula-block">
+                            <div class="formula-label">Step 2: Solve for Unknown Discount Factor $DF_n$</div>
+                            <div id="formula-bs-recur"></div>
+                        </div>
+                    </li>
+                    <li>
+                        <strong>Extract the Spot Rate ($z_n$):</strong> Convert the discount factor $DF_n$ into the annualized semi-annual spot rate $z_n$:
+                        <div class="formula-block">
+                            <div class="formula-label">Step 3: Annualized Spot Rate Formula</div>
+                            <div id="formula-bs-spot"></div>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+
+            <!-- Interactive Bootstrapper Card -->
+            <div class="card">
+                <h2>Interactive Curve Bootstrapper</h2>
+                <p>
+                    Adjust observable benchmark Par Yields below and click <strong>Bootstrap Spot Curve</strong>. The algorithm will recursively determine discount factors, spot rates, and 6-month implied forward rates for each maturity node.
+                </p>
+
+                <div class="controls-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+                    <div class="control-group">
+                        <label for="par05">0.5Y Par (%)</label>
+                        <input type="number" id="par05" value="4.00" min="0.1" max="20" step="0.05">
+                    </div>
+                    <div class="control-group">
+                        <label for="par10">1.0Y Par (%)</label>
+                        <input type="number" id="par10" value="4.25" min="0.1" max="20" step="0.05">
+                    </div>
+                    <div class="control-group">
+                        <label for="par15">1.5Y Par (%)</label>
+                        <input type="number" id="par15" value="4.50" min="0.1" max="20" step="0.05">
+                    </div>
+                    <div class="control-group">
+                        <label for="par20">2.0Y Par (%)</label>
+                        <input type="number" id="par20" value="4.70" min="0.1" max="20" step="0.05">
+                    </div>
+                    <div class="control-group">
+                        <label for="par25">2.5Y Par (%)</label>
+                        <input type="number" id="par25" value="4.90" min="0.1" max="20" step="0.05">
+                    </div>
+                    <div class="control-group">
+                        <label for="par30">3.0Y Par (%)</label>
+                        <input type="number" id="par30" value="5.10" min="0.1" max="20" step="0.05">
+                    </div>
+                    <div class="control-group">
+                        <label for="par40">4.0Y Par (%)</label>
+                        <input type="number" id="par40" value="5.30" min="0.1" max="20" step="0.05">
+                    </div>
+                    <div class="control-group">
+                        <label for="par50">5.0Y Par (%)</label>
+                        <input type="number" id="par50" value="5.50" min="0.1" max="20" step="0.05">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="runBootstrap()">Bootstrap Spot Curve</button>
+                    <button class="btn btn-secondary" onclick="reinitBootstrap()">Reset Yields</button>
+                </div>
+
+                <!-- Bootstrapped Results Table -->
+                <h3 style="margin-top: 24px;">Bootstrapped Curve Results</h3>
+                <div class="table-wrapper">
+                    <table id="bootstrapTable">
+                        <thead>
+                            <tr>
+                                <th>Period $n$</th>
+                                <th>Maturity (Yrs)</th>
+                                <th>Par Yield $y_n$</th>
+                                <th>Semi Coupon ($)</th>
+                                <th>Discount Factor $DF_n$</th>
+                                <th>Bootstrapped Spot $z_n$</th>
+                                <th>Implied 6M Fwd</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bootstrapTableBody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Canvas: Par vs Spot vs Forward Curve -->
+                <div class="chart-header" style="margin-top: 24px;">
+                    <div class="chart-title">Bootstrapped Yield Hierarchy: Par vs Spot vs Forward</div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="bootstrapCanvas" height="300"></canvas>
+                    <div class="chart-hud" id="bootstrapHud"></div>
+                </div>
+
+                <div class="alert alert-key">
+                    <strong>Desk Rule of Thumb:</strong> Notice how the curves stack up when par rates rise with maturity:
+                    <div style="font-family: var(--font-mono); margin-top: 4px; font-weight: 600;">
+                        Forward Rate &gt; Spot Rate &gt; Par Yield (Upward Sloping Curve)
+                    </div>
+                    Because long spot rates are an average of successive forward rates, the forward curve acts as the "marginal rate" that pulls the spot curve upward!
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 5: INTERVIEW Q&A                                                 -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-qa" role="tabpanel">
+            <div class="card">
+                <h2>Sales & Trading & Structuring Interview Flashcards</h2>
+                <p>
+                    These questions are frequently asked in fixed income sales & trading, DCM (Debt Capital Markets), and structuring interviews at top tier investment banks, as well as on CFA Level 1 and Level 2 exams.
+                </p>
+            </div>
+
+            <!-- Q1 -->
+            <div class="qa-card" id="qa1">
+                <div class="qa-question" onclick="toggleQA('qa1')">
+                    <span>1. Walk me through the bootstrapping algorithm to construct a spot curve from par yields.</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Bootstrapping is an iterative, recursive procedure to derive zero-coupon discount factors from coupon-bearing par instruments:
+                        </p>
+                        <ol>
+                            <li><strong>Anchor at the short end:</strong> The shortest maturity (e.g. 6-month bill or FRN) has no prior coupons. Its par yield is already its spot rate, giving the first discount factor: $DF_1 = \frac{1}{1 + y_1/2}$.</li>
+                            <li><strong>Iterate through subsequent maturities:</strong> For maturity $n$, write the par bond price equation ($100 = \text{PV of cash flows}$). Every prior cash flow is discounted using already-solved discount factors $DF_1, \dots, DF_{n-1}$.</li>
+                            <li><strong>Isolate the unknown:</strong> Solve algebraically for the final discount factor:
+                            $DF_n = \frac{100 - c_n \sum_{j=1}^{n-1} DF_j}{100 + c_n}$.</li>
+                            <li><strong>Compute Spot Rates:</strong> Convert $DF_n$ into an annualized zero-coupon yield via $z_n = 2 \left( DF_n^{-1/n} - 1 \right)$. Repeat until the curve is built.</li>
+                        </ol>
+                        <div class="qa-desk-tip">
+                            <strong>Trader Tip:</strong> Mention that in modern rates desks, bootstrapping is done on OIS (SOFR / ESTR) par swap curves rather than Treasury coupons to avoid collateral and credit funding basis distortions.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="qa-card" id="qa2">
+                <div class="qa-question" onclick="toggleQA('qa2')">
+                    <span>2. Why does the forward curve lie above an upward-sloping spot curve?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Mathematically, the $T$-period spot rate is a geometric average of the successive 1-period forward rates:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            $(1 + s_T)^T = (1 + s_1)(1 + f_{1,2})(1 + f_{2,3})\dots(1 + f_{T-1,T})$
+                        </p>
+                        <p>
+                            Think of the spot curve as an <em>average grade</em> and the forward rate as the <em>marginal grade on the next exam</em>. For your cumulative GPA (the spot rate) to go up, your score on the next exam (the forward rate) must be strictly higher than your current GPA. Therefore, when the spot curve slopes upward, the forward curve <strong>must lie strictly above the spot curve</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="qa-card" id="qa3">
+                <div class="qa-question" onclick="toggleQA('qa3')">
+                    <span>3. What is the fundamental flaw of YTM, and why is it misleading for comparing two bonds?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> YTM has two major flaws:
+                        </p>
+                        <ul>
+                            <li><strong>Unrealistic Reinvestment Assumption:</strong> YTM assumes that all intermediate coupon cash flows can be reinvested at the exact same YTM until the bond matures. In a declining rate environment, reinvestment returns fall short, reducing the realized return.</li>
+                            <li><strong>Coupon Bias / Cross-sectional Distortion:</strong> YTM discounts cash flows across time at a single flat rate. Two bonds with the identical 10-year maturity but different coupon rates (e.g. 2% vs 8%) will have different YTMs even if priced off the identical spot curve. A portfolio manager comparing bonds purely by YTM might think the higher YTM bond is "cheaper," when in reality it simply has higher cash flows occurring at different points along the yield curve.</li>
+                        </ul>
+                        <div class="qa-desk-tip">
+                            <strong>Structuring Tip:</strong> This is why desks use <strong>Z-spread (Zero-volatility spread)</strong> or asset swap spread over the zero-coupon curve, rather than simple yield spread over benchmark YTM, to price relative value.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q4 -->
+            <div class="qa-card" id="qa4">
+                <div class="qa-question" onclick="toggleQA('qa4')">
+                    <span>4. If the 1Y spot rate is 4.00% and the 2Y spot rate is 5.00%, what is the 1-year forward rate 1 year from now (1y1y)?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Using the discrete no-arbitrage formula:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            $(1 + s_2)^2 = (1 + s_1)(1 + f_{1,2})$
+                        </p>
+                        <p>
+                            Plugging in values:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            $(1 + 0.05)^2 = (1 + 0.04)(1 + f_{1,2}) \implies 1.1025 = 1.04 \times (1 + f_{1,2})$
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            $1 + f_{1,2} = \frac{1.1025}{1.04} \approx 1.060096 \implies f_{1,2} \approx 6.01\%$
+                        </p>
+                        <p>
+                            <strong>Quick mental math heuristic:</strong> $2 \times s_2 - 1 \times s_1 = 2(5.0\%) - 4.0\% = 6.00\%$. The linear approximation is remarkably close!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q5 -->
+            <div class="qa-card" id="qa5">
+                <div class="qa-question" onclick="toggleQA('qa5')">
+                    <span>5. Explain the difference between BEY (Bond Equivalent Yield) and EAY (Effective Annual Yield).</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong>
+                        </p>
+                        <ul>
+                            <li><strong>BEY (Bond Equivalent Yield):</strong> A nominal annual yield based on semi-annual compounding. It takes the semi-annual periodic yield $y_{semi}$ and doubles it: $BEY = 2 \times y_{semi}$. It ignores the effect of compounding the first coupon into the second half of the year. US Treasuries and corporates are conventionally quoted on a BEY basis.</li>
+                            <li><strong>EAY (Effective Annual Yield):</strong> An annualized rate that fully accounts for compound interest over the full year: $EAY = (1 + y_{semi})^2 - 1 = (1 + BEY/2)^2 - 1$.</li>
+                        </ul>
+                        <p>
+                            Because of compounding, for any positive yield, <strong>$EAY > BEY$</strong>. For example, a 6.00% BEY corresponds to $EAY = (1 + 0.03)^2 - 1 = 6.09\%$.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q6 -->
+            <div class="qa-card" id="qa6">
+                <div class="qa-question" onclick="toggleQA('qa6')">
+                    <span>6. What is Yield to Worst (YTW) and how should an institutional investor interpret a callable bond trading at a premium?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Yield to Worst (YTW) is the lowest possible yield that an investor can realize across all possible call dates and the final maturity date without the issuer defaulting.
+                        </p>
+                        <p>
+                            When a callable bond trades at a <strong>premium ($Price > Par$)</strong>, market interest rates have declined below the bond's coupon. Under these conditions:
+                        </p>
+                        <ul>
+                            <li>The issuer has a powerful economic incentive to exercise their call option to retire high-coupon debt and refinance at prevailing lower rates.</li>
+                            <li>If called early, the investor's premium is amortized over a much shorter period, dragging down their return.</li>
+                            <li>Thus, for premium bonds, <strong>$YTC < YTM$</strong>, and <strong>$YTW = YTC$</strong>. Quoting the YTM to a client on a premium callable bond is misleading and can lead to execution disputes.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q7 -->
+            <div class="qa-card" id="qa7">
+                <div class="qa-question" onclick="toggleQA('qa7')">
+                    <span>7. Why do US Treasury STRIPS trade at different yields than the parent whole Treasury bond?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Even though both are backed by the full faith and credit of the US government:
+                        </p>
+                        <ul>
+                            <li><strong>Tax Asymmetry (Original Issue Discount - OID):</strong> In the US, phantom income tax must be paid annually on zero-coupon STRIPS as their value accretes toward par, even though no physical cash is received until maturity. This creates negative tax drag for taxable retail accounts.</li>
+                            <li><strong>Different Institutional Client Demands:</strong> Pension funds and life insurance companies heavily demand long-term Principal STRIPS to achieve maximum duration matching for long-dated liabilities, causing long STRIPS to trade at rich valuations (lower yields).</li>
+                            <li><strong>Liquidity Differentials:</strong> Whole benchmark Treasuries (especially on-the-run) have vastly higher secondary market liquidity and repo specialness than off-the-run individual coupon STRIPS.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q8 -->
+            <div class="qa-card" id="qa8">
+                <div class="qa-question" onclick="toggleQA('qa8')">
+                    <span>8. How does a Forward Rate Agreement (FRA) settle, and why is the settlement discounted?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> In an FRA, two counterparties agree on a fixed forward rate $R_K$ for a forward period starting at $T_1$ and ending at $T_2$ (tenor $\tau = T_2 - T_1$).
+                        </p>
+                        <ul>
+                            <li>On the fixing date $T_1$, the floating benchmark rate $L$ is observed.</li>
+                            <li>If this were a standard interest payment, the interest differential $(L - R_K) \times \text{Notional} \times \tau$ would be paid at the <em>end</em> of the borrowing period ($T_2$).</li>
+                            <li>However, by market convention, FRAs <strong>settle immediately at the start date $T_1$</strong>.</li>
+                            <li>Because payment occurs $\tau$ periods early, the interest difference must be discounted back to $T_1$ using the prevailing floating rate:
+                            $$\text{Payoff at } T_1 = \text{Notional} \times \frac{(L - R_K) \times \tau}{1 + L \times \tau}$$</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q9 -->
+            <div class="qa-card" id="qa9">
+                <div class="qa-question" onclick="toggleQA('qa9')">
+                    <span>9. If the spot yield curve is inverted, where do forward rates lie relative to spot rates and par yields?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> In an inverted (downward sloping) yield curve environment:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0; font-weight:600;">
+                            Forward Rate &lt; Spot Rate &lt; Par Yield
+                        </p>
+                        <p>
+                            Because the spot rate decreases with maturity ($s_2 < s_1$), the "marginal" forward rate needed to pull down the average must be even lower than the spot rate itself. Furthermore, a par bond receives intermediate coupons discounted at higher short-term rates, pulling the par yield above the zero-coupon spot rate for that maturity.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q10 -->
+            <div class="qa-card" id="qa10">
+                <div class="qa-question" onclick="toggleQA('qa10')">
+                    <span>10. What is Realized Horizon Return, and how does it differ from YTM?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Realized Horizon Return (also called Total Horizon Return) is the annualized compound return actually earned by an investor over an explicit holding period $H$, which can be shorter or longer than the bond's maturity:
+                        </p>
+                        <ul>
+                            <li>It explicitly models: (1) coupon cash flows received, (2) the <em>actual</em> reinvestment rate at which those coupons were compounded, and (3) the sale price of the bond at date $H$ based on the future yield curve at that time.</li>
+                            <li>Unlike YTM, which assumes a static holding to maturity with coupon reinvestment locked at the YTM, Horizon Return quantifies both <strong>reinvestment risk</strong> and <strong>capital price risk (exit yield)</strong>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            Module 02 · Yield Measures · Fixed Income Mastery
+        </footer>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- SCRIPTS: KaTeX & Interactive Engines                                 -->
+    <!-- ==================================================================== -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script>
+    /* ===== 1. Sine Wave Background ===== */
+    (function(){
+        const c = document.getElementById('waveCanvas'), ctx = c.getContext('2d');
+        let w, h, t = 0;
+        function resize(){
+            const d = devicePixelRatio || 1;
+            w = innerWidth; h = innerHeight;
+            c.width = w * d; c.height = h * d;
+            ctx.scale(d, d);
+            c.style.width = w + 'px'; c.style.height = h + 'px';
+        }
+        const W = [
+            { a: 38, f: 0.003, s: 0.008, o: 0, op: 0.12, c: '139,109,42' },
+            { a: 28, f: 0.004, s: 0.012, o: 2, op: 0.08, c: '139,109,42' },
+            { a: 45, f: 0.002, s: 0.006, o: 4, op: 0.10, c: '110,85,32' },
+            { a: 22, f: 0.005, s: 0.015, o: 1, op: 0.06, c: '166,132,58' }
+        ];
+        function dw(wv, yc){
+            ctx.beginPath();
+            ctx.moveTo(0, yc);
+            for(let x = 0; x <= w; x += 2){
+                const y = yc + wv.a * Math.sin(x * wv.f + t * wv.s + wv.o) + wv.a * 0.5 * Math.sin(x * wv.f * 1.8 + t * wv.s * 0.7 + wv.o + 1);
+                ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = `rgba(${wv.c},${wv.op})`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+        function anim(){
+            ctx.clearRect(0, 0, w, h);
+            dw(W[0], h * 0.25);
+            dw(W[1], h * 0.40);
+            dw(W[2], h * 0.60);
+            dw(W[3], h * 0.78);
+            t++;
+            requestAnimationFrame(anim);
+        }
+        addEventListener('resize', resize);
+        resize();
+        anim();
+    })();
+
+    /* ===== 2. KaTeX Math Render on Load ===== */
+    document.addEventListener('DOMContentLoaded', function() {
+        const formulas = {
+            'formula-cy': 'CY = \\frac{\\text{Annual Coupon Payment}}{\\text{Current Bond Clean Price}} = \\frac{C}{P}',
+            'formula-ytm': 'P = \\sum_{t=1}^{m \\cdot T} \\frac{C/m}{\\left(1 + \\frac{y}{m}\\right)^t} + \\frac{F}{\\left(1 + \\frac{y}{m}\\right)^{m \\cdot T}}',
+            'formula-ytc': 'P = \\sum_{t=1}^{m \\cdot T_{\\text{call}}} \\frac{C/m}{\\left(1 + \\frac{y_c}{m}\\right)^t} + \\frac{\\text{Call Price}}{\\left(1 + \\frac{y_c}{m}\\right)^{m \\cdot T_{\\text{call}}}}',
+            'formula-eay': 'EAY = \\left(1 + \\frac{BEY}{2}\\right)^2 - 1 \\iff BEY = 2 \\times \\left[\\sqrt{1 + EAY} - 1\\right]',
+            'formula-spot-price': 'P = \\sum_{t=1}^{2T} \\frac{C/2}{\\left(1 + \\frac{s_t}{2}\\right)^t} + \\frac{F}{\\left(1 + \\frac{s_{2T}}{2}\\right)^{2T}}',
+            'formula-fwd-arbitrage': '(1 + s_2)^2 = (1 + s_1)^1 \\times (1 + f_{1,2})^1',
+            'formula-fwd-general': 'f_{T_1, T_2} = \\left[ \\frac{(1 + s_{T_2})^{T_2}}{(1 + s_{T_1})^{T_1}} \\right]^{\\frac{1}{T_2 - T_1}} - 1',
+            'formula-fra-payoff': '\\text{Payoff at } T_1 = \\text{Notional} \\times \\frac{(L - R_K) \\times \\tau}{1 + L \\times \\tau}',
+            'formula-bs-step1': 'DF_1 = \\frac{1}{1 + \\frac{y_1}{2}} \\implies z_1 = y_1',
+            'formula-bs-recur': '100 = \\sum_{j=1}^{n-1} c_n \\cdot DF_j + (100 + c_n) \\cdot DF_n \\implies DF_n = \\frac{100 - c_n \\sum_{j=1}^{n-1} DF_j}{100 + c_n}',
+            'formula-bs-spot': 'z_n = 2 \\left( DF_n^{-1/n} - 1 \\right)'
+        };
+
+        for (const [id, tex] of Object.entries(formulas)) {
+            const el = document.getElementById(id);
+            if (el && window.katex) {
+                katex.render(tex, el, { displayMode: true, throwOnError: false });
+            }
+        }
+
+        /* Initial Calculations */
+        calculateAllYields();
+        setSpotEnv('normal');
+        calculateForwardRate();
+        runBootstrap();
+    });
+
+    /* ===== 3. Tab Switching ===== */
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const targetId = 'tab-' + this.dataset.tab;
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) targetPanel.classList.add('active');
+
+            /* Resize and redraw canvas elements when tab is unhidden */
+            const tabName = this.dataset.tab;
+            if (tabName === 'spot') drawSpotParChart();
+            if (tabName === 'forward') drawSpotFwdChart();
+            if (tabName === 'bootstrap') drawBootstrapChart();
+        });
+    });
+
+    /* ===== Window Resize: Redraw Active Canvas ===== */
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            const activePanel = document.querySelector('.tab-panel.active');
+            if (activePanel) {
+                if (activePanel.id === 'tab-spot') drawSpotParChart();
+                if (activePanel.id === 'tab-forward') drawSpotFwdChart();
+                if (activePanel.id === 'tab-bootstrap') drawBootstrapChart();
+            }
+        }, 150);
+    });
+
+    /* ===== 4. Q&A Accordion Toggle ===== */
+    function toggleQA(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('open');
+    }
+
+    /* ===================================================================== */
+    /* TAB 1: YIELD CALCULATOR LOGIC                                         */
+    /* ===================================================================== */
+    function solveBondYield(price, face, couponRatePct, years, freq, redemption) {
+        const c = (couponRatePct / 100) * face / freq;
+        const n = Math.round(years * freq);
+        if (n <= 0 || price <= 0) return 0;
+
+        /* Newton-Raphson solver for periodic yield y_p */
+        let y_p = (c + (redemption - price) / n) / ((redemption + price) / 2);
+        if (y_p <= 0) y_p = 0.02;
+
+        for (let iter = 0; iter < 40; iter++) {
+            let pv = 0;
+            let d_pv = 0;
+            for (let t = 1; t <= n; t++) {
+                const df = Math.pow(1 + y_p, -t);
+                pv += c * df;
+                d_pv -= t * c * Math.pow(1 + y_p, -t - 1);
+            }
+            const dfN = Math.pow(1 + y_p, -n);
+            pv += redemption * dfN;
+            d_pv -= n * redemption * Math.pow(1 + y_p, -n - 1);
+
+            const diff = pv - price;
+            if (Math.abs(diff) < 1e-7) break;
+            if (Math.abs(d_pv) < 1e-12) break;
+            y_p = y_p - diff / d_pv;
+            if (y_p < -0.99) y_p = -0.5;
+        }
+
+        return y_p * freq * 100; /* Annualized nominal yield % */
+    }
+
+    function calculateAllYields() {
+        const face = parseFloat(document.getElementById('yFace').value) || 1000;
+        const coupon = parseFloat(document.getElementById('yCoupon').value) || 0;
+        const price = parseFloat(document.getElementById('yPrice').value) || 1000;
+        const maturity = parseFloat(document.getElementById('yMaturity').value) || 10;
+        const freq = parseInt(document.getElementById('yFreq').value) || 2;
+        const callPrice = parseFloat(document.getElementById('yCallPrice').value) || 1000;
+        const callYears = parseFloat(document.getElementById('yCallYears').value) || 3;
+
+        /* Current Yield */
+        const annualCoupon = face * (coupon / 100);
+        const cy = (annualCoupon / price) * 100;
+
+        /* YTM */
+        const ytm = solveBondYield(price, face, coupon, maturity, freq, face);
+
+        /* YTC */
+        let ytc = 0;
+        if (callYears < maturity && callYears > 0) {
+            ytc = solveBondYield(price, face, coupon, callYears, freq, callPrice);
+        } else {
+            ytc = ytm;
+        }
+
+        /* YTW */
+        const ytw = Math.min(ytm, ytc);
+        const isCallWorse = ytc < ytm && callYears < maturity;
+
+        /* EAY based on YTM periodic yield */
+        const y_periodic = (ytm / 100) / freq;
+        const eay = (Math.pow(1 + y_periodic, freq) - 1) * 100;
+
+        /* Render KPIs */
+        document.getElementById('resCY').innerText = cy.toFixed(2) + '%';
+        document.getElementById('resYTM').innerText = ytm.toFixed(2) + '%';
+        document.getElementById('resYTC').innerText = (callYears < maturity ? ytc.toFixed(2) + '%' : 'N/A');
+        document.getElementById('resYTW').innerText = ytw.toFixed(2) + '%';
+        document.getElementById('resEAY').innerText = eay.toFixed(2) + '%';
+
+        const ytwReason = document.getElementById('resYTWReason');
+        const adviceBox = document.getElementById('yieldAdviceText');
+
+        if (isCallWorse) {
+            ytwReason.innerText = `Driven by Call (Yr ${callYears})`;
+            adviceBox.innerHTML = `Bond trades at a premium/above par call. Since <strong>YTC (${ytc.toFixed(2)}%) < YTM (${ytm.toFixed(2)}%)</strong>, the issuer is economically incentivized to exercise the call option at $${callPrice.toFixed(2)}. Institutional desks price this bond strictly on <strong>Yield to Call</strong>.`;
+        } else {
+            ytwReason.innerText = 'Driven by Maturity';
+            adviceBox.innerHTML = `Bond trades at discount or fair call. Since <strong>YTM (${ytm.toFixed(2)}%) &le; YTC (${ytc.toFixed(2)}%)</strong>, the issuer is unlikely to call the bond early. <strong>Yield to Maturity</strong> is the binding Yield to Worst constraint.`;
+        }
+    }
+
+    function reinitYields() {
+        document.getElementById('yFace').value = 1000;
+        document.getElementById('yCoupon').value = 6.00;
+        document.getElementById('yPrice').value = 1035.00;
+        document.getElementById('yMaturity').value = 10;
+        document.getElementById('yFreq').value = 2;
+        document.getElementById('yCallPrice').value = 1020.00;
+        document.getElementById('yCallYears').value = 3;
+        calculateAllYields();
+    }
+
+    /* ===================================================================== */
+    /* TAB 2: SPOT VS PAR CURVE VISUALIZER                                   */
+    /* ===================================================================== */
+    let currentSpotEnv = 'normal';
+
+    function setSpotEnv(env) {
+        currentSpotEnv = env;
+        document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+        if (env === 'normal') document.getElementById('btnEnvNormal').classList.add('active');
+        if (env === 'inverted') document.getElementById('btnEnvInverted').classList.add('active');
+        if (env === 'flat') document.getElementById('btnEnvFlat').classList.add('active');
+        if (env === 'humped') document.getElementById('btnEnvHumped').classList.add('active');
+
+        const desc = document.getElementById('spotEnvDescription');
+        if (env === 'normal') {
+            desc.innerHTML = `<strong>Upward Sloping Regime:</strong> Spot rates lie strictly above par yields ($s_t > y_{par}$). For a 10Y par bond, the final principal is discounted at the highest spot rate ($s_{10} = 5.65\%$), while coupons are discounted at lower short-term spot rates.`;
+        } else if (env === 'inverted') {
+            desc.innerHTML = `<strong>Inverted Regime:</strong> Spot rates lie strictly below par yields ($s_t < y_{par}$). Near-term cash flows have higher yields than long-term principal repayment, pulling the par yield above the spot curve.`;
+        } else if (env === 'flat') {
+            desc.innerHTML = `<strong>Flat Regime:</strong> When the yield curve is completely flat ($s_t = y_{par}$ at all maturities), all cash flows discount at the exact same rate. Spot rates, par yields, and forward rates coincide perfectly.`;
+        } else if (env === 'humped') {
+            desc.innerHTML = `<strong>Humped Regime:</strong> Medium-term spot rates (2Y-5Y) peak above both short and long rates. This occurs frequently during central bank tightening cycles transitioning toward monetary ease.`;
+        }
+
+        drawSpotParChart();
+    }
+
+    function getSpotParData(env) {
+        const mat = [0.5, 1, 2, 3, 4, 5, 7, 10, 15, 20, 30];
+        let par = [], spot = [];
+
+        if (env === 'normal') {
+            par =  [3.20, 3.50, 4.00, 4.30, 4.55, 4.75, 5.05, 5.30, 5.50, 5.60, 5.70];
+            spot = [3.20, 3.52, 4.08, 4.43, 4.73, 4.98, 5.35, 5.65, 5.88, 5.99, 6.10];
+        } else if (env === 'inverted') {
+            par =  [5.50, 5.20, 4.70, 4.40, 4.20, 4.05, 3.85, 3.70, 3.60, 3.55, 3.50];
+            spot = [5.50, 5.17, 4.61, 4.28, 4.06, 3.90, 3.69, 3.53, 3.42, 3.37, 3.32];
+        } else if (env === 'flat') {
+            par =  [4.50, 4.50, 4.50, 4.50, 4.50, 4.50, 4.50, 4.50, 4.50, 4.50, 4.50];
+            spot = [4.50, 4.50, 4.50, 4.50, 4.50, 4.50, 4.50, 4.50, 4.50, 4.50, 4.50];
+        } else { /* Humped */
+            par =  [3.80, 4.60, 5.30, 5.20, 4.90, 4.65, 4.35, 4.15, 4.00, 3.95, 3.90];
+            spot = [3.80, 4.68, 5.48, 5.34, 4.96, 4.66, 4.29, 4.05, 3.88, 3.82, 3.77];
+        }
+        return { mat, par, spot };
+    }
+
+    function drawSpotParChart() {
+        const canvas = document.getElementById('spotParCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const data = getSpotParData(currentSpotEnv);
+        const m = { l: 50, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const maxMat = 30;
+        const allY = [...data.par, ...data.spot];
+        const minY = Math.floor(Math.min(...allY) - 0.5);
+        const maxY = Math.ceil(Math.max(...allY) + 0.5);
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid lines */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        const ySteps = 5;
+        for (let i = 0; i <= ySteps; i++) {
+            const yVal = minY + (maxY - minY) * (i / ySteps);
+            const py = m.t + cH - (i / ySteps) * cH;
+            ctx.beginPath();
+            ctx.moveTo(m.l, py);
+            ctx.lineTo(m.l + cW, py);
+            ctx.stroke();
+
+            ctx.fillStyle = '#8a7a62';
+            ctx.font = '10px Inter';
+            ctx.textAlign = 'right';
+            ctx.fillText(yVal.toFixed(1) + '%', m.l - 8, py + 3);
+        }
+
+        /* Maturity X Grid */
+        [1, 5, 10, 15, 20, 25, 30].forEach(tx => {
+            const px = m.l + (tx / maxMat) * cW;
+            ctx.beginPath();
+            ctx.moveTo(px, m.t);
+            ctx.lineTo(px, m.t + cH);
+            ctx.stroke();
+
+            ctx.fillStyle = '#8a7a62';
+            ctx.font = '10px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText(tx + 'Y', px, m.t + cH + 16);
+        });
+
+        /* Helper to plot line */
+        function plotLine(arr, color, isDashed) {
+            ctx.beginPath();
+            if (isDashed) ctx.setLineDash([5, 4]); else ctx.setLineDash([]);
+            data.mat.forEach((xVal, idx) => {
+                const px = m.l + (xVal / maxMat) * cW;
+                const py = m.t + cH - ((arr[idx] - minY) / (maxY - minY)) * cH;
+                if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            });
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            /* Draw node dots */
+            data.mat.forEach((xVal, idx) => {
+                const px = m.l + (xVal / maxMat) * cW;
+                const py = m.t + cH - ((arr[idx] - minY) / (maxY - minY)) * cH;
+                ctx.beginPath();
+                ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.fill();
+            });
+        }
+
+        /* Plot curves */
+        plotLine(data.par, '#3d6a9e', true);  /* Par curve = blue dashed */
+        plotLine(data.spot, '#8b6d2a', false); /* Spot curve = gold solid */
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#8b6d2a';
+        ctx.fillRect(lx, 10, 16, 3);
+        ctx.fillStyle = '#2c2418';
+        ctx.font = '600 11px Inter';
+        ctx.textAlign = 'left';
+        ctx.fillText('Spot Curve (Zero-Coupon)', lx + 22, 14);
+
+        ctx.strokeStyle = '#3d6a9e';
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(lx + 190, 11);
+        ctx.lineTo(lx + 206, 11);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#2c2418';
+        ctx.fillText('Par Yield Curve', lx + 214, 14);
+
+        /* Mouse hover tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('spotParHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none';
+                return;
+            }
+
+            const hoverMat = ((mx - m.l) / cW) * maxMat;
+            /* Find nearest node */
+            let nearestIdx = 0;
+            let minDist = 999;
+            data.mat.forEach((mt, idx) => {
+                const dist = Math.abs(mt - hoverMat);
+                if (dist < minDist) { minDist = dist; nearestIdx = idx; }
+            });
+
+            const curMat = data.mat[nearestIdx];
+            const pY = data.par[nearestIdx];
+            const sY = data.spot[nearestIdx];
+            const spreadBps = ((sY - pY) * 100).toFixed(1);
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Maturity</span><span class="hud-val">${curMat} Years</span></div>
+                <div class="hud-row"><span class="hud-label">Spot Rate</span><span class="hud-val">${sY.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Par Yield</span><span class="hud-val" style="color:#3d6a9e;">${pY.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Spot &minus; Par</span><span class="hud-val">${spreadBps > 0 ? '+' : ''}${spreadBps} bps</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('spotParHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 3: FORWARD RATES ENGINE & CHART                                   */
+    /* ===================================================================== */
+    function calculateForwardRate() {
+        const t1 = parseFloat(document.getElementById('fwdT1').value) || 1.0;
+        const s1 = parseFloat(document.getElementById('fwdS1').value) || 4.0;
+        const t2 = parseFloat(document.getElementById('fwdT2').value) || 2.0;
+        const s2 = parseFloat(document.getElementById('fwdS2').value) || 4.8;
+        const notional = parseFloat(document.getElementById('fwdNotional').value) || 10000000;
+
+        if (t2 <= t1) {
+            alert('End Date T2 must be greater than Start Date T1.');
+            return;
+        }
+
+        const dt = t2 - t1;
+        const g1 = Math.pow(1 + s1 / 100, t1);
+        const g2 = Math.pow(1 + s2 / 100, t2);
+
+        /* Discrete annual compounding forward rate */
+        const fwdAnnual = (Math.pow(g2 / g1, 1 / dt) - 1) * 100;
+
+        /* Semi-annual BEY basis forward rate */
+        const s1_semi = Math.pow(1 + s1 / 100, 0.5) - 1;
+        const s2_semi = Math.pow(1 + s2 / 100, 0.5) - 1;
+        const fwdBEY = 2 * (Math.pow(Math.pow(1 + s2 / 200, 2 * t2) / Math.pow(1 + s1 / 200, 2 * t1), 1 / (2 * dt)) - 1) * 100;
+
+        document.getElementById('resFwdRate').innerText = fwdAnnual.toFixed(2) + '%';
+        document.getElementById('resFwdBEY').innerText = fwdBEY.toFixed(2) + '%';
+        document.getElementById('resGrowthFactor').innerText = g2.toFixed(4) + 'x';
+        document.getElementById('resTenor').innerText = dt.toFixed(2) + ' Yrs';
+        document.getElementById('resFwdLabel').innerText = `${t1}y${dt}y Forward Rate`;
+
+        drawSpotFwdChart();
+    }
+
+    function reinitForward() {
+        document.getElementById('fwdT1').value = 1.0;
+        document.getElementById('fwdS1').value = 4.00;
+        document.getElementById('fwdT2').value = 2.0;
+        document.getElementById('fwdS2').value = 4.80;
+        document.getElementById('fwdNotional').value = 10000000;
+        calculateForwardRate();
+    }
+
+    function drawSpotFwdChart() {
+        const canvas = document.getElementById('spotFwdCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        /* Simulated upward-sloping spot curve nodes */
+        const mats = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        const spot = [3.50, 4.10, 4.55, 4.85, 5.08, 5.25, 5.38, 5.48, 5.56, 5.62];
+
+        /* Calculate successive 1-year forward rates */
+        const fwd = [];
+        for (let i = 0; i < mats.length; i++) {
+            if (i === 0) {
+                fwd.push(spot[0]);
+            } else {
+                const gPrev = Math.pow(1 + spot[i - 1] / 100, mats[i - 1]);
+                const gCur = Math.pow(1 + spot[i] / 100, mats[i]);
+                const fVal = (gCur / gPrev - 1) * 100;
+                fwd.push(fVal);
+            }
+        }
+
+        const m = { l: 50, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const minY = 3.0;
+        const maxY = 6.8;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let yVal = 3.0; yVal <= 6.5; yVal += 0.5) {
+            const py = m.t + cH - ((yVal - minY) / (maxY - minY)) * cH;
+            ctx.beginPath();
+            ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(yVal.toFixed(1) + '%', m.l - 8, py + 3);
+        }
+
+        mats.forEach(tx => {
+            const px = m.l + ((tx - 1) / 9) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(tx + 'Y', px, m.t + cH + 16);
+        });
+
+        /* Plot Forward Curve (Orange solid line) */
+        ctx.beginPath();
+        fwd.forEach((val, i) => {
+            const px = m.l + (i / 9) * cW;
+            const py = m.t + cH - ((val - minY) / (maxY - minY)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#b07328';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        /* Plot Spot Curve (Gold dashed line) */
+        ctx.beginPath();
+        spot.forEach((val, i) => {
+            const px = m.l + (i / 9) * cW;
+            const py = m.t + cH - ((val - minY) / (maxY - minY)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#8b6d2a';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        /* Dots */
+        fwd.forEach((val, i) => {
+            const px = m.l + (i / 9) * cW;
+            const py = m.t + cH - ((val - minY) / (maxY - minY)) * cH;
+            ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#b07328'; ctx.fill();
+        });
+
+        spot.forEach((val, i) => {
+            const px = m.l + (i / 9) * cW;
+            const py = m.t + cH - ((val - minY) / (maxY - minY)) * cH;
+            ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#8b6d2a'; ctx.fill();
+        });
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#b07328';
+        ctx.fillRect(lx, 10, 16, 3);
+        ctx.fillStyle = '#2c2418';
+        ctx.font = '600 11px Inter';
+        ctx.textAlign = 'left';
+        ctx.fillText('1-Year Forward Curve f(t-1, t)', lx + 22, 14);
+
+        ctx.fillStyle = '#8b6d2a';
+        ctx.fillRect(lx + 210, 10, 16, 3);
+        ctx.fillStyle = '#2c2418';
+        ctx.fillText('Spot Curve s(t)', lx + 232, 14);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('spotFwdHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const step = Math.round(((mx - m.l) / cW) * 9);
+            const curIdx = Math.max(0, Math.min(9, step));
+            const yNode = mats[curIdx];
+            const sVal = spot[curIdx];
+            const fVal = fwd[curIdx];
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Maturity Node</span><span class="hud-val">Year ${yNode}</span></div>
+                <div class="hud-row"><span class="hud-label">Spot Rate s(${yNode})</span><span class="hud-val">${sVal.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">1Y Fwd Rate</span><span class="hud-val" style="color:#b07328;">${fVal.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Forward Premium</span><span class="hud-val">+${((fVal - sVal) * 100).toFixed(0)} bps</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('spotFwdHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 4: BOOTSTRAPPING ENGINE & CANVAS                                  */
+    /* ===================================================================== */
+    let bootstrappedResults = [];
+
+    function runBootstrap() {
+        const parInputs = [
+            { t: 0.5, id: 'par05' },
+            { t: 1.0, id: 'par10' },
+            { t: 1.5, id: 'par15' },
+            { t: 2.0, id: 'par20' },
+            { t: 2.5, id: 'par25' },
+            { t: 3.0, id: 'par30' },
+            { t: 4.0, id: 'par40' },
+            { t: 5.0, id: 'par50' }
+        ];
+
+        /* Interpolate missing 6M nodes for 3.5Y and 4.5Y */
+        const p30 = parseFloat(document.getElementById('par30').value) || 5.1;
+        const p40 = parseFloat(document.getElementById('par40').value) || 5.3;
+        const p50 = parseFloat(document.getElementById('par50').value) || 5.5;
+        const p35 = p30 + (p40 - p30) * 0.5;
+        const p45 = p40 + (p50 - p40) * 0.5;
+
+        const allNodes = [
+            { t: 0.5, par: parseFloat(document.getElementById('par05').value) || 4.0 },
+            { t: 1.0, par: parseFloat(document.getElementById('par10').value) || 4.25 },
+            { t: 1.5, par: parseFloat(document.getElementById('par15').value) || 4.5 },
+            { t: 2.0, par: parseFloat(document.getElementById('par20').value) || 4.7 },
+            { t: 2.5, par: parseFloat(document.getElementById('par25').value) || 4.9 },
+            { t: 3.0, par: p30 },
+            { t: 3.5, par: p35 },
+            { t: 4.0, par: p40 },
+            { t: 4.5, par: p45 },
+            { t: 5.0, par: p50 }
+        ];
+
+        const dfList = [];
+        bootstrappedResults = [];
+
+        for (let i = 0; i < allNodes.length; i++) {
+            const period = i + 1;
+            const mat = allNodes[i].t;
+            const parY = allNodes[i].par;
+            const semiCoupon = (parY / 2); /* on $100 par */
+
+            let df = 0;
+            if (i === 0) {
+                /* Step 1: Anchor point */
+                df = 1 / (1 + (parY / 100) / 2);
+            } else {
+                /* Step 2: Recursive extraction */
+                let pvCoupons = 0;
+                for (let j = 0; j < i; j++) {
+                    pvCoupons += semiCoupon * dfList[j];
+                }
+                df = (100 - pvCoupons) / (100 + semiCoupon);
+            }
+
+            dfList.push(df);
+
+            /* Semi-annual BEY spot rate: DF = 1 / (1 + z/2)^period */
+            const spotRate = 2 * (Math.pow(1 / df, 1 / period) - 1) * 100;
+
+            /* Implied 6M forward rate */
+            let fwd6M = spotRate;
+            if (i > 0) {
+                fwd6M = 2 * (dfList[i - 1] / df - 1) * 100;
+            }
+
+            bootstrappedResults.push({
+                period: period,
+                mat: mat,
+                par: parY,
+                coupon: semiCoupon,
+                df: df,
+                spot: spotRate,
+                fwd: fwd6M
+            });
+        }
+
+        /* Render Table */
+        const tbody = document.getElementById('bootstrapTableBody');
+        tbody.innerHTML = '';
+        bootstrappedResults.forEach((r, idx) => {
+            const isOriginal = [0, 1, 2, 3, 4, 5, 7, 9].includes(idx);
+            const tr = document.createElement('tr');
+            if (!isOriginal) tr.style.opacity = '0.75';
+            tr.innerHTML = `
+                <td style="font-family:var(--font-mono); font-weight:600;">${r.period}</td>
+                <td><strong>${r.mat.toFixed(1)} Y</strong></td>
+                <td style="font-family:var(--font-mono); color:#3d6a9e;">${r.par.toFixed(2)}%</td>
+                <td style="font-family:var(--font-mono);">$${r.coupon.toFixed(2)}</td>
+                <td style="font-family:var(--font-mono); font-weight:600;">${r.df.toFixed(5)}</td>
+                <td style="font-family:var(--font-mono); color:var(--accent); font-weight:700;">${r.spot.toFixed(2)}%</td>
+                <td style="font-family:var(--font-mono); color:#b07328;">${r.fwd.toFixed(2)}%</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        drawBootstrapChart();
+    }
+
+    function reinitBootstrap() {
+        document.getElementById('par05').value = 4.00;
+        document.getElementById('par10').value = 4.25;
+        document.getElementById('par15').value = 4.50;
+        document.getElementById('par20').value = 4.70;
+        document.getElementById('par25').value = 4.90;
+        document.getElementById('par30').value = 5.10;
+        document.getElementById('par40').value = 5.30;
+        document.getElementById('par50').value = 5.50;
+        runBootstrap();
+    }
+
+    function drawBootstrapChart() {
+        const canvas = document.getElementById('bootstrapCanvas');
+        if (!canvas || !bootstrappedResults.length) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 300;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const m = { l: 50, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const maxMat = 5.0;
+        const allY = bootstrappedResults.flatMap(r => [r.par, r.spot, r.fwd]);
+        const minY = Math.floor(Math.min(...allY) - 0.5);
+        const maxY = Math.ceil(Math.max(...allY) + 0.5);
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let yVal = minY; yVal <= maxY; yVal += 0.5) {
+            const py = m.t + cH - ((yVal - minY) / (maxY - minY)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(yVal.toFixed(1) + '%', m.l - 8, py + 3);
+        }
+
+        [0.5, 1, 2, 3, 4, 5].forEach(tx => {
+            const px = m.l + ((tx - 0.5) / 4.5) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(tx + 'Y', px, m.t + cH + 16);
+        });
+
+        function plotCurve(key, color, isDashed) {
+            ctx.beginPath();
+            if (isDashed) ctx.setLineDash([5, 4]); else ctx.setLineDash([]);
+            bootstrappedResults.forEach((r, idx) => {
+                const px = m.l + ((r.mat - 0.5) / 4.5) * cW;
+                const py = m.t + cH - ((r[key] - minY) / (maxY - minY)) * cH;
+                if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            });
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            bootstrappedResults.forEach((r) => {
+                const px = m.l + ((r.mat - 0.5) / 4.5) * cW;
+                const py = m.t + cH - ((r[key] - minY) / (maxY - minY)) * cH;
+                ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+                ctx.fillStyle = color; ctx.fill();
+            });
+        }
+
+        plotCurve('par', '#3d6a9e', true);    /* Par curve */
+        plotCurve('spot', '#8b6d2a', false);  /* Bootstrapped Spot curve */
+        plotCurve('fwd', '#b07328', false);   /* 6M Forward curve */
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#b07328';
+        ctx.fillRect(lx, 10, 14, 3);
+        ctx.fillStyle = '#2c2418';
+        ctx.font = '600 11px Inter';
+        ctx.textAlign = 'left';
+        ctx.fillText('6M Forward Rate', lx + 18, 14);
+
+        ctx.fillStyle = '#8b6d2a';
+        ctx.fillRect(lx + 130, 10, 14, 3);
+        ctx.fillStyle = '#2c2418';
+        ctx.fillText('Bootstrapped Spot Rate', lx + 148, 14);
+
+        ctx.strokeStyle = '#3d6a9e';
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(lx + 310, 11);
+        ctx.lineTo(lx + 324, 11);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#2c2418';
+        ctx.fillText('Input Par Yield', lx + 328, 14);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('bootstrapHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverMat = 0.5 + ((mx - m.l) / cW) * 4.5;
+            let nearestIdx = 0;
+            let minDist = 999;
+            bootstrappedResults.forEach((r, idx) => {
+                const dist = Math.abs(r.mat - hoverMat);
+                if (dist < minDist) { minDist = dist; nearestIdx = idx; }
+            });
+
+            const r = bootstrappedResults[nearestIdx];
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Maturity</span><span class="hud-val">${r.mat.toFixed(1)} Years</span></div>
+                <div class="hud-row"><span class="hud-label">Discount Factor</span><span class="hud-val">${r.df.toFixed(5)}</span></div>
+                <div class="hud-row"><span class="hud-label">Spot Rate $z_n$</span><span class="hud-val" style="color:#8b6d2a;">${r.spot.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Par Yield $y_n$</span><span class="hud-val" style="color:#3d6a9e;">${r.par.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">6M Forward</span><span class="hud-val" style="color:#b07328;">${r.fwd.toFixed(2)}%</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('bootstrapHud').style.display = 'none';
+        };
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,2310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Term Structure — Fixed Income Mastery</title>
+    <meta name="description" content="Master term structure of interest rates: yield curve shapes, expectations hypothesis, liquidity preference, Nelson-Siegel curve fitting, and PCA curve dynamics.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        /* ===== CSS Custom Properties (Parchment / Classic Bond Aesthetic) ===== */
+        :root {
+            --bg: #e8dcc8;
+            --bg-warm: #dfd3be;
+            --surface: #d6c9b1;
+            --surface-2: #cdbfa5;
+            --surface-3: #c4b599;
+            --surface-hover: #bfae90;
+            --border: #b8a688;
+            --border-glow: #8b6d2a55;
+            --text: #2c2418;
+            --text-secondary: #5a4d3a;
+            --text-muted: #8a7a62;
+            --accent: #8b6d2a;
+            --accent-light: #a6843a;
+            --accent-dark: #6e5520;
+            --accent-glow: #8b6d2a20;
+            --accent-strong-glow: #8b6d2a38;
+            --green: #4a7c3f;
+            --red: #a63d3d;
+            --blue: #3d6a9e;
+            --orange: #b07328;
+            --purple: #6a4c93;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ===== Sine Wave Background ===== */
+        .wave-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .wave-bg canvas { width: 100%; height: 100%; }
+
+        /* ===== Layout ===== */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px 60px;
+        }
+
+        /* ===== Header ===== */
+        .top-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--accent); }
+        .back-link svg { width: 16px; height: 16px; transition: transform 0.2s; }
+        .back-link:hover svg { transform: translateX(-3px); }
+
+        .module-badge {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent);
+            background: var(--accent-glow);
+            border: 1px solid var(--border-glow);
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .module-title-bar {
+            text-align: center;
+            padding: 32px 0 24px;
+        }
+
+        .module-title-bar h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .module-title-bar .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== Tab Navigation ===== */
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 32px;
+            overflow-x: auto;
+            padding-bottom: 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-tab {
+            padding: 12px 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            font-family: var(--font-body);
+            letter-spacing: 0.01em;
+        }
+        .nav-tab:hover { color: var(--text-secondary); }
+        .nav-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ===== Content Cards ===== */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            font-weight: 650;
+            color: var(--text);
+            margin: 20px 0 10px;
+        }
+
+        .card p, .card li {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .card ul, .card ol {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+
+        .card li { margin-bottom: 6px; }
+
+        /* ===== KaTeX Formula Blocks ===== */
+        .formula-block {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            overflow-x: auto;
+            text-align: center;
+        }
+
+        .formula-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        /* ===== Tables ===== */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 16px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        th {
+            background: var(--surface-2);
+            color: var(--text);
+            font-weight: 650;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--accent-glow); }
+
+        /* ===== Alerts ===== */
+        .alert {
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin: 16px 0;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            display: flex;
+            gap: 10px;
+        }
+
+        .alert-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+        .alert-info {
+            background: #3d6a9e15;
+            border: 1px solid #3d6a9e30;
+            color: var(--blue);
+        }
+
+        .alert-tip {
+            background: #4a7c3f15;
+            border: 1px solid #4a7c3f30;
+            color: var(--green);
+        }
+
+        .alert-warning {
+            background: #b0732815;
+            border: 1px solid #b0732830;
+            color: var(--orange);
+        }
+
+        .alert-key {
+            background: var(--accent-glow);
+            border: 1px solid var(--border-glow);
+            color: var(--accent-dark);
+        }
+
+        /* ===== Interactive Controls ===== */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin: 16px 0;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .control-group input[type="number"],
+        .control-group select {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .control-group input[type="range"] {
+            accent-color: var(--accent);
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus {
+            border-color: var(--accent);
+        }
+
+        /* ===== KPI Results ===== */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .kpi {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            text-align: center;
+        }
+
+        .kpi.highlight-shape {
+            border: 2px solid var(--accent);
+            background: var(--accent-glow);
+        }
+
+        .kpi-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .kpi-value {
+            font-family: var(--font-mono);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .kpi-sub {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ===== Buttons ===== */
+        .btn {
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .btn-primary:hover { background: var(--accent-light); }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-secondary);
+        }
+        .btn-secondary:hover { background: var(--surface-2); }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== Canvas Chart Wrapper ===== */
+        .chart-wrapper {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            position: relative;
+        }
+
+        .chart-wrapper canvas {
+            width: 100%;
+            cursor: crosshair;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chart-title {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ===== Hover HUD (Floating Tooltip) ===== */
+        .chart-hud {
+            position: absolute;
+            pointer-events: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+            z-index: 10;
+            display: none;
+            white-space: nowrap;
+        }
+
+        .chart-hud .hud-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 2px;
+        }
+        .chart-hud .hud-row:last-child { margin-bottom: 0; }
+
+        .chart-hud .hud-label { color: var(--text-muted); }
+        .chart-hud .hud-val { font-weight: 600; color: var(--accent); }
+
+        /* ===== Pill Selector ===== */
+        .pill-group {
+            display: inline-flex;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 2px;
+            gap: 2px;
+            flex-wrap: wrap;
+        }
+
+        .pill-btn {
+            background: none;
+            border: none;
+            padding: 5px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-body);
+        }
+
+        .pill-btn.active {
+            background: var(--accent);
+            color: #ffffff;
+        }
+
+        /* ===== Interview Q&A Flashcards ===== */
+        .qa-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .qa-question {
+            padding: 16px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        .qa-question:hover { background: var(--accent-glow); }
+
+        .qa-toggle {
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-weight: 700;
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s;
+        }
+
+        .qa-card.open .qa-toggle { transform: rotate(45deg); }
+
+        .qa-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .qa-card.open .qa-answer { max-height: 800px; }
+
+        .qa-answer-inner {
+            padding: 0 20px 18px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            border-top: 1px solid var(--border);
+            padding-top: 14px;
+        }
+
+        .qa-answer-inner strong { color: var(--text); }
+        .qa-desk-tip {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: var(--accent-glow);
+            border-left: 3px solid var(--accent);
+            font-size: 0.8rem;
+            color: var(--accent-dark);
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* ===== Footer ===== */
+        .footer {
+            text-align: center;
+            padding: 24px 0;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-warm); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 700px) {
+            .module-title-bar h1 { font-size: 1.7rem; }
+            .nav-tabs { gap: 0; }
+            .nav-tab { padding: 10px 14px; font-size: 0.75rem; }
+            .card { padding: 20px 16px; }
+            .controls-grid { grid-template-columns: 1fr 1fr; }
+            .kpi-grid { grid-template-columns: 1fr 1fr; }
+            .formula-block { padding: 12px 14px; overflow-x: auto; }
+            .table-wrapper { font-size: 0.78rem; }
+        }
+
+        @media (max-width: 480px) {
+            .controls-grid { grid-template-columns: 1fr; }
+            .kpi-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wave-bg"><canvas id="waveCanvas"></canvas></div>
+
+    <div class="main-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-header">
+            <a href="index.html" class="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>All Modules</span>
+            </a>
+            <span class="module-badge">Module 03 · Term Structure</span>
+        </header>
+
+        <!-- Module Header -->
+        <div class="module-title-bar">
+            <h1>Term Structure of Interest Rates</h1>
+            <p class="subtitle">Yield curve shapes, term structure theories, Nelson-Siegel model fitting, and PCA curve dynamics</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs" role="tablist">
+            <button class="nav-tab active" data-tab="shapes" role="tab">1. Curve Shapes</button>
+            <button class="nav-tab" data-tab="theories" role="tab">2. Term Structure Theories</button>
+            <button class="nav-tab" data-tab="ns" role="tab">3. Nelson-Siegel Model</button>
+            <button class="nav-tab" data-tab="dynamics" role="tab">4. Curve Dynamics & PCA</button>
+            <button class="nav-tab" data-tab="qa" role="tab">5. Interview Q&A</button>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 1: YIELD CURVE SHAPES                                            -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel active" id="tab-shapes" role="tabpanel">
+            <div class="card">
+                <h2>The Geometry of the Yield Curve</h2>
+                <p>
+                    The term structure of interest rates plots sovereign bond yields against maturity, spanning from overnight cash out to 30 or 50 years. The shape of this curve reflects the macroeconomic consensus on <strong>future growth</strong>, <strong>inflation expectations</strong>, <strong>central bank policy cycles</strong>, and the <strong>compensation demanded by investors for bearing duration risk (the Term Premium)</strong>.
+                </p>
+
+                <h3>The Four Canonical Curve Regimes</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Curve Shape</th>
+                                <th>Slope Metric ($2s10s$)</th>
+                                <th>Macroeconomic Interpretation</th>
+                                <th>Typical Market Regime</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Normal (Upward Sloping)</strong></td>
+                                <td>$10\text{Y} - 2\text{Y} > +50\text{ bps}$</td>
+                                <td>Healthy economic expansion, positive term premium, stable inflation expectation.</td>
+                                <td>Mid-cycle growth or early recovery.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Steep Curve</strong></td>
+                                <td>$10\text{Y} - 2\text{Y} > +150\text{ bps}$</td>
+                                <td>Central bank cutting rates aggressively to stimulate economy; long rates anticipate future recovery.</td>
+                                <td>Post-recession bull steepener or reflationary fiscal surge.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Flat Curve</strong></td>
+                                <td>$-15\text{ bps} \le 10\text{Y} - 2\text{Y} \le +15\text{ bps}$</td>
+                                <td>Monetary policy tightening taking hold; economic momentum decelerating.</td>
+                                <td>Late-cycle transition phase.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Inverted (Downward Sloping)</strong></td>
+                                <td>$10\text{Y} - 2\text{Y} < -15\text{ bps}$</td>
+                                <td>Restrictive policy braking the economy; markets pricing aggressive future rate cuts to combat recession.</td>
+                                <td>Late-stage central bank overtightening; classic recession signal.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Humped Curve</strong></td>
+                                <td>Medium-term ($2\text{Y}-5\text{Y}$) peak</td>
+                                <td>Terminal policy rate peak expected in near term followed by easing in distant years.</td>
+                                <td>Peak tightening cycle (e.g. 2006, 2023).</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>The Inversion Transmission Mechanism</h3>
+                <p>
+                    Historically, every US recession since 1955 has been preceded by an inversion of the $10\text{Y}-2\text{Y}$ or $10\text{Y}-3\text{M}$ Treasury curve with a median lag of 12 to 18 months.
+                </p>
+                <div class="alert alert-warning">
+                    <span class="alert-icon">⚠️</span>
+                    <div>
+                        <strong>Why Inversion Breaks the Real Economy:</strong> Commercial banks borrow short-term (paying rates tied to 3M cash/SOFR) and lend long-term (mortgages, term loans tied to 5Y-10Y). When the curve inverts, bank <strong>Net Interest Margin (NIM) collapses</strong>, prompting banks to tighten credit lending standards, restricting corporate capital expenditure and triggering economic slowdown.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Yield Curve Builder Card -->
+            <div class="card">
+                <h2>Interactive Yield Curve Builder & Shape Classifier</h2>
+                <p>
+                    Adjust the benchmark key rates below or select a market preset to watch the real-time spline interpolation, slope spreads ($2s10s$, $3m10s$), curvature metrics, and regime classification update automatically.
+                </p>
+
+                <div class="chart-header">
+                    <div class="chart-title">Market Presets</div>
+                    <div class="pill-group">
+                        <button class="pill-btn active" id="btnShapeNormal" onclick="setShapePreset('normal')">Normal (Upward)</button>
+                        <button class="pill-btn" id="btnShapeSteep" onclick="setShapePreset('steep')">Steep Reflation</button>
+                        <button class="pill-btn" id="btnShapeFlat" onclick="setShapePreset('flat')">Flat Late-Cycle</button>
+                        <button class="pill-btn" id="btnShapeInverted" onclick="setShapePreset('inverted')">Deep Inversion</button>
+                        <button class="pill-btn" id="btnShapeHumped" onclick="setShapePreset('humped')">Humped Terminal</button>
+                    </div>
+                </div>
+
+                <div class="controls-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+                    <div class="control-group">
+                        <label for="rt3M">3M Cash (%)</label>
+                        <input type="number" id="rt3M" value="3.50" min="0.0" max="15.0" step="0.05" oninput="updateShapeBuilder()">
+                    </div>
+                    <div class="control-group">
+                        <label for="rt2Y">2Y Note (%)</label>
+                        <input type="number" id="rt2Y" value="4.00" min="0.0" max="15.0" step="0.05" oninput="updateShapeBuilder()">
+                    </div>
+                    <div class="control-group">
+                        <label for="rt5Y">5Y Note (%)</label>
+                        <input type="number" id="rt5Y" value="4.40" min="0.0" max="15.0" step="0.05" oninput="updateShapeBuilder()">
+                    </div>
+                    <div class="control-group">
+                        <label for="rt10Y">10Y Benchmark (%)</label>
+                        <input type="number" id="rt10Y" value="4.80" min="0.0" max="15.0" step="0.05" oninput="updateShapeBuilder()">
+                    </div>
+                    <div class="control-group">
+                        <label for="rt30Y">30Y Bond (%)</label>
+                        <input type="number" id="rt30Y" value="5.10" min="0.0" max="15.0" step="0.05" oninput="updateShapeBuilder()">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="setShapePreset('normal')">Reset to Default Normal</button>
+                </div>
+
+                <!-- KPIs -->
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi highlight-shape">
+                        <div class="kpi-label">Classified Regime</div>
+                        <div class="kpi-value" id="kpiShapeClass">Normal Upward</div>
+                        <div class="kpi-sub" id="kpiShapeSub">Healthy Expansion</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">2s10s Slope Spread</div>
+                        <div class="kpi-value" id="kpi2s10s">+80 bps</div>
+                        <div class="kpi-sub">$10\text{Y} - 2\text{Y}$</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">3m10s Slope Spread</div>
+                        <div class="kpi-value" id="kpi3m10s">+130 bps</div>
+                        <div class="kpi-sub">$10\text{Y} - 3\text{M}$</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">2s5s10s Curvature</div>
+                        <div class="kpi-value" id="kpiButterfly">0 bps</div>
+                        <div class="kpi-sub">$2 \times 5\text{Y} - (2\text{Y} + 10\text{Y})$</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Yield Curve Builder Chart -->
+                <div class="chart-wrapper">
+                    <canvas id="shapeCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="shapeHud"></div>
+                </div>
+
+                <div class="alert alert-key" id="shapeDescBox">
+                    <strong>Current Regime Analysis:</strong> The curve exhibits a healthy positive slope with $10\text{Y}-2\text{Y} = +80\text{ bps}$. Term premium is positive, banks can profitably borrow short and lend long, and monetary conditions are neutral to accommodative.
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 2: TERM STRUCTURE THEORIES                                       -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-theories" role="tabpanel">
+            <div class="card">
+                <h2>Theories of the Term Structure</h2>
+                <p>
+                    Why does the yield curve slope upward most of the time? Over the last century, economists and quantitative desks developed four complementary theories to explain the shape of the yield curve.
+                </p>
+
+                <h3>1. Pure Expectations Hypothesis (PEH)</h3>
+                <p>
+                    Forward rates are unbiased predictors of future spot rates. Investors are risk-neutral, viewing bonds of all maturities as perfect substitutes:
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Pure Expectations Hypothesis Formulation</div>
+                    <div id="formula-peh"></div>
+                </div>
+                <ul>
+                    <li><strong>Upward sloping curve:</strong> Implies market expects interest rates to rise in the future.</li>
+                    <li><strong>Downward sloping curve:</strong> Implies market expects interest rates to fall.</li>
+                    <li><strong>Flaw:</strong> Empirically fails because investors are risk-averse and require risk compensation (the Term Premium). Long bonds consistently offer higher average returns than rolled short bills over multi-decade horizons.</li>
+                </ul>
+
+                <h3>2. Liquidity Preference Theory (LPT)</h3>
+                <p>
+                    Investors prefer holding liquid short-term debt over locking up capital in long-term debt, which is exposed to price volatility. Borrowers (governments, corporations), however, prefer borrowing long-term.
+                </p>
+                <p>
+                    To induce investors to hold long-term bonds, issuers must pay a positive, monotonically increasing <strong>Liquidity / Term Premium</strong> ($TP_t > 0$):
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Liquidity Preference Formulation</div>
+                    <div id="formula-lpt"></div>
+                </div>
+                <div class="alert alert-tip">
+                    <span class="alert-icon">💡</span>
+                    <div>
+                        <strong>Key S&T Insight:</strong> Under Liquidity Preference, an upward-sloping yield curve does <em>not</em> necessarily mean interest rates will rise! If the term premium is +150 bps and expected future rates are flat or even falling slightly (-50 bps), the observable nominal curve will still slope upward (+100 bps)!
+                    </div>
+                </div>
+
+                <h3>3. Market Segmentation Theory (MST)</h3>
+                <p>
+                    Investors and issuers are confined to specific maturity buckets by regulatory mandates or liability matching constraints:
+                </p>
+                <ul>
+                    <li>Commercial banks and corporate cash treasuries operate strictly in the short end ($0-2\text{Y}$).</li>
+                    <li>Pension funds and life insurers with 30-year liability cash flows operate strictly in the ultra-long end ($20-30\text{Y}$).</li>
+                    <li>Yields in each maturity bucket are determined purely by local supply and demand, with zero substitution across tenors.</li>
+                </ul>
+
+                <h3>4. Preferred Habitat Theory (PHT)</h3>
+                <p>
+                    A realistic compromise between Pure Expectations and Segmentation. Investors have a "preferred habitat" (their natural liability tenor), but will cross into adjacent maturity sectors if offered an attractive risk premium. The yield curve reflects both expectations of future rates and supply/demand imbalances across maturity sectors.
+                </p>
+            </div>
+
+            <!-- Interactive Theory Decomposition Visualizer -->
+            <div class="card">
+                <h2>Curve Decomposition: Expected Rate vs Term Premium</h2>
+                <p>
+                    Select a term structure theory below to see how the exact same observable spot yield curve ($s_t$) is decomposed into its underlying components: <strong>Expected Future Policy Rates</strong> vs. <strong>Term Premium</strong>.
+                </p>
+
+                <div class="chart-header">
+                    <div class="chart-title">Select Theory Model</div>
+                    <div class="pill-group">
+                        <button class="pill-btn active" id="btnTheoryPEH" onclick="setTheoryMode('peh')">Pure Expectations</button>
+                        <button class="pill-btn" id="btnTheoryLPT" onclick="setTheoryMode('lpt')">Liquidity Preference</button>
+                        <button class="pill-btn" id="btnTheoryMST" onclick="setTheoryMode('mst')">Market Segmentation</button>
+                    </div>
+                </div>
+
+                <div class="chart-wrapper">
+                    <canvas id="theoryCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="theoryHud"></div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="setTheoryMode('lpt')">Show Standard (Liquidity Preference)</button>
+                </div>
+
+                <div class="alert alert-info" id="theoryDescBox">
+                    <strong>Liquidity Preference Decomposition:</strong> The observable spot curve (Gold) is the sum of Expected Future Rates (Blue) plus an increasing Term Premium (Green). Notice that although the nominal curve rises to 5.2%, expected rates peak at 4.2% and stabilize, with the remainder explained by compensation for duration risk.
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 3: NELSON-SIEGEL MODEL                                           -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-ns" role="tabpanel">
+            <div class="card">
+                <h2>Parametric Curve Construction: The Nelson-Siegel Model</h2>
+                <p>
+                    In quantitative finance and central banking (Federal Reserve, ECB, Bank of England), fitting smooth, continuous zero-coupon yield curves from discrete market bond quotes requires robust parametric modeling. The gold standard is the <strong>Nelson-Siegel (1987)</strong> model.
+                </p>
+
+                <h3>Mathematical Formulation</h3>
+                <p>
+                    The zero-coupon yield $y(\tau)$ for maturity $\tau$ is expressed as a linear combination of three intuitive shape components plus an exponential decay factor $\lambda$:
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Nelson-Siegel Functional Form</div>
+                    <div id="formula-ns"></div>
+                </div>
+
+                <h3>Economic Interpretation of the Parameters</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Economic Role</th>
+                                <th>Weight / Loading Function</th>
+                                <th>Asymptotic Limits</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>$\beta_0$</td>
+                                <td><strong>Level Factor</strong> (Long-term rate)</td>
+                                <td>$L_0(\tau) = 1$ (constant across all maturities)</td>
+                                <td>$\lim_{\tau \to \infty} y(\tau) = \beta_0$</td>
+                            </tr>
+                            <tr>
+                                <td>$\beta_1$</td>
+                                <td><strong>Slope Factor</strong> (Short-term spread)</td>
+                                <td>$L_1(\tau) = \frac{1 - e^{-\tau/\lambda}}{\tau/\lambda}$ (decays monotonically from 1 to 0)</td>
+                                <td>$\lim_{\tau \to 0} y(\tau) = \beta_0 + \beta_1$</td>
+                            </tr>
+                            <tr>
+                                <td>$\beta_2$</td>
+                                <td><strong>Curvature Factor</strong> (Medium-term hump)</td>
+                                <td>$L_2(\tau) = \frac{1 - e^{-\tau/\lambda}}{\tau/\lambda} - e^{-\tau/\lambda}$ (starts at 0, peaks at $\tau \approx \lambda$, decays to 0)</td>
+                                <td>Peaks at intermediate maturities ($2-5\text{Y}$)</td>
+                            </tr>
+                            <tr>
+                                <td>$\lambda$</td>
+                                <td><strong>Decay Parameter</strong></td>
+                                <td>Determines the maturity $\tau$ where the curvature loading reaches its maximum</td>
+                                <td>Typically $\lambda \approx 1.5 - 3.0$ in sovereign debt</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>The Svensson (1994) Extension</h3>
+                <p>
+                    To capture more complex curve shapes with multiple humps (common in the Eurozone during sovereign debt stress), <strong>Svensson (1994)</strong> introduced a fourth term with a second curvature parameter $\beta_3$ and decay $\lambda_2$:
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Nelson-Siegel-Svensson Extension (NSS)</div>
+                    <div id="formula-nss"></div>
+                </div>
+            </div>
+
+            <!-- Interactive Nelson-Siegel Fitter Card -->
+            <div class="card">
+                <h2>Interactive Nelson-Siegel Curve Modeler</h2>
+                <p>
+                    Drag the sliders below to adjust the underlying Level ($\beta_0$), Slope ($\beta_1$), Curvature ($\beta_2$), and Decay ($\lambda$) factors and observe how the total yield curve and individual factor loadings transform in real time.
+                </p>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label for="nsBeta0">Level $\beta_0$ (Long Rate): <span id="valBeta0" style="font-family:var(--font-mono); color:var(--accent);">5.50%</span></label>
+                        <input type="range" id="nsBeta0" min="1.0" max="10.0" step="0.1" value="5.5" oninput="updateNelsonSiegel()">
+                    </div>
+                    <div class="control-group">
+                        <label for="nsBeta1">Slope $\beta_1$ (Short-Long): <span id="valBeta1" style="font-family:var(--font-mono); color:var(--accent);">-2.00%</span></label>
+                        <input type="range" id="nsBeta1" min="-6.0" max="6.0" step="0.1" value="-2.0" oninput="updateNelsonSiegel()">
+                    </div>
+                    <div class="control-group">
+                        <label for="nsBeta2">Curvature $\beta_2$ (Hump): <span id="valBeta2" style="font-family:var(--font-mono); color:var(--accent);">1.50%</span></label>
+                        <input type="range" id="nsBeta2" min="-6.0" max="6.0" step="0.1" value="1.5" oninput="updateNelsonSiegel()">
+                    </div>
+                    <div class="control-group">
+                        <label for="nsLambda">Decay $\lambda$ (Hump Peak): <span id="valLambda" style="font-family:var(--font-mono); color:var(--accent);">2.50</span></label>
+                        <input type="range" id="nsLambda" min="0.5" max="8.0" step="0.1" value="2.5" oninput="updateNelsonSiegel()">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="resetNelsonSiegel()">Reset Parameters</button>
+                    <button class="btn btn-secondary" onclick="presetNSInverted()">Preset: Inverted Curve</button>
+                    <button class="btn btn-secondary" onclick="presetNSHumped()">Preset: Sharp Hump</button>
+                </div>
+
+                <!-- KPIs -->
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi">
+                        <div class="kpi-label">Instantaneous Rate $y(0)$</div>
+                        <div class="kpi-value" id="kpiNSShort">3.50%</div>
+                        <div class="kpi-sub">$\beta_0 + \beta_1$</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">10Y Fitted Yield</div>
+                        <div class="kpi-value" id="kpiNS10Y">5.15%</div>
+                        <div class="kpi-sub">Benchmark Tenor</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Asymptotic Rate $y(\infty)$</div>
+                        <div class="kpi-value" id="kpiNSLong">5.50%</div>
+                        <div class="kpi-sub">Level $\beta_0$</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Curvature Peak Tenor</div>
+                        <div class="kpi-value" id="kpiNSPeak">4.49 Yrs</div>
+                        <div class="kpi-sub">$\tau \approx 1.793 \times \lambda$</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Nelson Siegel Chart -->
+                <div class="chart-header" style="margin-top: 20px;">
+                    <div class="chart-title">Fitted Curve & Factor Loading Decompositions</div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="nsCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="nsHud"></div>
+                </div>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">📘</span>
+                    <div>
+                        <strong>Factor Loadings Guide:</strong> The solid Gold line shows the total fitted yield $y(\tau)$. The dashed lines show the three factor loadings: Level $L_0$ (flat at 1), Slope $L_1$ (decays from 1 to 0), and Curvature $L_2$ (starts at 0, reaches peak at $\tau = 1.793\lambda$, then fades to 0).
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 4: CURVE DYNAMICS & PCA                                          -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-dynamics" role="tabpanel">
+            <div class="card">
+                <h2>Curve Dynamics & Principal Component Analysis (PCA)</h2>
+                <p>
+                    In rates sales & trading, bond prices do not move independently across maturities. Historical empirical analysis of sovereign curves reveals that over <strong>99% of all daily yield curve movements</strong> can be explained by just <strong>three orthogonal factors</strong>:
+                </p>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Name</th>
+                                <th>Variance Explained</th>
+                                <th>Trading Desk Meaning</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>PC 1</strong></td>
+                                <td><strong>Level</strong> (Parallel Shift)</td>
+                                <td><strong>~85% &ndash; 90%</strong></td>
+                                <td>All yields shift up or down in unison. Driven by aggregate macroeconomic inflation shocks or broad monetary policy stance changes.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>PC 2</strong></td>
+                                <td><strong>Slope</strong> (Steepener / Flattener)</td>
+                                <td><strong>~8% &ndash; 10%</strong></td>
+                                <td>Curve pivots around the 5Y&ndash;7Y sector. Short rates move by more than long rates. Driven by central bank policy surprises.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>PC 3</strong></td>
+                                <td><strong>Curvature</strong> (Butterfly)</td>
+                                <td><strong>~2% &ndash; 4%</strong></td>
+                                <td>The "belly" of the curve ($5\text{Y}$) moves relative to the "wings" ($2\text{Y}$ and $10\text{Y}/30\text{Y}$). Traded via Butterfly spreads.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>The Four Classic Slope Trades</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Strategy Name</th>
+                                <th>What Happens to Yields?</th>
+                                <th>Economic Driver</th>
+                                <th>Trader Positioning</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Bull Steepener</strong></td>
+                                <td>Short rates fall faster than long rates (Yields $\downarrow$, Curve steepens)</td>
+                                <td>Central bank rate cuts to combat weakness</td>
+                                <td>Long front end ($2\text{Y}$), short long end ($10\text{Y}$) DV01-neutral</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Bear Steepener</strong></td>
+                                <td>Long rates rise faster than short rates (Yields $\uparrow$, Curve steepens)</td>
+                                <td>Inflation fears, heavy sovereign debt issuance supply</td>
+                                <td>Short long end ($10\text{Y}/30\text{Y}$) vs long front end</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Bull Flattener</strong></td>
+                                <td>Long rates fall faster than short rates (Yields $\downarrow$, Curve flattens)</td>
+                                <td>Flight-to-safety, deflationary global shock</td>
+                                <td>Long long end ($10\text{Y}/30\text{Y}$) vs short front end</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Bear Flattener</strong></td>
+                                <td>Short rates rise faster than long rates (Yields $\uparrow$, Curve flattens)</td>
+                                <td>Aggressive central bank rate hikes</td>
+                                <td>Short front end ($2\text{Y}$) vs long long end</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Interactive PCA & Shift Simulator Card -->
+            <div class="card">
+                <h2>Interactive Curve Shift & Butterfly Simulator</h2>
+                <p>
+                    Apply shifts to the Level, Slope, and Curvature components or trigger one of the classic institutional strategy presets to observe the deformed curve vs. base curve.
+                </p>
+
+                <div class="chart-header">
+                    <div class="chart-title">Strategy Presets</div>
+                    <div class="pill-group">
+                        <button class="pill-btn active" id="btnPresNone" onclick="setShiftPreset('none')">Base Curve</button>
+                        <button class="pill-btn" id="btnPresBullSt" onclick="setShiftPreset('bull_steep')">Bull Steepener</button>
+                        <button class="pill-btn" id="btnPresBearSt" onclick="setShiftPreset('bear_steep')">Bear Steepener</button>
+                        <button class="pill-btn" id="btnPresBullFl" onclick="setShiftPreset('bull_flat')">Bull Flattener</button>
+                        <button class="pill-btn" id="btnPresBearFl" onclick="setShiftPreset('bear_flat')">Bear Flattener</button>
+                        <button class="pill-btn" id="btnPresPosFly" onclick="setShiftPreset('pos_fly')">Pos Butterfly</button>
+                        <button class="pill-btn" id="btnPresNegFly" onclick="setShiftPreset('neg_fly')">Neg Butterfly</button>
+                    </div>
+                </div>
+
+                <div class="controls-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                    <div class="control-group">
+                        <label for="shiftLevel">PC1: Level Shift: <span id="valShiftLevel" style="font-family:var(--font-mono); color:var(--accent);">0 bps</span></label>
+                        <input type="range" id="shiftLevel" min="-150" max="150" step="5" value="0" oninput="updateCurveShifts()">
+                    </div>
+                    <div class="control-group">
+                        <label for="shiftSlope">PC2: Slope Shift: <span id="valShiftSlope" style="font-family:var(--font-mono); color:var(--accent);">0 bps</span></label>
+                        <input type="range" id="shiftSlope" min="-150" max="150" step="5" value="0" oninput="updateCurveShifts()">
+                    </div>
+                    <div class="control-group">
+                        <label for="shiftCurve">PC3: Curvature Shift: <span id="valShiftCurve" style="font-family:var(--font-mono); color:var(--accent);">0 bps</span></label>
+                        <input type="range" id="shiftCurve" min="-100" max="100" step="5" value="0" oninput="updateCurveShifts()">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="setShiftPreset('none')">Reset All Shifts to 0</button>
+                </div>
+
+                <!-- KPIs -->
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi">
+                        <div class="kpi-label">2Y Shift</div>
+                        <div class="kpi-value" id="kpiShift2Y">0 bps</div>
+                        <div class="kpi-sub">Front End Node</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">5Y Belly Shift</div>
+                        <div class="kpi-value" id="kpiShift5Y">0 bps</div>
+                        <div class="kpi-sub">Intermediate Pivot</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">10Y Shift</div>
+                        <div class="kpi-value" id="kpiShift10Y">0 bps</div>
+                        <div class="kpi-sub">Benchmark Long Node</div>
+                    </div>
+                    <div class="kpi highlight-shape">
+                        <div class="kpi-label">2s5s10s Net Butterfly</div>
+                        <div class="kpi-value" id="kpiNetFly">0 bps</div>
+                        <div class="kpi-sub">$2 \times \Delta 5\text{Y} - (\Delta 2\text{Y} + \Delta 10\text{Y})$</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Curve Dynamics Chart -->
+                <div class="chart-header" style="margin-top: 20px;">
+                    <div class="chart-title">Base Yield Curve vs Shifted Yield Curve</div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="dynamicsCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="dynamicsHud"></div>
+                </div>
+
+                <div class="alert alert-key" id="dynamicsDescBox">
+                    <strong>Baseline:</strong> The shifted curve currently matches the base curve with 0 bps shift across all tenors. Select a strategy preset or drag the PC component sliders to simulate market shocks.
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 5: INTERVIEW Q&A                                                 -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-qa" role="tabpanel">
+            <div class="card">
+                <h2>Sales & Trading, Structuring & CFA L1/L2 Interview Flashcards</h2>
+                <p>
+                    These questions are frequently asked by fixed income desks during rates trader, strategist, and quant structuring interviews, as well as on CFA exams.
+                </p>
+            </div>
+
+            <!-- Q1 -->
+            <div class="qa-card" id="qa1">
+                <div class="qa-question" onclick="toggleQA('qa1')">
+                    <span>1. What does an inverted yield curve signal, and what is the economic transmission mechanism to recession?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> An inverted yield curve (where short rates exceed long rates, such as $10\text{Y}-2\text{Y} < 0$) is the most reliable leading indicator of recession in modern financial history.
+                        </p>
+                        <p>
+                            <strong>The Transmission Mechanism:</strong>
+                        </p>
+                        <ol>
+                            <li><strong>Restrictive Policy Setting:</strong> The central bank has hiked policy rates above the neutral rate ($r^*$) to suppress inflation, pushing short-term funding costs very high.</li>
+                            <li><strong>Expectation of Future Easing:</strong> Markets anticipate that high rates will slow economic growth and reduce inflation, forcing the central bank to cut rates substantially in future years (dragging down long yields).</li>
+                            <li><strong>Banking NIM Compression & Credit Contraction:</strong> Commercial banks fund loans by borrowing short (deposits, money markets) and lending long (mortgages, business term credit). An inverted curve destroys bank Net Interest Margins (NIM). Banks respond by sharply tightening underwriting standards and restricting loan availability, starving businesses of working capital and precipitating an economic downturn.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="qa-card" id="qa2">
+                <div class="qa-question" onclick="toggleQA('qa2')">
+                    <span>2. Explain the difference between a Bull Steepener and a Bear Steepener. When does a trading desk position for each?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Both trades result in an increase in the $10\text{Y}-2\text{Y}$ spread, but they occur under completely opposite market environments:
+                        </p>
+                        <ul>
+                            <li><strong>Bull Steepener (Rates Fall):</strong> Short rates collapse faster than long rates. This occurs when economic growth stalls and the central bank begins emergency rate cuts. Prices rally across the board, led by front-end bonds. A desk positions for this when anticipating the start of an easing cycle (buying 2Y Treasuries/SOFR futures).</li>
+                            <li><strong>Bear Steepener (Rates Rise):</strong> Long rates surge much faster than short rates. This occurs during reflation, rising long-term inflation expectations, or heavy fiscal deficit debt issuance that overwhelms investor demand for duration. Front-end rates remain pinned by the central bank while 10Y/30Y yields spike. A desk positions for this by shorting long-end duration or paying fixed on 10Y/30Y swaps.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="qa-card" id="qa3">
+                <div class="qa-question" onclick="toggleQA('qa3')">
+                    <span>3. Walk me through the 3 principal components of yield curve movements (PCA).</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Principal Component Analysis (PCA) decomposes the covariance matrix of daily yield changes across maturities into three orthogonal eigenvectors:
+                        </p>
+                        <ol>
+                            <li><strong>PC1: Level (Parallel Shift):</strong> Explains <strong>85% to 90%</strong> of total curve variance. All yields move in the same direction with roughly equal magnitude. Reflects global macroeconomic conditions and overall inflation shocks.</li>
+                            <li><strong>PC2: Slope (Twist / Steepener / Flattener):</strong> Explains <strong>8% to 10%</strong> of total variance. The curve pivots: short rates rise while long rates fall (or vice-versa). Driven by monetary policy cycle expectations.</li>
+                            <li><strong>PC3: Curvature (Butterfly Shift):</strong> Explains <strong>2% to 4%</strong> of variance. The "belly" (5Y) moves in the opposite direction of the "wings" (2Y and 10Y/30Y). Driven by supply imbalances, hedging flows, or intermediate liquidity preferences.</li>
+                        </ol>
+                        <div class="qa-desk-tip">
+                            <strong>Trader Tip:</strong> Rates desks hedge risk using PCA factor exposures (Level DV01, Slope DV01, Curvature DV01) rather than looking only at flat portfolio duration.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q4 -->
+            <div class="qa-card" id="qa4">
+                <div class="qa-question" onclick="toggleQA('qa4')">
+                    <span>4. Explain the Nelson-Siegel model and the financial interpretation of its three beta parameters.</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> The Nelson-Siegel model fits a continuous zero-coupon yield curve using a parsimonious four-parameter equation:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            $y(\tau) = \beta_0 + \beta_1 \left( \frac{1 - e^{-\tau/\lambda}}{\tau/\lambda} \right) + \beta_2 \left( \frac{1 - e^{-\tau/\lambda}}{\tau/\lambda} - e^{-\tau/\lambda} \right)$
+                        </p>
+                        <ul>
+                            <li><strong>$\beta_0$ (Level):</strong> Represents the long-term asymptotic rate ($\lim_{\tau \to \infty} y(\tau) = \beta_0$). Its loading is constant at 1.</li>
+                            <li><strong>$\beta_1$ (Slope):</strong> Represents the short-to-long spread. As $\tau \to 0$, $y(0) = \beta_0 + \beta_1$, meaning $\beta_1 = y(0) - y(\infty)$. A negative $\beta_1$ indicates an upward-sloping yield curve.</li>
+                            <li><strong>$\beta_2$ (Curvature):</strong> Represents the medium-term hump. Its loading starts at 0, reaches a maximum at $\tau \approx 1.793\lambda$, and decays to 0. A positive $\beta_2$ creates an upward hump in intermediate yields.</li>
+                            <li><strong>$\lambda$ (Decay Parameter):</strong> Governs the maturity at which the curvature loading reaches its peak.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q5 -->
+            <div class="qa-card" id="qa5">
+                <div class="qa-question" onclick="toggleQA('qa5')">
+                    <span>5. What is the Pure Expectations Hypothesis, and why does empirical evidence consistently reject it?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> The Pure Expectations Hypothesis (PEH) posits that forward rates are unbiased predictors of future spot rates, meaning:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            $f_{t, T} = \mathbb{E}_t[s_T]$
+                        </p>
+                        <p>
+                            It assumes investors are strictly risk-neutral and duration risk carries zero risk premium.
+                        </p>
+                        <p>
+                            <strong>Why Empirical Evidence Rejects It:</strong>
+                        </p>
+                        <ul>
+                            <li><strong>Fama-Bliss (1987) & Campbell-Shiller (1991):</strong> Regressions of yield changes on forward-spot spreads repeatedly show that forward rates systematically overestimate future spot rates.</li>
+                            <li><strong>Persistent Positive Term Premium:</strong> Because investors are risk-averse, they demand a positive Term Premium ($TP > 0$) to bear the volatility and inflation risk of long-term bonds. Rolling short bills over 30 years yields lower average returns than holding 30-year Treasuries.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q6 -->
+            <div class="qa-card" id="qa6">
+                <div class="qa-question" onclick="toggleQA('qa6')">
+                    <span>6. What is a Butterfly trade (e.g., 2s5s10s), and how do rates traders construct a duration-neutral butterfly?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> A butterfly trade is a relative value rates strategy involving three maturity points: two "wings" (e.g. 2Y and 10Y) and a "body" or "belly" (e.g. 5Y).
+                        </p>
+                        <ul>
+                            <li><strong>Long Butterfly:</strong> Buy the wings (2Y and 10Y) and sell the body (5Y). The trader profits if the curve becomes more humped (belly yield rises relative to wings).</li>
+                            <li><strong>Short Butterfly:</strong> Sell the wings and buy the body. The trader profits if the curve flattens out or becomes less humped.</li>
+                            <li><strong>Duration & Money Neutrality:</strong> To isolate pure curvature risk without being exposed to parallel curve shifts (level) or slope pivots, the position is weighted so that:
+                            $$\text{DV01}_{\text{belly}} = \text{DV01}_{\text{wing 1}} + \text{DV01}_{\text{wing 2}}$$
+                            Desks frequently use a "50/50" or regression-weighted weighting to ensure both Level and Slope beta are neutralized.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q7 -->
+            <div class="qa-card" id="qa7">
+                <div class="qa-question" onclick="toggleQA('qa7')">
+                    <span>7. How do rates trading desks build a multi-curve framework using deposits, futures, and swaps?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> To construct an accurate, smooth discount and projection curve without maturity gaps, desks combine the most liquid benchmark instruments across maturity sectors (the "instrument strip"):
+                        </p>
+                        <ul>
+                            <li><strong>Front End ($0 - 3\text{M}$):</strong> Overnight Index Swaps (OIS) fixings (SOFR / ESTR) and cash interbank deposits. Used to anchor the overnight discount factor.</li>
+                            <li><strong>Short-to-Medium End ($3\text{M} - 2\text{Y}$):</strong> STIR futures contracts (3-Month SOFR futures or Euribor futures). Convexity adjustments are applied to convert future rates to forward rates.</li>
+                            <li><strong>Long End ($2\text{Y} - 30\text{Y}/50\text{Y}$):</strong> Par plain-vanilla interest rate swaps (IRS). Standard annual or semi-annual fixed vs. floating swaps.</li>
+                        </ul>
+                        <div class="qa-desk-tip">
+                            <strong>Post-2008 Standard:</strong> Modern desks use a <strong>Dual-Curve Framework</strong>: cash flows are discounted using the risk-free OIS curve (SOFR/ESTR), while floating coupon projections are generated from the tenor reference curve.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q8 -->
+            <div class="qa-card" id="qa8">
+                <div class="qa-question" onclick="toggleQA('qa8')">
+                    <span>8. What is the Term Premium, and how do models like Adrian-Crump-Moench (ACM) estimate it?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> The Term Premium ($TP$) is the excess yield an investor requires to hold a long-term Treasury bond instead of rolling a sequence of short-term bills over the same horizon:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            y_n = \frac{1}{n} \sum_{i=0}^{n-1} \mathbb{E}[r_{t+i}] + TP_n
+                        </p>
+                        <ul>
+                            <li><strong>Drivers:</strong> Inflation uncertainty, supply/demand imbalances (e.g. Fed Quantitative Easing suppresses term premium; heavy US Treasury issuance elevates it).</li>
+                            <li><strong>The ACM Model (NY Fed):</strong> An affine term structure model that extracts the unobservable expected policy rate path from historical pricing and macroeconomic variables, isolating the residual as the estimated Term Premium. A negative term premium indicates that long Treasuries are so prized as hedging assets that investors accept yields lower than the expected future cash rate!</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q9 -->
+            <div class="qa-card" id="qa9">
+                <div class="qa-question" onclick="toggleQA('qa9')">
+                    <span>9. What is a Bear Flattener, and why is it considered the most dangerous environment for equity markets?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> In a Bear Flattener, yields across the curve rise, but <strong>front-end yields (2Y) surge significantly faster</strong> than long-end yields (10Y), causing the curve to flatten rapidly.
+                        </p>
+                        <ul>
+                            <li><strong>Cause:</strong> Aggressive, surprise central bank monetary tightening to battle sticky inflation (e.g., Federal Reserve in 2022).</li>
+                            <li><strong>Impact on Equities:</strong> It creates a "double squeeze": (1) The rising discount rate (risk-free rate) slashes equity valuation multiples (especially high-growth tech), while (2) The skyrocketing short-term borrowing costs and banking contraction squeeze corporate earnings and consumer demand.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q10 -->
+            <div class="qa-card" id="qa10">
+                <div class="qa-question" onclick="toggleQA('qa10')">
+                    <span>10. Explain Preferred Habitat Theory and how Central Bank Quantitative Easing (QE) exploits it.</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Preferred Habitat Theory states that market participants have specific natural maturity habitats dictated by their business models (e.g., life insurers need 30Y bonds; money market funds need 3M paper). They only deviate from their preferred sector if offered a compensatory price premium.
+                        </p>
+                        <p>
+                            <strong>How QE Exploits Preferred Habitat:</strong>
+                        </p>
+                        <ul>
+                            <li>During Quantitative Easing, the central bank buys hundreds of billions of dollars of long-dated bonds (7Y-30Y) directly from the market.</li>
+                            <li>Because long-end investors (pension funds, insurers) are partially segmented, the central bank's massive concentrated buying removes duration supply from that specific habitat.</li>
+                            <li>This directly drives up long bond prices and crushes long-term yields and term premia, forcing investors into corporate credit and equities to find yield, even if expected short-term rates remain unchanged.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            Module 03 · Term Structure · Fixed Income Mastery
+        </footer>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- SCRIPTS: KaTeX & Interactive Engines                                 -->
+    <!-- ==================================================================== -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script>
+    /* ===== 1. Sine Wave Background ===== */
+    (function(){
+        const c = document.getElementById('waveCanvas'), ctx = c.getContext('2d');
+        let w, h, t = 0;
+        function resize(){
+            const d = devicePixelRatio || 1;
+            w = innerWidth; h = innerHeight;
+            c.width = w * d; c.height = h * d;
+            ctx.scale(d, d);
+            c.style.width = w + 'px'; c.style.height = h + 'px';
+        }
+        const W = [
+            { a: 38, f: 0.003, s: 0.008, o: 0, op: 0.12, c: '139,109,42' },
+            { a: 28, f: 0.004, s: 0.012, o: 2, op: 0.08, c: '139,109,42' },
+            { a: 45, f: 0.002, s: 0.006, o: 4, op: 0.10, c: '110,85,32' },
+            { a: 22, f: 0.005, s: 0.015, o: 1, op: 0.06, c: '166,132,58' }
+        ];
+        function dw(wv, yc){
+            ctx.beginPath();
+            ctx.moveTo(0, yc);
+            for(let x = 0; x <= w; x += 2){
+                const y = yc + wv.a * Math.sin(x * wv.f + t * wv.s + wv.o) + wv.a * 0.5 * Math.sin(x * wv.f * 1.8 + t * wv.s * 0.7 + wv.o + 1);
+                ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = `rgba(${wv.c},${wv.op})`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+        function anim(){
+            ctx.clearRect(0, 0, w, h);
+            dw(W[0], h * 0.25);
+            dw(W[1], h * 0.40);
+            dw(W[2], h * 0.60);
+            dw(W[3], h * 0.78);
+            t++;
+            requestAnimationFrame(anim);
+        }
+        addEventListener('resize', resize);
+        resize();
+        anim();
+    })();
+
+    /* ===== 2. KaTeX Math Render on Load ===== */
+    document.addEventListener('DOMContentLoaded', function() {
+        const formulas = {
+            'formula-peh': 'f_{t, T} = \\mathbb{E}_t[s_{t, T}] \\implies (1 + s_T)^T = (1 + s_t)^t \\cdot \\left(1 + \\mathbb{E}_t[s_{t, T}]\\right)^{T - t}',
+            'formula-lpt': 'f_{t, T} = \\mathbb{E}_t[s_{t, T}] + TP_{t, T}, \\quad \\text{where } TP_{t, T} > 0 \\text{ and } \\frac{\\partial TP}{\\partial T} > 0',
+            'formula-ns': 'y(\\tau) = \\beta_0 + \\beta_1 \\left( \\frac{1 - e^{-\\tau/\\lambda}}{\\tau/\\lambda} \\right) + \\beta_2 \\left( \\frac{1 - e^{-\\tau/\\lambda}}{\\tau/\\lambda} - e^{-\\tau/\\lambda} \\right)',
+            'formula-nss': 'y(\\tau) = \\text{NS}(\\tau) + \\beta_3 \\left( \\frac{1 - e^{-\\tau/\\lambda_2}}{\\tau/\\lambda_2} - e^{-\\tau/\\lambda_2} \\right)'
+        };
+
+        for (const [id, tex] of Object.entries(formulas)) {
+            const el = document.getElementById(id);
+            if (el && window.katex) {
+                katex.render(tex, el, { displayMode: true, throwOnError: false });
+            }
+        }
+
+        /* Initial Calculations */
+        updateShapeBuilder();
+        setTheoryMode('lpt');
+        updateNelsonSiegel();
+        updateCurveShifts();
+    });
+
+    /* ===== 3. Tab Switching ===== */
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const targetId = 'tab-' + this.dataset.tab;
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) targetPanel.classList.add('active');
+
+            /* Redraw active canvas */
+            const tabName = this.dataset.tab;
+            if (tabName === 'shapes') drawShapeChart();
+            if (tabName === 'theories') drawTheoryChart();
+            if (tabName === 'ns') drawNSChart();
+            if (tabName === 'dynamics') drawDynamicsChart();
+        });
+    });
+
+    /* Window Resize Redraw */
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            const activePanel = document.querySelector('.tab-panel.active');
+            if (activePanel) {
+                if (activePanel.id === 'tab-shapes') drawShapeChart();
+                if (activePanel.id === 'tab-theories') drawTheoryChart();
+                if (activePanel.id === 'tab-ns') drawNSChart();
+                if (activePanel.id === 'tab-dynamics') drawDynamicsChart();
+            }
+        }, 150);
+    });
+
+    /* ===== 4. Q&A Accordion Toggle ===== */
+    function toggleQA(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('open');
+    }
+
+    /* ===================================================================== */
+    /* TAB 1: YIELD CURVE SHAPES BUILDER                                     */
+    /* ===================================================================== */
+    const shapePresets = {
+        normal:   { r3M: 3.50, r2Y: 4.00, r5Y: 4.40, r10Y: 4.80, r30Y: 5.10 },
+        steep:    { r3M: 2.00, r2Y: 2.60, r5Y: 3.60, r10Y: 4.50, r30Y: 5.20 },
+        flat:     { r3M: 4.50, r2Y: 4.55, r5Y: 4.50, r10Y: 4.52, r30Y: 4.50 },
+        inverted: { r3M: 5.40, r2Y: 4.90, r5Y: 4.30, r10Y: 3.90, r30Y: 3.80 },
+        humped:   { r3M: 3.80, r2Y: 4.70, r5Y: 5.20, r10Y: 4.60, r30Y: 4.20 }
+    };
+
+    function setShapePreset(name) {
+        document.querySelectorAll('#tab-shapes .pill-btn').forEach(b => b.classList.remove('active'));
+        if (name === 'normal') document.getElementById('btnShapeNormal').classList.add('active');
+        if (name === 'steep') document.getElementById('btnShapeSteep').classList.add('active');
+        if (name === 'flat') document.getElementById('btnShapeFlat').classList.add('active');
+        if (name === 'inverted') document.getElementById('btnShapeInverted').classList.add('active');
+        if (name === 'humped') document.getElementById('btnShapeHumped').classList.add('active');
+
+        const p = shapePresets[name];
+        document.getElementById('rt3M').value = p.r3M.toFixed(2);
+        document.getElementById('rt2Y').value = p.r2Y.toFixed(2);
+        document.getElementById('rt5Y').value = p.r5Y.toFixed(2);
+        document.getElementById('rt10Y').value = p.r10Y.toFixed(2);
+        document.getElementById('rt30Y').value = p.r30Y.toFixed(2);
+
+        updateShapeBuilder();
+    }
+
+    let shapeNodes = [];
+
+    function updateShapeBuilder() {
+        const r3M = parseFloat(document.getElementById('rt3M').value) || 3.5;
+        const r2Y = parseFloat(document.getElementById('rt2Y').value) || 4.0;
+        const r5Y = parseFloat(document.getElementById('rt5Y').value) || 4.4;
+        const r10Y = parseFloat(document.getElementById('rt10Y').value) || 4.8;
+        const r30Y = parseFloat(document.getElementById('rt30Y').value) || 5.1;
+
+        shapeNodes = [
+            { t: 0.25, r: r3M, lbl: '3M' },
+            { t: 2.0,  r: r2Y, lbl: '2Y' },
+            { t: 5.0,  r: r5Y, lbl: '5Y' },
+            { t: 10.0, r: r10Y, lbl: '10Y' },
+            { t: 30.0, r: r30Y, lbl: '30Y' }
+        ];
+
+        const spread2s10s = Math.round((r10Y - r2Y) * 100);
+        const spread3m10s = Math.round((r10Y - r3M) * 100);
+        const flyVal = Math.round((2 * r5Y - (r2Y + r10Y)) * 100);
+
+        document.getElementById('kpi2s10s').innerText = (spread2s10s >= 0 ? '+' : '') + spread2s10s + ' bps';
+        document.getElementById('kpi3m10s').innerText = (spread3m10s >= 0 ? '+' : '') + spread3m10s + ' bps';
+        document.getElementById('kpiButterfly').innerText = (flyVal >= 0 ? '+' : '') + flyVal + ' bps';
+
+        let regimeName = 'Normal Upward';
+        let regimeSub = 'Healthy Expansion';
+        let descText = '';
+
+        if (spread2s10s < -15) {
+            regimeName = 'Inverted';
+            regimeSub = 'Recession Warning';
+            descText = `<strong>Deep Inversion Regime:</strong> 2s10s is negative (${spread2s10s} bps). Front-end rates exceed long rates. The market is pricing substantial growth deceleration and anticipated future central bank rate cuts. Historically leads recessions by 12-18 months.`;
+        } else if (Math.abs(spread2s10s) <= 15) {
+            regimeName = 'Flat Curve';
+            regimeSub = 'Late-Cycle Slowdown';
+            descText = `<strong>Flat Curve Regime:</strong> 2s10s spread is near zero (${spread2s10s} bps). Typically occurs late in the tightening cycle when rate hikes have cooled activity and the economy transitions toward potential stagnation.`;
+        } else if (flyVal > 30 && r5Y > r2Y && r5Y > r10Y) {
+            regimeName = 'Humped Peak';
+            regimeSub = 'Terminal Policy Peak';
+            descText = `<strong>Humped Curve Regime:</strong> The 5Y belly peaks above both 2Y and 10Y (curvature = +${flyVal} bps). Reflects a market anticipating the apex of central bank tightening followed by eventual easing.`;
+        } else if (spread2s10s > 140) {
+            regimeName = 'Steep Curve';
+            regimeSub = 'Aggressive Reflation';
+            descText = `<strong>Steep Curve Regime:</strong> 2s10s spread is wide (+${spread2s10s} bps). Reflects either an early-cycle recovery where policy rates were slashed, or high long-term inflation and debt supply risk premia.`;
+        } else {
+            regimeName = 'Normal Upward';
+            regimeSub = 'Stable Mid-Cycle';
+            descText = `<strong>Normal Upward Regime:</strong> 2s10s is positive (+${spread2s10s} bps). Normal positive term premium compensation for duration risk. Banking sector net interest margins are healthy.`;
+        }
+
+        document.getElementById('kpiShapeClass').innerText = regimeName;
+        document.getElementById('kpiShapeSub').innerText = regimeSub;
+        document.getElementById('shapeDescBox').innerHTML = descText;
+
+        drawShapeChart();
+    }
+
+    function drawShapeChart() {
+        const canvas = document.getElementById('shapeCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const m = { l: 50, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const maxT = 30;
+        const yields = shapeNodes.map(n => n.r);
+        const minY = Math.floor(Math.min(...yields) - 0.6);
+        const maxY = Math.ceil(Math.max(...yields) + 0.6);
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let y = minY; y <= maxY; y += 0.5) {
+            const py = m.t + cH - ((y - minY) / (maxY - minY)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(y.toFixed(1) + '%', m.l - 8, py + 3);
+        }
+
+        [1, 5, 10, 15, 20, 25, 30].forEach(tx => {
+            const px = m.l + (tx / maxT) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(tx + 'Y', px, m.t + cH + 16);
+        });
+
+        /* Monotone cubic Hermite spline interpolation for natural curve */
+        const pts = [];
+        for (let x = 0.25; x <= 30; x += 0.25) {
+            let interpolatedY = 0;
+            if (x <= shapeNodes[0].t) {
+                interpolatedY = shapeNodes[0].r;
+            } else if (x >= shapeNodes[shapeNodes.length - 1].t) {
+                interpolatedY = shapeNodes[shapeNodes.length - 1].r;
+            } else {
+                for (let i = 0; i < shapeNodes.length - 1; i++) {
+                    const n1 = shapeNodes[i];
+                    const n2 = shapeNodes[i + 1];
+                    if (x >= n1.t && x <= n2.t) {
+                        const frac = (x - n1.t) / (n2.t - n1.t);
+                        /* Smooth cosine ease interpolation */
+                        const smoothFrac = (1 - Math.cos(frac * Math.PI)) / 2;
+                        interpolatedY = n1.r + (n2.r - n1.r) * smoothFrac;
+                        break;
+                    }
+                }
+            }
+            pts.push({ t: x, r: interpolatedY });
+        }
+
+        /* Draw Spline Curve */
+        ctx.beginPath();
+        pts.forEach((pt, i) => {
+            const px = m.l + (pt.t / maxT) * cW;
+            const py = m.t + cH - ((pt.r - minY) / (maxY - minY)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#8b6d2a';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        /* Draw Anchor Nodes */
+        shapeNodes.forEach(node => {
+            const px = m.l + (node.t / maxT) * cW;
+            const py = m.t + cH - ((node.r - minY) / (maxY - minY)) * cH;
+            ctx.beginPath();
+            ctx.arc(px, py, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#6e5520';
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#2c2418';
+            ctx.font = '600 11px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText(node.lbl + ' (' + node.r.toFixed(2) + '%)', px, py - 10);
+        });
+
+        /* Mouse tracking HUD */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('shapeHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverT = ((mx - m.l) / cW) * maxT;
+            let nearest = pts[0];
+            let minDist = 999;
+            pts.forEach(p => {
+                const d = Math.abs(p.t - hoverT);
+                if (d < minDist) { minDist = d; nearest = p; }
+            });
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Maturity</span><span class="hud-val">${nearest.t.toFixed(2)} Yrs</span></div>
+                <div class="hud-row"><span class="hud-label">Yield</span><span class="hud-val" style="color:#8b6d2a;">${nearest.r.toFixed(2)}%</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 150) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('shapeHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 2: TERM STRUCTURE THEORIES DECOMPOSITION                          */
+    /* ===================================================================== */
+    let currentTheoryMode = 'lpt';
+
+    function setTheoryMode(mode) {
+        currentTheoryMode = mode;
+        document.querySelectorAll('#tab-theories .pill-btn').forEach(b => b.classList.remove('active'));
+        if (mode === 'peh') document.getElementById('btnTheoryPEH').classList.add('active');
+        if (mode === 'lpt') document.getElementById('btnTheoryLPT').classList.add('active');
+        if (mode === 'mst') document.getElementById('btnTheoryMST').classList.add('active');
+
+        const box = document.getElementById('theoryDescBox');
+        if (mode === 'peh') {
+            box.innerHTML = `<strong>Pure Expectations Decomposition:</strong> Under PEH, Term Premium is <strong>strictly zero</strong> ($TP = 0$). The entire upward slope of the observable yield curve reflects the market's expectation that short-term policy rates will continuously rise from 3.5% up to 5.2% over the next decade.`;
+        } else if (mode === 'lpt') {
+            box.innerHTML = `<strong>Liquidity Preference Decomposition:</strong> The observable nominal curve (Gold) is broken into Expected Policy Rates (Blue) plus a positive, increasing Term Premium (Green). Expected rates level off at ~4.0%, while the upward slope is driven by duration risk compensation ($TP \approx 120\text{ bps}$ at 10Y).`;
+        } else {
+            box.innerHTML = `<strong>Market Segmentation Decomposition:</strong> Each maturity bucket (Short Cash, Medium Bank, Long Pension) is decoupled. Yields in each segment are determined by specific institutional supply/demand imbalances. The green shading highlights the local habitat premium required to clear supply.`;
+        }
+
+        drawTheoryChart();
+    }
+
+    function drawTheoryChart() {
+        const canvas = document.getElementById('theoryCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const m = { l: 50, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const maturities = [1, 2, 3, 4, 5, 7, 10, 15, 20, 30];
+        const nominalSpot = [3.50, 3.90, 4.25, 4.50, 4.70, 4.95, 5.20, 5.40, 5.50, 5.60];
+        let expectedRates = [];
+        let termPremium = [];
+
+        maturities.forEach((t, i) => {
+            const nom = nominalSpot[i];
+            if (currentTheoryMode === 'peh') {
+                expectedRates.push(nom);
+                termPremium.push(0);
+            } else if (currentTheoryMode === 'lpt') {
+                /* Monotonically increasing term premium */
+                const tp = 0.25 * Math.sqrt(t);
+                termPremium.push(tp);
+                expectedRates.push(nom - tp);
+            } else { /* mst */
+                /* Segmented localized habitat bumps */
+                const tp = 0.15 * Math.sin(t * 0.4) + 0.2 * Math.sqrt(t);
+                termPremium.push(tp);
+                expectedRates.push(nom - tp);
+            }
+        });
+
+        const minY = 2.5;
+        const maxY = 6.2;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let y = 3.0; y <= 6.0; y += 0.5) {
+            const py = m.t + cH - ((y - minY) / (maxY - minY)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(y.toFixed(1) + '%', m.l - 8, py + 3);
+        }
+
+        maturities.forEach(tx => {
+            const px = m.l + ((tx - 1) / 29) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(tx + 'Y', px, m.t + cH + 16);
+        });
+
+        /* Area fill between Expected Rate and Nominal Spot (The Term Premium) */
+        if (currentTheoryMode !== 'peh') {
+            ctx.beginPath();
+            maturities.forEach((t, i) => {
+                const px = m.l + ((t - 1) / 29) * cW;
+                const py = m.t + cH - ((nominalSpot[i] - minY) / (maxY - minY)) * cH;
+                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            });
+            for (let i = maturities.length - 1; i >= 0; i--) {
+                const t = maturities[i];
+                const px = m.l + ((t - 1) / 29) * cW;
+                const py = m.t + cH - ((expectedRates[i] - minY) / (maxY - minY)) * cH;
+                ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fillStyle = '#4a7c3f25';
+            ctx.fill();
+        }
+
+        /* Plot Nominal Spot Curve (Gold) */
+        ctx.beginPath();
+        maturities.forEach((t, i) => {
+            const px = m.l + ((t - 1) / 29) * cW;
+            const py = m.t + cH - ((nominalSpot[i] - minY) / (maxY - minY)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#8b6d2a';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        /* Plot Expected Future Rates (Blue) */
+        ctx.beginPath();
+        ctx.setLineDash([5, 4]);
+        maturities.forEach((t, i) => {
+            const px = m.l + ((t - 1) / 29) * cW;
+            const py = m.t + cH - ((expectedRates[i] - minY) / (maxY - minY)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#3d6a9e';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#8b6d2a';
+        ctx.fillRect(lx, 10, 16, 3);
+        ctx.fillStyle = '#2c2418';
+        ctx.font = '600 11px Inter';
+        ctx.textAlign = 'left';
+        ctx.fillText('Observable Nominal Spot Curve s(t)', lx + 22, 14);
+
+        ctx.strokeStyle = '#3d6a9e';
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(lx + 230, 11);
+        ctx.lineTo(lx + 246, 11);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#2c2418';
+        ctx.fillText('Expected Future Rate E[r]', lx + 252, 14);
+
+        if (currentTheoryMode !== 'peh') {
+            ctx.fillStyle = '#4a7c3f88';
+            ctx.fillRect(lx + 420, 8, 12, 10);
+            ctx.fillStyle = '#2c2418';
+            ctx.fillText('Term Premium (TP)', lx + 438, 14);
+        }
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('theoryHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverT = 1 + ((mx - m.l) / cW) * 29;
+            let nearestIdx = 0;
+            let minDist = 999;
+            maturities.forEach((t, i) => {
+                const d = Math.abs(t - hoverT);
+                if (d < minDist) { minDist = d; nearestIdx = i; }
+            });
+
+            const mat = maturities[nearestIdx];
+            const nom = nominalSpot[nearestIdx];
+            const expR = expectedRates[nearestIdx];
+            const tp = termPremium[nearestIdx];
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Maturity</span><span class="hud-val">${mat} Years</span></div>
+                <div class="hud-row"><span class="hud-label">Nominal Yield</span><span class="hud-val" style="color:#8b6d2a;">${nom.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Expected Rate E[r]</span><span class="hud-val" style="color:#3d6a9e;">${expR.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Term Premium</span><span class="hud-val" style="color:#4a7c3f;">+${(tp * 100).toFixed(0)} bps</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('theoryHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 3: NELSON-SIEGEL MODEL ENGINE                                     */
+    /* ===================================================================== */
+    let nsParams = { b0: 5.5, b1: -2.0, b2: 1.5, lam: 2.5 };
+
+    function updateNelsonSiegel() {
+        nsParams.b0 = parseFloat(document.getElementById('nsBeta0').value) || 5.5;
+        nsParams.b1 = parseFloat(document.getElementById('nsBeta1').value) || -2.0;
+        nsParams.b2 = parseFloat(document.getElementById('nsBeta2').value) || 1.5;
+        nsParams.lam = parseFloat(document.getElementById('nsLambda').value) || 2.5;
+
+        document.getElementById('valBeta0').innerText = nsParams.b0.toFixed(2) + '%';
+        document.getElementById('valBeta1').innerText = (nsParams.b1 >= 0 ? '+' : '') + nsParams.b1.toFixed(2) + '%';
+        document.getElementById('valBeta2').innerText = (nsParams.b2 >= 0 ? '+' : '') + nsParams.b2.toFixed(2) + '%';
+        document.getElementById('valLambda').innerText = nsParams.lam.toFixed(2);
+
+        /* KPI updates */
+        const shortRate = nsParams.b0 + nsParams.b1;
+        const y10 = calcNSYield(10, nsParams);
+        const peakTenor = 1.793 * nsParams.lam;
+
+        document.getElementById('kpiNSShort').innerText = shortRate.toFixed(2) + '%';
+        document.getElementById('kpiNS10Y').innerText = y10.toFixed(2) + '%';
+        document.getElementById('kpiNSLong').innerText = nsParams.b0.toFixed(2) + '%';
+        document.getElementById('kpiNSPeak').innerText = peakTenor.toFixed(2) + ' Yrs';
+
+        drawNSChart();
+    }
+
+    function resetNelsonSiegel() {
+        document.getElementById('nsBeta0').value = 5.5;
+        document.getElementById('nsBeta1').value = -2.0;
+        document.getElementById('nsBeta2').value = 1.5;
+        document.getElementById('nsLambda').value = 2.5;
+        updateNelsonSiegel();
+    }
+
+    function presetNSInverted() {
+        document.getElementById('nsBeta0').value = 3.8;
+        document.getElementById('nsBeta1').value = 1.8;
+        document.getElementById('nsBeta2').value = -1.2;
+        document.getElementById('nsLambda').value = 2.0;
+        updateNelsonSiegel();
+    }
+
+    function presetNSHumped() {
+        document.getElementById('nsBeta0').value = 4.2;
+        document.getElementById('nsBeta1').value = -0.5;
+        document.getElementById('nsBeta2').value = 4.0;
+        document.getElementById('nsLambda').value = 1.8;
+        updateNelsonSiegel();
+    }
+
+    function calcNSYield(tau, p) {
+        if (tau <= 0.001) return p.b0 + p.b1;
+        const x = tau / p.lam;
+        const expX = Math.exp(-x);
+        const l1 = (1 - expX) / x;
+        const l2 = l1 - expX;
+        return p.b0 + p.b1 * l1 + p.b2 * l2;
+    }
+
+    function drawNSChart() {
+        const canvas = document.getElementById('nsCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const m = { l: 50, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const maxTau = 30;
+        const pts = [];
+        for (let t = 0.1; t <= 30; t += 0.25) {
+            pts.push({ t: t, y: calcNSYield(t, nsParams) });
+        }
+
+        const allY = pts.map(p => p.y);
+        const minY = Math.floor(Math.min(...allY) - 0.5);
+        const maxY = Math.ceil(Math.max(...allY) + 0.5);
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let y = minY; y <= maxY; y += 0.5) {
+            const py = m.t + cH - ((y - minY) / (maxY - minY)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(y.toFixed(1) + '%', m.l - 8, py + 3);
+        }
+
+        [1, 5, 10, 15, 20, 25, 30].forEach(tx => {
+            const px = m.l + (tx / maxTau) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(tx + 'Y', px, m.t + cH + 16);
+        });
+
+        /* Plot Total Nelson-Siegel Curve */
+        ctx.beginPath();
+        pts.forEach((pt, i) => {
+            const px = m.l + (pt.t / maxTau) * cW;
+            const py = m.t + cH - ((pt.y - minY) / (maxY - minY)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#8b6d2a';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#8b6d2a';
+        ctx.fillRect(lx, 10, 16, 3);
+        ctx.fillStyle = '#2c2418';
+        ctx.font = '600 11px Inter';
+        ctx.textAlign = 'left';
+        ctx.fillText('Nelson-Siegel Fitted Curve y(\u03C4)', lx + 22, 14);
+
+        /* Hover HUD */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('nsHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverT = (mx - m.l) / cW * maxTau;
+            const yVal = calcNSYield(hoverT, nsParams);
+            const x = hoverT / nsParams.lam;
+            const expX = Math.exp(-x);
+            const l1 = (1 - expX) / x;
+            const l2 = l1 - expX;
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Maturity \u03C4</span><span class="hud-val">${hoverT.toFixed(2)} Yrs</span></div>
+                <div class="hud-row"><span class="hud-label">Fitted Yield</span><span class="hud-val" style="color:#8b6d2a;">${yVal.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Slope Loading</span><span class="hud-val">${l1.toFixed(3)}</span></div>
+                <div class="hud-row"><span class="hud-label">Curvature Loading</span><span class="hud-val">${l2.toFixed(3)}</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('nsHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 4: CURVE DYNAMICS & PCA SIMULATOR                                 */
+    /* ===================================================================== */
+    let shiftParams = { level: 0, slope: 0, curve: 0 };
+    const baseMaturities = [0.5, 1, 2, 3, 5, 7, 10, 20, 30];
+    const baseYields =     [3.80, 4.00, 4.25, 4.45, 4.70, 4.90, 5.05, 5.25, 5.35];
+
+    const shiftPresets = {
+        none:       { lvl: 0,   slp: 0,   crv: 0,   name: 'Baseline (No Shift)', desc: 'The shifted curve currently matches the base curve with 0 bps shift.' },
+        bull_steep: { lvl: -60, slp: 70,  crv: 10,  name: 'Bull Steepener', desc: '<strong>Bull Steepener:</strong> Front end rallies aggressively as the Fed slashes short rates. 2Y falls by ~95 bps while 10Y falls by only ~25 bps. Curve steepens sharply.' },
+        bear_steep: { lvl: 40,  slp: 60,  crv: 0,   name: 'Bear Steepener', desc: '<strong>Bear Steepener:</strong> Long-end yields surge due to inflation fears or large Treasury issuance supply. 10Y rises by ~70 bps while 2Y rises by only ~10 bps.' },
+        bull_flat:  { lvl: -50, slp: -50, crv: 0,   name: 'Bull Flattener', desc: '<strong>Bull Flattener:</strong> Flight-to-safety duration buying. Long rates fall faster than short rates. 10Y drops by ~75 bps while 2Y drops by ~25 bps.' },
+        bear_flat:  { lvl: 60,  slp: -70, crv: -10, name: 'Bear Flattener', desc: '<strong>Bear Flattener:</strong> Central bank aggressive rate hikes. Front-end 2Y yield skyrockets by ~95 bps while 10Y rises by only ~25 bps. Curve flattens aggressively.' },
+        pos_fly:    { lvl: 0,   slp: 0,   crv: 50,  name: 'Positive Butterfly', desc: '<strong>Positive Butterfly:</strong> Belly (5Y) outperforms wings (2Y & 10Y/30Y). 5Y yield falls relative to wings; butterfly spread is positive.' },
+        neg_fly:    { lvl: 0,   slp: 0,   crv: -50, name: 'Negative Butterfly', desc: '<strong>Negative Butterfly:</strong> Belly (5Y) underperforms wings (2Y & 10Y/30Y). 5Y yield rises relative to wings; curvature is humped.' }
+    };
+
+    function setShiftPreset(preset) {
+        document.querySelectorAll('#tab-dynamics .pill-btn').forEach(b => b.classList.remove('active'));
+        if (preset === 'none') document.getElementById('btnPresNone').classList.add('active');
+        if (preset === 'bull_steep') document.getElementById('btnPresBullSt').classList.add('active');
+        if (preset === 'bear_steep') document.getElementById('btnPresBearSt').classList.add('active');
+        if (preset === 'bull_flat') document.getElementById('btnPresBullFl').classList.add('active');
+        if (preset === 'bear_flat') document.getElementById('btnPresBearFl').classList.add('active');
+        if (preset === 'pos_fly') document.getElementById('btnPresPosFly').classList.add('active');
+        if (preset === 'neg_fly') document.getElementById('btnPresNegFly').classList.add('active');
+
+        const p = shiftPresets[preset];
+        document.getElementById('shiftLevel').value = p.lvl;
+        document.getElementById('shiftSlope').value = p.slp;
+        document.getElementById('shiftCurve').value = p.crv;
+
+        document.getElementById('dynamicsDescBox').innerHTML = p.desc;
+        updateCurveShifts();
+    }
+
+    function updateCurveShifts() {
+        shiftParams.level = parseInt(document.getElementById('shiftLevel').value) || 0;
+        shiftParams.slope = parseInt(document.getElementById('shiftSlope').value) || 0;
+        shiftParams.curve = parseInt(document.getElementById('shiftCurve').value) || 0;
+
+        document.getElementById('valShiftLevel').innerText = (shiftParams.level >= 0 ? '+' : '') + shiftParams.level + ' bps';
+        document.getElementById('valShiftSlope').innerText = (shiftParams.slope >= 0 ? '+' : '') + shiftParams.slope + ' bps';
+        document.getElementById('valShiftCurve').innerText = (shiftParams.curve >= 0 ? '+' : '') + shiftParams.curve + ' bps';
+
+        /* Compute delta for 2Y, 5Y, 10Y */
+        function getShiftForT(t) {
+            const dL = shiftParams.level;
+            /* Slope: pivots at 5Y. For 2Y (t=2), slope factor = -(5-2)/5 = -0.6. For 10Y, +(10-5)/10 = +0.5 */
+            const dS = (t - 5.0) / 10.0 * shiftParams.slope;
+            /* Curvature: peaks at 5Y (-curve), wings at 2Y and 10Y (+0.5*curve) */
+            const dC = (Math.abs(t - 5.0) / 5.0 - 0.5) * shiftParams.curve;
+            return dL + dS + dC;
+        }
+
+        const d2 = Math.round(getShiftForT(2.0));
+        const d5 = Math.round(getShiftForT(5.0));
+        const d10 = Math.round(getShiftForT(10.0));
+        const netFly = 2 * d5 - (d2 + d10);
+
+        document.getElementById('kpiShift2Y').innerText = (d2 >= 0 ? '+' : '') + d2 + ' bps';
+        document.getElementById('kpiShift5Y').innerText = (d5 >= 0 ? '+' : '') + d5 + ' bps';
+        document.getElementById('kpiShift10Y').innerText = (d10 >= 0 ? '+' : '') + d10 + ' bps';
+        document.getElementById('kpiNetFly').innerText = (netFly >= 0 ? '+' : '') + netFly + ' bps';
+
+        drawDynamicsChart();
+    }
+
+    function drawDynamicsChart() {
+        const canvas = document.getElementById('dynamicsCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const m = { l: 50, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        function getShiftForT(t) {
+            const dL = shiftParams.level;
+            const dS = (t - 5.0) / 10.0 * shiftParams.slope;
+            const dC = (Math.abs(t - 5.0) / 5.0 - 0.5) * shiftParams.curve;
+            return (dL + dS + dC) / 100; /* in % */
+        }
+
+        const shiftedYields = baseYields.map((y, i) => y + getShiftForT(baseMaturities[i]));
+        const allY = [...baseYields, ...shiftedYields];
+        const minY = Math.floor(Math.min(...allY) - 0.5);
+        const maxY = Math.ceil(Math.max(...allY) + 0.5);
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let y = minY; y <= maxY; y += 0.5) {
+            const py = m.t + cH - ((y - minY) / (maxY - minY)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(y.toFixed(1) + '%', m.l - 8, py + 3);
+        }
+
+        [1, 5, 10, 15, 20, 25, 30].forEach(tx => {
+            const px = m.l + ((tx - 0.5) / 29.5) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(tx + 'Y', px, m.t + cH + 16);
+        });
+
+        /* Plot Base Curve (Blue Dashed) */
+        ctx.beginPath();
+        ctx.setLineDash([5, 4]);
+        baseMaturities.forEach((t, i) => {
+            const px = m.l + ((t - 0.5) / 29.5) * cW;
+            const py = m.t + cH - ((baseYields[i] - minY) / (maxY - minY)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#3d6a9e';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        /* Plot Shifted Curve (Gold Solid) */
+        ctx.beginPath();
+        baseMaturities.forEach((t, i) => {
+            const px = m.l + ((t - 0.5) / 29.5) * cW;
+            const py = m.t + cH - ((shiftedYields[i] - minY) / (maxY - minY)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#8b6d2a';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        /* Dots on Shifted Curve */
+        baseMaturities.forEach((t, i) => {
+            const px = m.l + ((t - 0.5) / 29.5) * cW;
+            const py = m.t + cH - ((shiftedYields[i] - minY) / (maxY - minY)) * cH;
+            ctx.beginPath();
+            ctx.arc(px, py, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#8b6d2a';
+            ctx.fill();
+        });
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#8b6d2a';
+        ctx.fillRect(lx, 10, 16, 3);
+        ctx.fillStyle = '#2c2418';
+        ctx.font = '600 11px Inter';
+        ctx.textAlign = 'left';
+        ctx.fillText('Shifted Yield Curve', lx + 22, 14);
+
+        ctx.strokeStyle = '#3d6a9e';
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(lx + 160, 11);
+        ctx.lineTo(lx + 176, 11);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#2c2418';
+        ctx.fillText('Base Yield Curve', lx + 182, 14);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('dynamicsHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverT = 0.5 + ((mx - m.l) / cW) * 29.5;
+            let nearestIdx = 0;
+            let minDist = 999;
+            baseMaturities.forEach((t, i) => {
+                const d = Math.abs(t - hoverT);
+                if (d < minDist) { minDist = d; nearestIdx = i; }
+            });
+
+            const mat = baseMaturities[nearestIdx];
+            const baseY = baseYields[nearestIdx];
+            const newY = shiftedYields[nearestIdx];
+            const deltaBps = Math.round((newY - baseY) * 100);
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Maturity</span><span class="hud-val">${mat} Years</span></div>
+                <div class="hud-row"><span class="hud-label">New Yield</span><span class="hud-val" style="color:#8b6d2a;">${newY.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Base Yield</span><span class="hud-val" style="color:#3d6a9e;">${baseY.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Net Shift</span><span class="hud-val">${deltaBps >= 0 ? '+' : ''}${deltaBps} bps</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('dynamicsHud').style.display = 'none';
+        };
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bond Basics — Fixed Income Mastery</title>
+    <meta name="description" content="Bond pricing fundamentals: coupon bonds, day-count conventions, accrued interest, clean vs dirty price, and the price-yield relationship.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        /* ===== CSS Custom Properties ===== */
+        :root {
+            --bg: #e8dcc8;
+            --bg-warm: #dfd3be;
+            --surface: #d6c9b1;
+            --surface-2: #cdbfa5;
+            --surface-3: #c4b599;
+            --surface-hover: #bfae90;
+            --border: #b8a688;
+            --border-glow: #8b6d2a55;
+            --text: #2c2418;
+            --text-secondary: #5a4d3a;
+            --text-muted: #8a7a62;
+            --accent: #8b6d2a;
+            --accent-light: #a6843a;
+            --accent-dark: #6e5520;
+            --accent-glow: #8b6d2a20;
+            --accent-strong-glow: #8b6d2a38;
+            --green: #4a7c3f;
+            --red: #a63d3d;
+            --blue: #3d6a9e;
+            --orange: #b07328;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ===== Sine Wave Background ===== */
+        .wave-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .wave-bg canvas { width: 100%; height: 100%; }
+
+        /* ===== Layout ===== */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px 60px;
+        }
+
+        /* ===== Header ===== */
+        .top-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--accent); }
+        .back-link svg { width: 16px; height: 16px; transition: transform 0.2s; }
+        .back-link:hover svg { transform: translateX(-3px); }
+
+        .module-badge {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent);
+            background: var(--accent-glow);
+            border: 1px solid var(--border-glow);
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .module-title-bar {
+            text-align: center;
+            padding: 32px 0 24px;
+        }
+
+        .module-title-bar h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .module-title-bar .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== Tab Navigation ===== */
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 32px;
+            overflow-x: auto;
+            padding-bottom: 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-tab {
+            padding: 12px 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            font-family: var(--font-body);
+            letter-spacing: 0.01em;
+        }
+        .nav-tab:hover { color: var(--text-secondary); }
+        .nav-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ===== Content Cards ===== */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            font-weight: 650;
+            color: var(--text);
+            margin: 20px 0 10px;
+        }
+
+        .card p, .card li {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .card ul, .card ol {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+
+        .card li { margin-bottom: 6px; }
+
+        /* ===== KaTeX ===== */
+        .formula-block {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            overflow-x: auto;
+            text-align: center;
+        }
+
+        .formula-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        /* ===== Tables ===== */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 16px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        th {
+            background: var(--surface-2);
+            color: var(--text);
+            font-weight: 650;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--accent-glow); }
+
+        /* ===== Alerts ===== */
+        .alert {
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin: 16px 0;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            display: flex;
+            gap: 10px;
+        }
+
+        .alert-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+        .alert-info {
+            background: #3d6a9e15;
+            border: 1px solid #3d6a9e30;
+            color: var(--blue);
+        }
+
+        .alert-tip {
+            background: #4a7c3f15;
+            border: 1px solid #4a7c3f30;
+            color: var(--green);
+        }
+
+        .alert-warning {
+            background: #b0732815;
+            border: 1px solid #b0732830;
+            color: var(--orange);
+        }
+
+        .alert-key {
+            background: var(--accent-glow);
+            border: 1px solid var(--border-glow);
+            color: var(--accent-dark);
+        }
+
+        /* ===== Interactive Controls ===== */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin: 16px 0;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .control-group input,
+        .control-group select {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus {
+            border-color: var(--accent);
+        }
+
+        /* ===== KPI Results ===== */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .kpi {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            text-align: center;
+        }
+
+        .kpi-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .kpi-value {
+            font-family: var(--font-mono);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .kpi-sub {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ===== Buttons ===== */
+        .btn {
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .btn-primary:hover { background: var(--accent-light); }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-secondary);
+        }
+        .btn-secondary:hover { background: var(--surface-2); }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== Canvas Chart Wrapper ===== */
+        .chart-wrapper {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            position: relative;
+        }
+
+        .chart-wrapper canvas {
+            width: 100%;
+            cursor: crosshair;
+        }
+
+        .chart-title {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 10px;
+        }
+
+        /* ===== Hover HUD (floating tooltip for canvas) ===== */
+        .chart-hud {
+            position: absolute;
+            pointer-events: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 10;
+            display: none;
+            white-space: nowrap;
+        }
+
+        .chart-hud .hud-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .chart-hud .hud-label { color: var(--text-muted); }
+        .chart-hud .hud-val { font-weight: 600; color: var(--accent); }
+
+        /* ===== Interview Q&A ===== */
+        .qa-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .qa-question {
+            padding: 16px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        .qa-question:hover { background: var(--accent-glow); }
+
+        .qa-toggle {
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-weight: 700;
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s;
+        }
+
+        .qa-card.open .qa-toggle { transform: rotate(45deg); }
+
+        .qa-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .qa-card.open .qa-answer { max-height: 600px; }
+
+        .qa-answer-inner {
+            padding: 0 20px 16px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            border-top: 1px solid var(--border);
+            padding-top: 14px;
+        }
+
+        /* ===== Footer ===== */
+        .footer {
+            text-align: center;
+            padding: 24px 0;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-warm); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 700px) {
+            .module-title-bar h1 { font-size: 1.7rem; }
+            .nav-tabs { gap: 0; }
+            .nav-tab { padding: 10px 14px; font-size: 0.75rem; }
+            .card { padding: 20px 16px; }
+            .controls-grid { grid-template-columns: 1fr 1fr; }
+            .kpi-grid { grid-template-columns: 1fr 1fr; }
+            .formula-block { padding: 12px 14px; overflow-x: auto; }
+            .table-wrapper { font-size: 0.78rem; }
+        }
+
+        @media (max-width: 480px) {
+            .controls-grid { grid-template-columns: 1fr; }
+            .kpi-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wave-bg"><canvas id="waveCanvas"></canvas></div>
+
+    <div class="main-container">
+        <!-- Header -->
+        <header class="top-header">
+            <a href="index.html" class="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                Back to Hub
+            </a>
+            <span class="module-badge">Module 01</span>
+        </header>
+
+        <div class="module-title-bar">
+            <h1>Bond Basics</h1>
+            <p class="subtitle">Pricing, accrued interest, day-count conventions, clean vs dirty price</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <nav class="nav-tabs" id="navTabs">
+            <button class="nav-tab active" data-tab="anatomy">Bond Anatomy</button>
+            <button class="nav-tab" data-tab="daycount">Day-Count Conventions</button>
+            <button class="nav-tab" data-tab="accrued">Accrued Interest</button>
+            <button class="nav-tab" data-tab="pricing">Bond Pricing</button>
+            <button class="nav-tab" data-tab="interview">Interview Q&A</button>
+        </nav>
+
+        <!-- ===================== TAB 1: Bond Anatomy ===================== -->
+        <div class="tab-panel active" id="tab-anatomy">
+            <div class="card">
+                <h2>📄 What Is a Bond?</h2>
+                <p>A bond is a <strong>debt instrument</strong> where the issuer borrows funds from investors and agrees to pay periodic interest (<strong>coupons</strong>) and return the face value (<strong>principal</strong>) at maturity. Bonds are the primary tool for governments and corporations to raise debt capital.</p>
+
+                <h3>Key Components</h3>
+                <ul>
+                    <li><strong>Face Value (Par)</strong> — The nominal amount repaid at maturity, typically $1,000 or $100</li>
+                    <li><strong>Coupon Rate</strong> — Annual interest rate applied to face value (e.g., 5% on $1,000 = $50/year)</li>
+                    <li><strong>Coupon Frequency</strong> — Semi-annual (US Treasuries, corporates), annual (EUR govvies), quarterly (some floaters)</li>
+                    <li><strong>Maturity Date</strong> — When the principal is repaid. Short (≤3Y), medium (3–10Y), long (10Y+)</li>
+                    <li><strong>Issuer</strong> — Government (sovereign), corporate, municipal, supranational</li>
+                </ul>
+
+                <div class="alert alert-key">
+                    <span class="alert-icon">💡</span>
+                    <span>A bond is nothing more than a package of known future cash flows. Pricing a bond = discounting those cash flows back to today.</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📊 Bond Cash Flow Diagram</h2>
+                <p>Visualize the cash flows of a coupon-paying bond. Adjust the parameters to see how coupon frequency and maturity affect the pattern.</p>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label>Face Value ($)</label>
+                        <input type="number" id="cfFace" value="1000" min="100" max="100000" step="100">
+                    </div>
+                    <div class="control-group">
+                        <label>Coupon Rate (%)</label>
+                        <input type="number" id="cfCoupon" value="5" min="0" max="20" step="0.25">
+                    </div>
+                    <div class="control-group">
+                        <label>Maturity (Years)</label>
+                        <input type="number" id="cfMaturity" value="5" min="1" max="30" step="1">
+                    </div>
+                    <div class="control-group">
+                        <label>Frequency</label>
+                        <select id="cfFreq">
+                            <option value="2" selected>Semi-Annual</option>
+                            <option value="1">Annual</option>
+                            <option value="4">Quarterly</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="drawCashFlows()">Draw</button>
+                    <button class="btn btn-secondary" onclick="reinitCF()">Reinit</button>
+                </div>
+
+                <div class="chart-wrapper">
+                    <div class="chart-title">Bond Cash Flow Timeline</div>
+                    <canvas id="cfCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="cfHud"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🏷️ Bond Types</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr><th>Type</th><th>Coupon</th><th>Principal</th><th>Example</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>Zero-Coupon</strong></td><td>None — issued at discount</td><td>Lump sum at maturity</td><td>US T-Bills, STRIPS</td></tr>
+                            <tr><td><strong>Fixed-Rate</strong></td><td>Constant coupon</td><td>Bullet at maturity</td><td>US Treasuries, corporate bonds</td></tr>
+                            <tr><td><strong>Floating-Rate (FRN)</strong></td><td>Reference rate + spread</td><td>Bullet at maturity</td><td>SOFR + 50bp floaters</td></tr>
+                            <tr><td><strong>Amortizing</strong></td><td>Coupon on remaining balance</td><td>Paid down over time</td><td>MBS, auto ABS</td></tr>
+                            <tr><td><strong>Inflation-Linked</strong></td><td>Real coupon on adjusted principal</td><td>Adjusted for CPI</td><td>TIPS, OATi, BTP€i</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="formula-block">
+                    <div class="formula-label">General Bond Pricing Formula</div>
+                    <span id="formula-general-bond"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== TAB 2: Day-Count Conventions ===================== -->
+        <div class="tab-panel" id="tab-daycount">
+            <div class="card">
+                <h2>📅 Why Day-Count Conventions Matter</h2>
+                <p>Day-count conventions determine <strong>how interest accrues</strong> between two dates. They define the fraction of a year used to compute coupon payments, accrued interest, and discount factors. Different markets use different conventions — knowing which one applies is critical for pricing and settlement.</p>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">⚠️</span>
+                    <span>Using the wrong day-count convention is one of the most common errors in fixed income. Always verify the market convention before pricing.</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📐 The Four Main Conventions</h2>
+
+                <h3>ACT/ACT (ISDA or ICMA)</h3>
+                <p>Uses <em>actual days</em> in both numerator and denominator. Most accurate, used for <strong>US Treasuries</strong> and most sovereign bonds.</p>
+                <div class="formula-block">
+                    <div class="formula-label">ACT/ACT Day Fraction</div>
+                    <span id="formula-actact"></span>
+                </div>
+
+                <h3>30/360 (US Bond Basis)</h3>
+                <p>Assumes every month has 30 days and every year has 360 days. Simplifies calculations. Used for <strong>US corporate bonds</strong> and <strong>agency bonds</strong>.</p>
+                <div class="formula-block">
+                    <div class="formula-label">30/360 Day Fraction</div>
+                    <span id="formula-30360"></span>
+                </div>
+
+                <h3>ACT/360</h3>
+                <p>Actual days in numerator, 360 in denominator. Used in <strong>money markets</strong> (T-bills, CP, repo, SOFR, EURIBOR).</p>
+                <div class="formula-block">
+                    <div class="formula-label">ACT/360 Day Fraction</div>
+                    <span id="formula-act360"></span>
+                </div>
+
+                <h3>ACT/365 Fixed</h3>
+                <p>Actual days in numerator, always 365 in denominator (even in leap years). Used for <strong>GBP markets</strong> (gilts, SONIA).</p>
+                <div class="formula-block">
+                    <div class="formula-label">ACT/365 Day Fraction</div>
+                    <span id="formula-act365"></span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🌍 Convention by Market</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr><th>Market / Instrument</th><th>Day Count</th><th>Coupon Freq</th><th>Quote Convention</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>US Treasuries</td><td>ACT/ACT</td><td>Semi-annual</td><td>32nds</td></tr>
+                            <tr><td>US Corporate Bonds</td><td>30/360</td><td>Semi-annual</td><td>Decimal (% of par)</td></tr>
+                            <tr><td>US T-Bills</td><td>ACT/360</td><td>Discount basis</td><td>Discount rate</td></tr>
+                            <tr><td>EUR Government Bonds</td><td>ACT/ACT</td><td>Annual</td><td>Decimal</td></tr>
+                            <tr><td>UK Gilts</td><td>ACT/ACT</td><td>Semi-annual</td><td>Decimal</td></tr>
+                            <tr><td>EUR Swaps (Fixed Leg)</td><td>30/360</td><td>Annual</td><td>—</td></tr>
+                            <tr><td>USD Swaps (Float Leg)</td><td>ACT/360</td><td>Quarterly</td><td>—</td></tr>
+                            <tr><td>SOFR / €STR / SONIA</td><td>ACT/360 (ACT/365 UK)</td><td>Daily compound</td><td>—</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🧮 Day-Count Calculator</h2>
+                <p>Enter two dates and select a convention to compute the day-count fraction.</p>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label>Start Date</label>
+                        <input type="date" id="dcStart" value="2025-01-15">
+                    </div>
+                    <div class="control-group">
+                        <label>End Date</label>
+                        <input type="date" id="dcEnd" value="2025-07-15">
+                    </div>
+                    <div class="control-group">
+                        <label>Convention</label>
+                        <select id="dcConv">
+                            <option value="actact">ACT/ACT</option>
+                            <option value="30360">30/360</option>
+                            <option value="act360">ACT/360</option>
+                            <option value="act365">ACT/365</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="calcDayCount()">Calculate</button>
+                    <button class="btn btn-secondary" onclick="reinitDC()">Reinit</button>
+                </div>
+
+                <div class="kpi-grid" id="dcResults">
+                    <div class="kpi">
+                        <div class="kpi-label">Actual Days</div>
+                        <div class="kpi-value" id="dcActualDays">—</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Convention Days</div>
+                        <div class="kpi-value" id="dcConvDays">—</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Day Fraction</div>
+                        <div class="kpi-value" id="dcFraction">—</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Annualized</div>
+                        <div class="kpi-value" id="dcAnnual">—</div>
+                        <div class="kpi-sub">fraction of year</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== TAB 3: Accrued Interest ===================== -->
+        <div class="tab-panel" id="tab-accrued">
+            <div class="card">
+                <h2>💰 Clean Price vs Dirty Price</h2>
+                <p>Bonds are <strong>quoted</strong> at their <strong>clean price</strong> (without accrued interest), but <strong>settled</strong> at their <strong>dirty price</strong> (clean price + accrued interest). This avoids price jumps on coupon dates.</p>
+
+                <div class="formula-block">
+                    <div class="formula-label">Dirty Price (Full Price)</div>
+                    <span id="formula-dirty"></span>
+                </div>
+
+                <div class="formula-block">
+                    <div class="formula-label">Accrued Interest</div>
+                    <span id="formula-ai"></span>
+                </div>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">ℹ️</span>
+                    <span><strong>Why quote clean?</strong> If bonds were quoted dirty, the price would saw-tooth upward between coupon dates and drop on each coupon date, making it impossible to see genuine price changes from yield movements.</span>
+                </div>
+
+                <div class="alert alert-key">
+                    <span class="alert-icon">💡</span>
+                    <span><strong>Buyer pays, seller receives.</strong> The buyer compensates the seller for interest earned but not yet received since the last coupon. The buyer will collect the full next coupon.</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🧮 Accrued Interest Calculator</h2>
+                <p>Compute accrued interest and the dirty (settlement) price.</p>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label>Face Value ($)</label>
+                        <input type="number" id="aiFace" value="1000" min="100" max="100000" step="100">
+                    </div>
+                    <div class="control-group">
+                        <label>Coupon Rate (%)</label>
+                        <input type="number" id="aiCoupon" value="5" min="0" max="20" step="0.125">
+                    </div>
+                    <div class="control-group">
+                        <label>Frequency</label>
+                        <select id="aiFreq">
+                            <option value="2" selected>Semi-Annual</option>
+                            <option value="1">Annual</option>
+                            <option value="4">Quarterly</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Day Count</label>
+                        <select id="aiDC">
+                            <option value="actact">ACT/ACT</option>
+                            <option value="30360">30/360</option>
+                            <option value="act360">ACT/360</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Last Coupon Date</label>
+                        <input type="date" id="aiLastCpn" value="2025-01-15">
+                    </div>
+                    <div class="control-group">
+                        <label>Next Coupon Date</label>
+                        <input type="date" id="aiNextCpn" value="2025-07-15">
+                    </div>
+                    <div class="control-group">
+                        <label>Settlement Date</label>
+                        <input type="date" id="aiSettle" value="2025-04-15">
+                    </div>
+                    <div class="control-group">
+                        <label>Clean Price (%)</label>
+                        <input type="number" id="aiClean" value="98.50" min="50" max="200" step="0.01">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="calcAccrued()">Calculate</button>
+                    <button class="btn btn-secondary" onclick="reinitAI()">Reinit</button>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi">
+                        <div class="kpi-label">Days Accrued</div>
+                        <div class="kpi-value" id="aiDaysAccrued">—</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Accrual Fraction</div>
+                        <div class="kpi-value" id="aiFraction">—</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Accrued Interest</div>
+                        <div class="kpi-value" id="aiAmount">—</div>
+                        <div class="kpi-sub">per bond</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Dirty Price</div>
+                        <div class="kpi-value" id="aiDirty">—</div>
+                        <div class="kpi-sub">settlement price</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📊 Accrued Interest Timeline</h2>
+                <p>See how accrued interest builds up between coupon dates and resets on payment.</p>
+                <div class="chart-wrapper">
+                    <div class="chart-title">Accrued Interest Over One Coupon Period</div>
+                    <canvas id="aiCanvas" height="260"></canvas>
+                    <div class="chart-hud" id="aiHud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== TAB 4: Bond Pricing ===================== -->
+        <div class="tab-panel" id="tab-pricing">
+            <div class="card">
+                <h2>📐 The Price-Yield Relationship</h2>
+                <p>A bond's price is the <strong>present value</strong> of all its future cash flows, discounted at the yield to maturity (YTM). Price and yield move in <strong>opposite directions</strong> — this is the most fundamental relationship in fixed income.</p>
+
+                <div class="formula-block">
+                    <div class="formula-label">Bond Price (Semi-Annual Coupon)</div>
+                    <span id="formula-bond-price"></span>
+                </div>
+
+                <h3>Premium, Par, and Discount</h3>
+                <ul>
+                    <li><strong>Premium:</strong> Coupon > YTM → Price > Par (investors pay more for the higher income stream)</li>
+                    <li><strong>Par:</strong> Coupon = YTM → Price = Par (exactly fairly priced)</li>
+                    <li><strong>Discount:</strong> Coupon < YTM → Price < Par (lower coupon compensated by capital gain)</li>
+                </ul>
+
+                <div class="alert alert-key">
+                    <span class="alert-icon">💡</span>
+                    <span><strong>Pull to par:</strong> As maturity approaches, a bond's price converges to par regardless of whether it trades at a premium or discount. This is because fewer coupon cash flows remain to justify any premium/discount.</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🧮 Bond Pricer</h2>
+                <p>Price a fixed-rate coupon bond using the standard discounted cash flow model.</p>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label>Face Value ($)</label>
+                        <input type="number" id="bpFace" value="1000" min="100" max="100000" step="100">
+                    </div>
+                    <div class="control-group">
+                        <label>Coupon Rate (%)</label>
+                        <input type="number" id="bpCoupon" value="5" min="0" max="20" step="0.125">
+                    </div>
+                    <div class="control-group">
+                        <label>YTM (%)</label>
+                        <input type="number" id="bpYTM" value="4" min="0" max="30" step="0.1">
+                    </div>
+                    <div class="control-group">
+                        <label>Maturity (Years)</label>
+                        <input type="number" id="bpMat" value="10" min="1" max="50" step="1">
+                    </div>
+                    <div class="control-group">
+                        <label>Frequency</label>
+                        <select id="bpFreq">
+                            <option value="2" selected>Semi-Annual</option>
+                            <option value="1">Annual</option>
+                            <option value="4">Quarterly</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="calcBondPrice()">Price Bond</button>
+                    <button class="btn btn-secondary" onclick="reinitBP()">Reinit</button>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi">
+                        <div class="kpi-label">Bond Price ($)</div>
+                        <div class="kpi-value" id="bpPrice">—</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Price (% of Par)</div>
+                        <div class="kpi-value" id="bpPricePct">—</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Status</div>
+                        <div class="kpi-value" id="bpStatus">—</div>
+                        <div class="kpi-sub" id="bpStatusSub"></div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Current Yield</div>
+                        <div class="kpi-value" id="bpCY">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📈 Price-Yield Curve</h2>
+                <p>The <strong>convex</strong> relationship between price and yield for bonds with different coupon rates. Hover to see exact values.</p>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label>Face Value</label>
+                        <input type="number" id="pyFace" value="1000" min="100" max="10000" step="100">
+                    </div>
+                    <div class="control-group">
+                        <label>Maturity (Years)</label>
+                        <input type="number" id="pyMat" value="10" min="1" max="30" step="1">
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="drawPYCurve()">Draw</button>
+                    <button class="btn btn-secondary" onclick="reinitPY()">Reinit</button>
+                </div>
+
+                <div class="chart-wrapper">
+                    <div class="chart-title">Price vs Yield — Multiple Coupon Rates (10Y Bond)</div>
+                    <canvas id="pyCanvas" height="340"></canvas>
+                    <div class="chart-hud" id="pyHud"></div>
+                </div>
+
+                <div class="alert alert-tip">
+                    <span class="alert-icon">✅</span>
+                    <span><strong>Notice the convexity:</strong> the curves bend — price rises faster when yields fall than it drops when yields rise. This asymmetry is called <strong>positive convexity</strong>, and investors love it.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== TAB 5: Interview Q&A ===================== -->
+        <div class="tab-panel" id="tab-interview">
+            <div class="card">
+                <h2>🎯 Key Interview Questions</h2>
+                <p>Click any question to reveal the answer. These cover the most common fixed income interview questions on bond basics.</p>
+            </div>
+
+            <div class="qa-card" id="qa1">
+                <div class="qa-question" onclick="toggleQA('qa1')">
+                    <span>What is the relationship between bond price and yield?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>Bond price and yield have an <strong>inverse, convex relationship</strong>. When yields rise, bond prices fall — and vice versa. This is because the bond's fixed cash flows are discounted at a higher rate, reducing their present value. The relationship is <strong>not linear</strong> but convex: a 1% drop in yields increases the price by more than a 1% rise in yields decreases it.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="qa-card" id="qa2">
+                <div class="qa-question" onclick="toggleQA('qa2')">
+                    <span>Explain the difference between clean price and dirty price.</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p><strong>Clean price</strong> is the quoted price excluding accrued interest — it reflects pure market value. <strong>Dirty price</strong> (full price) = Clean price + Accrued interest — it is the actual amount the buyer pays. Bonds are quoted clean to eliminate the saw-tooth pattern caused by accruing interest, but settled dirty because the buyer must compensate the seller for interest earned since the last coupon.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="qa-card" id="qa3">
+                <div class="qa-question" onclick="toggleQA('qa3')">
+                    <span>How is a zero-coupon bond priced?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>A zero-coupon bond pays no coupons — it is issued at a <strong>discount</strong> and pays face value at maturity. Its price is simply the present value of the face value: <strong>P = F / (1 + y)^T</strong>. The investor's return comes entirely from the difference between the purchase price and par. Zeros have the highest duration for their maturity because there are no interim coupon cash flows to shorten the weighted average time of payment.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="qa-card" id="qa4">
+                <div class="qa-question" onclick="toggleQA('qa4')">
+                    <span>Why does a premium bond converge to par at maturity?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>A premium bond trades above par because its coupon is higher than the market yield — investors pay extra for the above-market income. As maturity approaches, <strong>fewer coupon periods remain</strong> to justify the premium. At maturity, the bondholder receives exactly par, so the price must converge to 100. This is called <strong>"pull to par"</strong> — the premium amortizes over the life of the bond. The same logic applies in reverse for discount bonds (price converges up to par).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="qa-card" id="qa5">
+                <div class="qa-question" onclick="toggleQA('qa5')">
+                    <span>What is the difference between ACT/360 and 30/360?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p><strong>ACT/360</strong> uses actual calendar days in the numerator and 360 in the denominator. It is used in money markets (T-bills, repo, SOFR). Because the actual year has 365 or 366 days, ACT/360 slightly overstates interest compared to actual. <strong>30/360</strong> assumes every month has 30 days and every year has 360 days. It is used for US corporate bonds. The key difference: 30/360 smooths out month-length differences while ACT/360 captures actual elapsed time. Over the same period, they can give <em>different</em> day fractions.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="qa-card" id="qa6">
+                <div class="qa-question" onclick="toggleQA('qa6')">
+                    <span>All else equal, does a higher coupon increase or decrease a bond's price sensitivity to yield changes?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>A higher coupon <strong>decreases</strong> price sensitivity (duration). With a higher coupon, more of the bond's value comes from near-term cash flows (the larger coupons), shifting the weighted average time of cash flows forward. This makes the bond shorter in duration terms. Zero-coupon bonds, which have no interim cash flows, have the highest duration for a given maturity.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="qa-card" id="qa7">
+                <div class="qa-question" onclick="toggleQA('qa7')">
+                    <span>What is a floating-rate note and how does its price behave?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>A floating-rate note (FRN) pays coupons that reset periodically to a reference rate (e.g., SOFR + spread). Because the coupon adjusts to market rates, the FRN's price <strong>resets to approximately par</strong> on each coupon date. Between reset dates it can deviate slightly, but its duration is effectively just the time to the next reset (often 3 months). FRNs have near-zero interest rate risk, making them attractive when rates are rising.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="qa-card" id="qa8">
+                <div class="qa-question" onclick="toggleQA('qa8')">
+                    <span>If two bonds have the same YTM but different maturities, which one is more sensitive to rate changes?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>The <strong>longer-maturity bond</strong> is more sensitive to rate changes. It has higher duration because its cash flows are spread over a longer period — the distant cash flows are discounted more heavily, and small changes in the discount rate compound over more periods. This is why long-end bonds (20Y, 30Y) move much more in price for a given yield change than short-end bonds (2Y, 5Y).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="qa-card" id="qa9">
+                <div class="qa-question" onclick="toggleQA('qa9')">
+                    <span>Explain what "trading in 32nds" means for US Treasuries.</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>US Treasuries are quoted in <strong>points and 32nds of a point</strong>. For example, <strong>99-16</strong> means 99 and 16/32 = 99.50% of par. A "tick" is 1/32 = 0.03125% of par. For a $1,000 face value bond, one tick = $0.3125. Some quotes add a "+" which means half a tick (1/64). For example, 99-16+ = 99 + 16.5/32 = 99.515625%. This convention dates back to when fractions were easier to compute mentally than decimals.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="qa-card" id="qa10">
+                <div class="qa-question" onclick="toggleQA('qa10')">
+                    <span>What risks does a bondholder face beyond interest rate risk?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>Beyond interest rate risk (the primary risk for government bonds), bondholders face: <strong>Credit risk</strong> — the issuer may default or be downgraded; <strong>Liquidity risk</strong> — the bond may be hard to sell at fair value; <strong>Reinvestment risk</strong> — coupons may be reinvested at lower rates; <strong>Inflation risk</strong> — real returns erode if inflation exceeds expectations; <strong>Call risk</strong> — the issuer may redeem callable bonds early when rates fall; <strong>Currency risk</strong> — for foreign-denominated bonds. For corporates, credit risk is usually the dominant factor beyond rates.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            Module 01 · Bond Basics · Fixed Income Mastery
+        </footer>
+    </div>
+
+    <!-- ===================== SCRIPTS ===================== -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script>
+    /* ===== Sine Wave Background ===== */
+    (function(){
+        const c=document.getElementById('waveCanvas'),ctx=c.getContext('2d');
+        let w,h,t=0;
+        function resize(){const d=devicePixelRatio||1;w=innerWidth;h=innerHeight;c.width=w*d;c.height=h*d;ctx.scale(d,d);c.style.width=w+'px';c.style.height=h+'px';}
+        const W=[{a:40,f:.003,s:.008,o:0,op:.12,c:'139,109,42'},{a:30,f:.004,s:.012,o:2,op:.08,c:'139,109,42'},{a:50,f:.002,s:.006,o:4,op:.10,c:'110,85,32'},{a:25,f:.005,s:.015,o:1,op:.06,c:'166,132,58'}];
+        function dw(wv,yc){ctx.beginPath();ctx.moveTo(0,yc);for(let x=0;x<=w;x+=2){const y=yc+wv.a*Math.sin(x*wv.f+t*wv.s+wv.o)+wv.a*0.5*Math.sin(x*wv.f*1.8+t*wv.s*0.7+wv.o+1);ctx.lineTo(x,y);}ctx.strokeStyle=`rgba(${wv.c},${wv.op})`;ctx.lineWidth=1.5;ctx.stroke();}
+        function anim(){ctx.clearRect(0,0,w,h);dw(W[0],h*.25);dw(W[1],h*.4);dw(W[2],h*.6);dw(W[3],h*.78);t++;requestAnimationFrame(anim);}
+        addEventListener('resize',resize);resize();anim();
+    })();
+
+    /* ===== KaTeX Formulas ===== */
+    document.addEventListener('DOMContentLoaded', function() {
+        const formulas = {
+            'formula-general-bond': 'P = \\sum_{t=1}^{N} \\frac{C/k}{(1+y/k)^t} + \\frac{F}{(1+y/k)^N}',
+            'formula-actact': '\\text{Fraction} = \\frac{\\text{Actual days between dates}}{\\text{Actual days in coupon period}}',
+            'formula-30360': '\\text{Fraction} = \\frac{360(Y_2-Y_1)+30(M_2-M_1)+(D_2-D_1)}{360}',
+            'formula-act360': '\\text{Fraction} = \\frac{\\text{Actual days between dates}}{360}',
+            'formula-act365': '\\text{Fraction} = \\frac{\\text{Actual days between dates}}{365}',
+            'formula-dirty': '\\text{Dirty Price} = \\text{Clean Price} + \\text{Accrued Interest}',
+            'formula-ai': 'AI = \\frac{C}{k} \\times \\frac{\\text{Days since last coupon}}{\\text{Days in coupon period}}',
+            'formula-bond-price': 'P = \\sum_{t=1}^{2T} \\frac{C/2}{(1+y/2)^t} + \\frac{F}{(1+y/2)^{2T}}'
+        };
+        for (const [id, tex] of Object.entries(formulas)) {
+            const el = document.getElementById(id);
+            if (el) katex.render(tex, el, { displayMode: true, throwOnError: false });
+        }
+    });
+
+    /* ===== Tab Switching ===== */
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+            /* Re-draw canvases when switching tabs */
+            const tabId = this.dataset.tab;
+            if (tabId === 'anatomy') drawCashFlows();
+            if (tabId === 'accrued') drawAIChart();
+            if (tabId === 'pricing') drawPYCurve();
+        });
+    });
+
+    /* ===== Interview Q&A Toggle ===== */
+    function toggleQA(id) {
+        document.getElementById(id).classList.toggle('open');
+    }
+
+    /* ===== Bond Price Calculation ===== */
+    function bondPrice(face, couponPct, ytmPct, matYrs, freq) {
+        const c = (couponPct / 100) * face / freq;
+        const y = (ytmPct / 100) / freq;
+        const n = matYrs * freq;
+        let pv = 0;
+        for (let t = 1; t <= n; t++) pv += c / Math.pow(1 + y, t);
+        pv += face / Math.pow(1 + y, n);
+        return pv;
+    }
+
+    /* ===== TAB 1: Cash Flow Diagram ===== */
+    function drawCashFlows() {
+        const canvas = document.getElementById('cfCanvas');
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr); canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const face = parseFloat(document.getElementById('cfFace').value) || 1000;
+        const cpn = parseFloat(document.getElementById('cfCoupon').value);
+        const mat = parseInt(document.getElementById('cfMaturity').value) || 5;
+        const freq = parseInt(document.getElementById('cfFreq').value) || 2;
+
+        const couponAmt = (cpn / 100) * face / freq;
+        const n = mat * freq;
+        const periods = [];
+        for (let i = 1; i <= n; i++) periods.push(i);
+
+        const m = { l: 60, r: 30, t: 30, b: 50 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+        const maxCF = couponAmt + face;
+        const barW = Math.min(cW / n * 0.6, 30);
+
+        /* Clear */
+        ctx.clearRect(0, 0, W, H);
+
+        /* Axis */
+        ctx.strokeStyle = '#b8a688';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(m.l, m.t + cH); ctx.lineTo(m.l + cW, m.t + cH);
+        ctx.stroke();
+
+        /* Y-axis gridlines */
+        ctx.font = '11px "JetBrains Mono"';
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#8a7a62';
+        const yTicks = 5;
+        for (let i = 0; i <= yTicks; i++) {
+            const val = (maxCF / yTicks) * i;
+            const y = m.t + cH - (i / yTicks) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, y); ctx.lineTo(m.l + cW, y);
+            ctx.strokeStyle = 'rgba(184,166,136,0.3)'; ctx.stroke();
+            ctx.fillText('$' + val.toFixed(0), m.l - 6, y + 4);
+        }
+
+        /* Bars */
+        periods.forEach((p, i) => {
+            const x = m.l + (i + 0.5) * (cW / n) - barW / 2;
+            const cf = (i === n - 1) ? couponAmt + face : couponAmt;
+            const barH = (cf / maxCF) * cH;
+            const y = m.t + cH - barH;
+
+            /* Bar */
+            if (i === n - 1) {
+                /* Last bar: split into coupon + principal */
+                const cpnH = (couponAmt / maxCF) * cH;
+                const prinH = (face / maxCF) * cH;
+                ctx.fillStyle = '#8b6d2a';
+                ctx.fillRect(x, m.t + cH - prinH - cpnH, barW, prinH);
+                ctx.fillStyle = '#a6843a';
+                ctx.fillRect(x, m.t + cH - cpnH, barW, cpnH);
+            } else {
+                ctx.fillStyle = '#a6843a';
+                ctx.fillRect(x, y, barW, barH);
+            }
+
+            /* Period label */
+            ctx.fillStyle = '#8a7a62';
+            ctx.textAlign = 'center';
+            ctx.font = '10px "JetBrains Mono"';
+            if (n <= 20 || i % 2 === 0)
+                ctx.fillText(p, x + barW / 2, m.t + cH + 16);
+        });
+
+        /* Labels */
+        ctx.fillStyle = '#5a4d3a';
+        ctx.font = '11px Inter';
+        ctx.textAlign = 'center';
+        ctx.fillText('Period', m.l + cW / 2, H - 8);
+
+        /* Legend */
+        ctx.font = '11px Inter';
+        ctx.fillStyle = '#a6843a';
+        ctx.fillRect(m.l, 8, 12, 12);
+        ctx.fillStyle = '#5a4d3a';
+        ctx.textAlign = 'left';
+        ctx.fillText('Coupon ($' + couponAmt.toFixed(2) + ')', m.l + 18, 18);
+
+        ctx.fillStyle = '#8b6d2a';
+        ctx.fillRect(m.l + 160, 8, 12, 12);
+        ctx.fillStyle = '#5a4d3a';
+        ctx.fillText('Principal ($' + face.toFixed(0) + ')', m.l + 178, 18);
+
+        /* Hover tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const hud = document.getElementById('cfHud');
+            const idx = Math.floor((mx - m.l) / (cW / n));
+            if (idx >= 0 && idx < n) {
+                const cf = (idx === n - 1) ? couponAmt + face : couponAmt;
+                const period = idx + 1;
+                const time = period / freq;
+                hud.style.display = 'block';
+                hud.style.left = (mx + 15) + 'px';
+                hud.style.top = '50px';
+                hud.innerHTML = `<div class="hud-row"><span class="hud-label">Period</span><span class="hud-val">${period}</span></div>` +
+                    `<div class="hud-row"><span class="hud-label">Time</span><span class="hud-val">${time.toFixed(1)}Y</span></div>` +
+                    `<div class="hud-row"><span class="hud-label">Cash Flow</span><span class="hud-val">$${cf.toFixed(2)}</span></div>`;
+            } else { hud.style.display = 'none'; }
+        };
+        canvas.onmouseleave = function() { document.getElementById('cfHud').style.display = 'none'; };
+    }
+
+    function reinitCF() {
+        document.getElementById('cfFace').value = 1000;
+        document.getElementById('cfCoupon').value = 5;
+        document.getElementById('cfMaturity').value = 5;
+        document.getElementById('cfFreq').value = 2;
+        drawCashFlows();
+    }
+
+    /* ===== TAB 2: Day-Count Calculator ===== */
+    function daysBetween(d1, d2) { return Math.round((d2 - d1) / 86400000); }
+
+    function days30360(d1, d2) {
+        let y1 = d1.getFullYear(), m1 = d1.getMonth() + 1, day1 = d1.getDate();
+        let y2 = d2.getFullYear(), m2 = d2.getMonth() + 1, day2 = d2.getDate();
+        if (day1 === 31) day1 = 30;
+        if (day2 === 31 && day1 >= 30) day2 = 30;
+        return 360 * (y2 - y1) + 30 * (m2 - m1) + (day2 - day1);
+    }
+
+    function calcDayCount() {
+        const d1 = new Date(document.getElementById('dcStart').value);
+        const d2 = new Date(document.getElementById('dcEnd').value);
+        const conv = document.getElementById('dcConv').value;
+        const actual = daysBetween(d1, d2);
+        let convDays, fraction;
+
+        switch (conv) {
+            case 'actact':
+                convDays = actual;
+                fraction = actual; /* numerator */
+                const denom = (d2.getFullYear() % 4 === 0) ? 366 : 365;
+                document.getElementById('dcAnnual').textContent = (actual / denom).toFixed(6);
+                document.getElementById('dcConvDays').textContent = actual;
+                document.getElementById('dcFraction').textContent = actual + ' / ' + denom;
+                break;
+            case '30360':
+                convDays = days30360(d1, d2);
+                document.getElementById('dcAnnual').textContent = (convDays / 360).toFixed(6);
+                document.getElementById('dcConvDays').textContent = convDays;
+                document.getElementById('dcFraction').textContent = convDays + ' / 360';
+                break;
+            case 'act360':
+                convDays = actual;
+                document.getElementById('dcAnnual').textContent = (actual / 360).toFixed(6);
+                document.getElementById('dcConvDays').textContent = actual;
+                document.getElementById('dcFraction').textContent = actual + ' / 360';
+                break;
+            case 'act365':
+                convDays = actual;
+                document.getElementById('dcAnnual').textContent = (actual / 365).toFixed(6);
+                document.getElementById('dcConvDays').textContent = actual;
+                document.getElementById('dcFraction').textContent = actual + ' / 365';
+                break;
+        }
+        document.getElementById('dcActualDays').textContent = actual;
+    }
+
+    function reinitDC() {
+        document.getElementById('dcStart').value = '2025-01-15';
+        document.getElementById('dcEnd').value = '2025-07-15';
+        document.getElementById('dcConv').value = 'actact';
+        ['dcActualDays','dcConvDays','dcFraction','dcAnnual'].forEach(id => document.getElementById(id).textContent = '—');
+    }
+
+    /* ===== TAB 3: Accrued Interest ===== */
+    function calcAccrued() {
+        const face = parseFloat(document.getElementById('aiFace').value) || 1000;
+        const cpn = parseFloat(document.getElementById('aiCoupon').value);
+        const freq = parseInt(document.getElementById('aiFreq').value);
+        const dc = document.getElementById('aiDC').value;
+        const lastCpn = new Date(document.getElementById('aiLastCpn').value);
+        const nextCpn = new Date(document.getElementById('aiNextCpn').value);
+        const settle = new Date(document.getElementById('aiSettle').value);
+        const clean = parseFloat(document.getElementById('aiClean').value);
+
+        const couponPerPeriod = (cpn / 100) * face / freq;
+        let daysAccrued, daysPeriod;
+
+        if (dc === '30360') {
+            daysAccrued = days30360(lastCpn, settle);
+            daysPeriod = days30360(lastCpn, nextCpn);
+        } else {
+            daysAccrued = daysBetween(lastCpn, settle);
+            daysPeriod = daysBetween(lastCpn, nextCpn);
+        }
+
+        const fraction = daysAccrued / daysPeriod;
+        const ai = couponPerPeriod * fraction;
+        const dirtyPrice = (clean / 100) * face + ai;
+
+        document.getElementById('aiDaysAccrued').textContent = daysAccrued;
+        document.getElementById('aiFraction').textContent = fraction.toFixed(6);
+        document.getElementById('aiAmount').textContent = '$' + ai.toFixed(4);
+        document.getElementById('aiDirty').textContent = '$' + dirtyPrice.toFixed(4);
+
+        drawAIChart();
+    }
+
+    function reinitAI() {
+        document.getElementById('aiFace').value = 1000;
+        document.getElementById('aiCoupon').value = 5;
+        document.getElementById('aiFreq').value = 2;
+        document.getElementById('aiDC').value = 'actact';
+        document.getElementById('aiLastCpn').value = '2025-01-15';
+        document.getElementById('aiNextCpn').value = '2025-07-15';
+        document.getElementById('aiSettle').value = '2025-04-15';
+        document.getElementById('aiClean').value = '98.50';
+        ['aiDaysAccrued','aiFraction','aiAmount','aiDirty'].forEach(id => document.getElementById(id).textContent = '—');
+    }
+
+    function drawAIChart() {
+        const canvas = document.getElementById('aiCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 260;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr); canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const face = parseFloat(document.getElementById('aiFace').value) || 1000;
+        const cpn = parseFloat(document.getElementById('aiCoupon').value) || 5;
+        const freq = parseInt(document.getElementById('aiFreq').value) || 2;
+        const couponAmt = (cpn / 100) * face / freq;
+
+        const lastCpn = new Date(document.getElementById('aiLastCpn').value);
+        const nextCpn = new Date(document.getElementById('aiNextCpn').value);
+        const settle = new Date(document.getElementById('aiSettle').value);
+        const totalDays = daysBetween(lastCpn, nextCpn);
+        const settleDays = daysBetween(lastCpn, settle);
+
+        const m = { l: 60, r: 30, t: 20, b: 50 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = 'rgba(184,166,136,0.3)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i++) {
+            const y = m.t + cH - (i / 4) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, y); ctx.lineTo(m.l + cW, y); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px "JetBrains Mono"'; ctx.textAlign = 'right';
+            ctx.fillText('$' + ((couponAmt / 4) * i).toFixed(2), m.l - 6, y + 3);
+        }
+
+        /* Accrued interest line (linear ramp) */
+        ctx.beginPath();
+        ctx.moveTo(m.l, m.t + cH);
+        ctx.lineTo(m.l + cW, m.t);
+        ctx.strokeStyle = '#8b6d2a';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        /* Fill below */
+        ctx.beginPath();
+        ctx.moveTo(m.l, m.t + cH);
+        const settleFrac = Math.max(0, Math.min(1, settleDays / totalDays));
+        const settleX = m.l + settleFrac * cW;
+        const settleY = m.t + cH - settleFrac * cH;
+        ctx.lineTo(settleX, settleY);
+        ctx.lineTo(settleX, m.t + cH);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(139,109,42,0.15)';
+        ctx.fill();
+
+        /* Settlement marker */
+        ctx.beginPath();
+        ctx.setLineDash([4, 4]);
+        ctx.moveTo(settleX, m.t); ctx.lineTo(settleX, m.t + cH);
+        ctx.strokeStyle = '#a63d3d';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        /* Settlement dot */
+        ctx.beginPath();
+        ctx.arc(settleX, settleY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#a63d3d';
+        ctx.fill();
+
+        /* Labels */
+        ctx.fillStyle = '#5a4d3a';
+        ctx.font = '11px Inter';
+        ctx.textAlign = 'center';
+        ctx.fillText('Last Coupon', m.l, m.t + cH + 30);
+        ctx.fillText('Next Coupon', m.l + cW, m.t + cH + 30);
+        ctx.fillStyle = '#a63d3d';
+        ctx.fillText('Settlement', settleX, m.t + cH + 42);
+
+        /* AI value at settlement */
+        const aiVal = couponAmt * settleFrac;
+        ctx.fillStyle = '#8b6d2a';
+        ctx.font = '600 12px "JetBrains Mono"';
+        ctx.fillText('AI = $' + aiVal.toFixed(2), settleX, settleY - 14);
+
+        /* Hover */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const hud = document.getElementById('aiHud');
+            const frac = (mx - m.l) / cW;
+            if (frac >= 0 && frac <= 1) {
+                const daysSince = Math.round(frac * totalDays);
+                const ai = couponAmt * frac;
+                hud.style.display = 'block';
+                hud.style.left = Math.min(mx + 15, W - 180) + 'px';
+                hud.style.top = '40px';
+                hud.innerHTML = `<div class="hud-row"><span class="hud-label">Day</span><span class="hud-val">${daysSince} / ${totalDays}</span></div>` +
+                    `<div class="hud-row"><span class="hud-label">Fraction</span><span class="hud-val">${frac.toFixed(4)}</span></div>` +
+                    `<div class="hud-row"><span class="hud-label">Accrued</span><span class="hud-val">$${ai.toFixed(4)}</span></div>`;
+            } else { hud.style.display = 'none'; }
+        };
+        canvas.onmouseleave = function() { document.getElementById('aiHud').style.display = 'none'; };
+    }
+
+    /* ===== TAB 4: Bond Pricer ===== */
+    function calcBondPrice() {
+        const face = parseFloat(document.getElementById('bpFace').value) || 1000;
+        const cpn = parseFloat(document.getElementById('bpCoupon').value);
+        const ytm = parseFloat(document.getElementById('bpYTM').value);
+        const mat = parseFloat(document.getElementById('bpMat').value) || 10;
+        const freq = parseInt(document.getElementById('bpFreq').value) || 2;
+
+        const price = bondPrice(face, cpn, ytm, mat, freq);
+        const pricePct = (price / face) * 100;
+        const cy = (cpn / 100 * face) / price * 100;
+
+        document.getElementById('bpPrice').textContent = '$' + price.toFixed(2);
+        document.getElementById('bpPricePct').textContent = pricePct.toFixed(4) + '%';
+        document.getElementById('bpCY').textContent = cy.toFixed(4) + '%';
+
+        const statusEl = document.getElementById('bpStatus');
+        const subEl = document.getElementById('bpStatusSub');
+        if (Math.abs(pricePct - 100) < 0.01) {
+            statusEl.textContent = 'PAR'; statusEl.style.color = 'var(--accent)';
+            subEl.textContent = 'Coupon ≈ YTM';
+        } else if (pricePct > 100) {
+            statusEl.textContent = 'PREMIUM'; statusEl.style.color = 'var(--green)';
+            subEl.textContent = 'Coupon > YTM';
+        } else {
+            statusEl.textContent = 'DISCOUNT'; statusEl.style.color = 'var(--red)';
+            subEl.textContent = 'Coupon < YTM';
+        }
+    }
+
+    function reinitBP() {
+        document.getElementById('bpFace').value = 1000;
+        document.getElementById('bpCoupon').value = 5;
+        document.getElementById('bpYTM').value = 4;
+        document.getElementById('bpMat').value = 10;
+        document.getElementById('bpFreq').value = 2;
+        ['bpPrice','bpPricePct','bpStatus','bpCY'].forEach(id => document.getElementById(id).textContent = '—');
+        document.getElementById('bpStatusSub').textContent = '';
+    }
+
+    /* ===== TAB 4: Price-Yield Curve ===== */
+    function drawPYCurve() {
+        const canvas = document.getElementById('pyCanvas');
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 340;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr); canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const face = parseFloat(document.getElementById('pyFace').value) || 1000;
+        const mat = parseInt(document.getElementById('pyMat').value) || 10;
+        const coupons = [2, 5, 8];
+        const colors = ['#3d6a9e', '#8b6d2a', '#a63d3d'];
+        const labels = ['2% Coupon', '5% Coupon', '8% Coupon'];
+
+        const yieldMin = 0.5, yieldMax = 12;
+        const yieldSteps = 200;
+
+        /* Compute all prices to find range */
+        let allPrices = [];
+        const curves = coupons.map(cpn => {
+            const pts = [];
+            for (let i = 0; i <= yieldSteps; i++) {
+                const y = yieldMin + (yieldMax - yieldMin) * (i / yieldSteps);
+                const p = bondPrice(face, cpn, y, mat, 2);
+                pts.push({ y, p });
+                allPrices.push(p);
+            }
+            return pts;
+        });
+
+        const pMin = Math.floor(Math.min(...allPrices) / 50) * 50;
+        const pMax = Math.ceil(Math.max(...allPrices) / 50) * 50;
+
+        const m = { l: 65, r: 30, t: 30, b: 50 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.font = '10px "JetBrains Mono"';
+        ctx.fillStyle = '#8a7a62';
+        ctx.strokeStyle = 'rgba(184,166,136,0.3)';
+        ctx.lineWidth = 1;
+
+        /* Y gridlines (price) */
+        const yTicks = 6;
+        for (let i = 0; i <= yTicks; i++) {
+            const val = pMin + (pMax - pMin) * (i / yTicks);
+            const y = m.t + cH - ((val - pMin) / (pMax - pMin)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, y); ctx.lineTo(m.l + cW, y); ctx.stroke();
+            ctx.textAlign = 'right';
+            ctx.fillText('$' + val.toFixed(0), m.l - 6, y + 3);
+        }
+
+        /* X gridlines (yield) */
+        for (let y = 1; y <= 12; y += 1) {
+            const x = m.l + ((y - yieldMin) / (yieldMax - yieldMin)) * cW;
+            ctx.beginPath(); ctx.moveTo(x, m.t); ctx.lineTo(x, m.t + cH); ctx.stroke();
+            if (y % 2 === 0) {
+                ctx.textAlign = 'center';
+                ctx.fillText(y + '%', x, m.t + cH + 18);
+            }
+        }
+
+        /* Par line */
+        const parY = m.t + cH - ((face - pMin) / (pMax - pMin)) * cH;
+        ctx.beginPath();
+        ctx.setLineDash([6, 4]);
+        ctx.moveTo(m.l, parY); ctx.lineTo(m.l + cW, parY);
+        ctx.strokeStyle = 'rgba(90,77,58,0.5)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#5a4d3a';
+        ctx.font = '10px Inter';
+        ctx.textAlign = 'left';
+        ctx.fillText('Par ($' + face + ')', m.l + cW - 70, parY - 5);
+
+        /* Curves */
+        curves.forEach((pts, ci) => {
+            ctx.beginPath();
+            pts.forEach((pt, i) => {
+                const x = m.l + ((pt.y - yieldMin) / (yieldMax - yieldMin)) * cW;
+                const y = m.t + cH - ((pt.p - pMin) / (pMax - pMin)) * cH;
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
+            ctx.strokeStyle = colors[ci];
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+        });
+
+        /* Axis labels */
+        ctx.fillStyle = '#5a4d3a';
+        ctx.font = '11px Inter';
+        ctx.textAlign = 'center';
+        ctx.fillText('Yield to Maturity (%)', m.l + cW / 2, H - 6);
+        ctx.save();
+        ctx.translate(14, m.t + cH / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('Bond Price ($)', 0, 0);
+        ctx.restore();
+
+        /* Legend */
+        labels.forEach((lbl, i) => {
+            const lx = m.l + 10 + i * 110;
+            ctx.fillStyle = colors[i];
+            ctx.fillRect(lx, 8, 14, 3);
+            ctx.fillStyle = '#5a4d3a';
+            ctx.font = '11px Inter';
+            ctx.textAlign = 'left';
+            ctx.fillText(lbl, lx + 20, 14);
+        });
+
+        /* Hover tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('pyHud');
+
+            const yieldFrac = (mx - m.l) / cW;
+            if (yieldFrac < 0 || yieldFrac > 1) { hud.style.display = 'none'; return; }
+            const yieldVal = yieldMin + (yieldMax - yieldMin) * yieldFrac;
+
+            /* Redraw with crosshair */
+            drawPYCurve.__noHover = true;
+            /* Instead of full redraw, just show HUD */
+            const prices = coupons.map(cpn => bondPrice(face, cpn, yieldVal, mat, 2));
+            let html = `<div class="hud-row"><span class="hud-label">Yield</span><span class="hud-val">${yieldVal.toFixed(2)}%</span></div>`;
+            prices.forEach((p, i) => {
+                html += `<div class="hud-row"><span class="hud-label">${labels[i]}</span><span class="hud-val">$${p.toFixed(2)}</span></div>`;
+            });
+            hud.innerHTML = html;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 15, W - 200) + 'px';
+            hud.style.top = Math.max(my - 20, 30) + 'px';
+        };
+        canvas.onmouseleave = function() { document.getElementById('pyHud').style.display = 'none'; };
+    }
+
+    function reinitPY() {
+        document.getElementById('pyFace').value = 1000;
+        document.getElementById('pyMat').value = 10;
+        drawPYCurve();
+    }
+
+    /* ===== Init on Load ===== */
+    window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(drawCashFlows, 100);
+    });
+    </script>
+</body>
+</html>
