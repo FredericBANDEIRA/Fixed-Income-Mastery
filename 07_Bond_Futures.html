@@ -1,0 +1,2087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bond Futures — Fixed Income Mastery</title>
+    <meta name="description" content="Master CME Treasury bond futures: contract specifications (ZT, ZF, ZN, TN, ZB, UB), Conversion Factors (CF), Cheapest-to-Deliver (CTD) switch analytics, net basis, implied repo rate (IRR), delivery options, and portfolio DV01 hedging.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        /* ===== CSS Custom Properties (Parchment / Classic Bond Aesthetic) ===== */
+        :root {
+            --bg: #e8dcc8;
+            --bg-warm: #dfd3be;
+            --surface: #d6c9b1;
+            --surface-2: #cdbfa5;
+            --surface-3: #c4b599;
+            --surface-hover: #bfae90;
+            --border: #b8a688;
+            --border-glow: #8b6d2a55;
+            --text: #2c2418;
+            --text-secondary: #5a4d3a;
+            --text-muted: #8a7a62;
+            --accent: #8b6d2a;
+            --accent-light: #a6843a;
+            --accent-dark: #6e5520;
+            --accent-glow: #8b6d2a20;
+            --accent-strong-glow: #8b6d2a38;
+            --green: #4a7c3f;
+            --red: #a63d3d;
+            --blue: #3d6a9e;
+            --orange: #b07328;
+            --purple: #6a4c93;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ===== Sine Wave Background ===== */
+        .wave-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .wave-bg canvas { width: 100%; height: 100%; }
+
+        /* ===== Layout ===== */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px 60px;
+        }
+
+        /* ===== Header ===== */
+        .top-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--accent); }
+        .back-link svg { width: 16px; height: 16px; transition: transform 0.2s; }
+        .back-link:hover svg { transform: translateX(-3px); }
+
+        .module-badge {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent);
+            background: var(--accent-glow);
+            border: 1px solid var(--border-glow);
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* ===== Hero ===== */
+        .module-hero {
+            text-align: center;
+            padding: 40px 0 30px;
+        }
+        .module-num {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .module-hero h1 {
+            font-size: 2.3rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+        .module-hero p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        /* ===== Tab Navigation ===== */
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--surface);
+            padding: 4px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .nav-tab {
+            flex: 1;
+            padding: 10px 14px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            border: none;
+            background: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .nav-tab:hover {
+            color: var(--text);
+            background: var(--surface-hover);
+        }
+        .nav-tab.active {
+            color: var(--text);
+            background: var(--bg);
+            box-shadow: 0 2px 8px rgba(44, 36, 24, 0.08);
+            border: 1px solid var(--border);
+        }
+
+        /* ===== Tab Panels ===== */
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .tab-panel.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== Content Cards ===== */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 16px rgba(44, 36, 24, 0.04);
+        }
+        .card h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+        }
+        .card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 18px 0 8px;
+            color: var(--text-secondary);
+        }
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.65;
+            margin-bottom: 14px;
+        }
+
+        /* ===== Formula Box ===== */
+        .formula-box {
+            background: var(--surface-2);
+            border-left: 4px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            padding: 14px 18px;
+            margin: 16px 0;
+            overflow-x: auto;
+        }
+        .formula-label {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--accent-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        /* ===== Interactive Grids & Form Controls ===== */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 18px;
+            background: var(--surface-2);
+            padding: 16px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .form-control {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+        }
+        .btn:hover {
+            background: var(--surface-hover);
+            border-color: var(--accent);
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent-dark);
+        }
+        .btn-primary:hover {
+            background: var(--accent-light);
+        }
+
+        /* ===== Metrics Row ===== */
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .metric-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px;
+            text-align: center;
+        }
+        .metric-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        .metric-val {
+            font-family: var(--font-mono);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .metric-sub {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* ===== Chart Container ===== */
+        .chart-box {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            position: relative;
+            margin: 16px 0;
+        }
+        .chart-canvas {
+            width: 100%;
+            height: 280px;
+            display: block;
+            cursor: crosshair;
+        }
+        .chart-hud {
+            position: absolute;
+            background: rgba(44, 36, 24, 0.92);
+            color: #f7f1e5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            pointer-events: none;
+            display: none;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            line-height: 1.4;
+            border: 1px solid var(--accent);
+        }
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .hud-label { color: #cdbfa5; }
+        .hud-val { font-weight: 700; }
+
+        /* ===== Tables ===== */
+        .table-responsive {
+            overflow-x: auto;
+            margin: 14px 0;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            background: var(--surface);
+        }
+        th, td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background: var(--surface-2);
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--surface-hover); }
+
+        /* ===== Highlighting Tags & Callouts ===== */
+        .callout {
+            background: var(--surface-2);
+            border-left: 4px solid var(--blue);
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            margin: 16px 0;
+            font-size: 0.88rem;
+        }
+        .callout.warning {
+            border-left-color: var(--orange);
+            background: #b0732812;
+        }
+        .callout.success {
+            border-left-color: var(--green);
+            background: #4a7c3f12;
+        }
+
+        /* ===== Accordion Flashcards ===== */
+        .qa-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 14px;
+        }
+        .qa-item {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .qa-item:hover { border-color: var(--accent); }
+        .qa-header {
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: var(--text);
+        }
+        .qa-header .icon {
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            color: var(--accent);
+            transition: transform 0.2s;
+        }
+        .qa-item.open .qa-header .icon {
+            transform: rotate(45deg);
+        }
+        .qa-body {
+            display: none;
+            padding: 0 18px 16px;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            line-height: 1.6;
+        }
+        .qa-item.open .qa-body { display: block; }
+        .qa-tip {
+            margin-top: 10px;
+            background: var(--bg);
+            border-left: 3px solid var(--accent);
+            padding: 8px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: var(--text);
+        }
+
+        /* ===== Responsive Design ===== */
+        @media (max-width: 768px) {
+            .module-hero h1 { font-size: 1.85rem; }
+            .nav-tabs { flex-wrap: nowrap; overflow-x: auto; }
+            .controls-grid { grid-template-columns: 1fr; }
+            .metrics-row { grid-template-columns: 1fr 1fr; }
+            .card { padding: 18px; }
+        }
+        @media (max-width: 480px) {
+            .metrics-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Sine Wave Canvas Background -->
+    <div class="wave-bg">
+        <canvas id="waveCanvas"></canvas>
+    </div>
+
+    <div class="main-container">
+        <!-- Top Navigation -->
+        <header class="top-header">
+            <a href="index.html" class="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"/>
+                    <polyline points="12 19 5 12 12 5"/>
+                </svg>
+                Fixed Income Mastery
+            </a>
+            <span class="module-badge">Module 07 · Derivatives & Trading</span>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="module-hero">
+            <div class="module-num">Derivatives & Arbitrage · Module 07</div>
+            <h1>Bond Futures & Basis Trading</h1>
+            <p>Master CME Treasury futures contracts, Conversion Factors (CF), Cheapest-to-Deliver (CTD) mechanics, net basis, implied repo rates (IRR), delivery options, and portfolio DV01 hedging.</p>
+        </section>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs" role="tablist">
+            <button class="nav-tab active" data-tab="specs">1. Contract Specs</button>
+            <button class="nav-tab" data-tab="cf">2. Conversion Factors</button>
+            <button class="nav-tab" data-tab="ctd">3. CTD & Switch</button>
+            <button class="nav-tab" data-tab="basis">4. Basis & Arbitrage</button>
+            <button class="nav-tab" data-tab="hedging">5. Hedging Desk</button>
+            <button class="nav-tab" data-tab="qa">6. Interview Q&A</button>
+        </nav>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 1: CONTRACT SPECIFICATIONS                                       -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel active" id="tab-specs">
+            <div class="card">
+                <h2>CME Treasury Futures Contracts & Quotation</h2>
+                <p>US Treasury futures traded on the <strong>Chicago Board of Trade (CME Group)</strong> are among the most liquid financial instruments on Earth. Unlike cash bonds which mature at fixed dates, a single futures contract represents a commitment to deliver or accept delivery of an eligible Treasury note or bond from a defined <strong>deliverable basket</strong>.</p>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ticker</th>
+                                <th>Name</th>
+                                <th>Contract Size</th>
+                                <th>Deliverable Maturity Window</th>
+                                <th>Price Quote</th>
+                                <th>Min Tick</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>ZT</strong></td>
+                                <td>2-Year T-Note</td>
+                                <td>$200,000</td>
+                                <td>1 yr 9 mo to 2 yr</td>
+                                <td>Points & 32nds</td>
+                                <td>1/8 of 1/32 ($7.8125)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ZF</strong></td>
+                                <td>5-Year T-Note</td>
+                                <td>$100,000</td>
+                                <td>4 yr 2 mo to 5 yr 3 mo</td>
+                                <td>Points & 32nds</td>
+                                <td>1/4 of 1/32 ($7.8125)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ZN</strong></td>
+                                <td>10-Year T-Note</td>
+                                <td>$100,000</td>
+                                <td>6 yr 6 mo to 7 yr 11 mo</td>
+                                <td>Points & 32nds</td>
+                                <td>1/2 of 1/32 ($15.625)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>TN</strong></td>
+                                <td>Ultra 10-Year</td>
+                                <td>$100,000</td>
+                                <td>9 yr 5 mo to 10 yr</td>
+                                <td>Points & 32nds</td>
+                                <td>1/2 of 1/32 ($15.625)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ZB</strong></td>
+                                <td>Classic T-Bond</td>
+                                <td>$100,000</td>
+                                <td>15 yr to 25 yr</td>
+                                <td>Points & 32nds</td>
+                                <td>1/32 ($31.25)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>UB</strong></td>
+                                <td>Ultra T-Bond</td>
+                                <td>$100,000</td>
+                                <td>At least 25 yr</td>
+                                <td>Points & 32nds</td>
+                                <td>1/32 ($31.25)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="callout">
+                    <strong>Standard Notional Coupon:</strong> All CME Treasury futures are standardized to a <strong>6.00% annual coupon</strong> (semi-annual compounding). Because actual deliverable cash Treasuries in circulation have varying coupons (e.g., 1.25%, 3.75%, 4.50%), CME assigns an official <strong>Conversion Factor (CF)</strong> to each deliverable bond to equalize price differences.
+                </div>
+
+                <h3>Delivery Cycle & Timeline</h3>
+                <p>CME Treasury contracts trade on the quarterly <strong>March, June, September, December</strong> cycle (tickers H, M, U, Z). Key delivery dates:</p>
+                <ul style="margin-left: 20px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7;">
+                    <li><strong>First Position Day:</strong> Two business days prior to the first business day of the delivery month. Longs must declare position status.</li>
+                    <li><strong>First Notice Day:</strong> One business day prior to the first business day of the delivery month. Shorts can announce intention to deliver.</li>
+                    <li><strong>First Delivery Day:</strong> First business day of the delivery month. Physical delivery of cash bonds against cash payment can occur.</li>
+                    <li><strong>Last Trading Day:</strong> 7th business day prior to the last business day of the delivery month. Trading in expiring futures ceases.</li>
+                    <li><strong>Last Delivery Day:</strong> The last business day of the delivery month.</li>
+                </ul>
+
+                <h3>Interactive 32nds Quote Converter</h3>
+                <p>Treasury bond prices are quoted in <strong>points and fractions of 32nds</strong>. In dealer screens, fractional 32nds are represented with a plus sign (<code>+</code> for 4/8 of a 32nd, i.e. 1/64), or a single trailing digit (<code>2</code> = 2/8, <code>5</code> = 4/8, <code>7</code> = 6/8).</p>
+
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label>Treasury Quote (e.g. 112-16+, 112-167)</label>
+                        <input type="text" id="quoteInput" class="form-control" value="112-16+">
+                    </div>
+                    <div class="form-group">
+                        <label>Decimal Price</label>
+                        <input type="number" id="decimalInput" class="form-control" step="0.0001" value="112.5156">
+                    </div>
+                </div>
+
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <div class="metric-label">Points & 32nds</div>
+                        <div class="metric-val" id="resQuoteClean">112-16+</div>
+                        <div class="metric-sub">Standard CME Screen Format</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Exact Fraction</div>
+                        <div class="metric-val" id="resFraction">112 33/64</div>
+                        <div class="metric-sub">Base 64ths / 256ths</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Decimal Value</div>
+                        <div class="metric-val" id="resDecimal">112.5156</div>
+                        <div class="metric-sub">% of Par ($100 Par = $112.5156)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Contract Dollar Value</div>
+                        <div class="metric-val" id="resContractVal">$112,515.63</div>
+                        <div class="metric-sub">Assuming $100,000 Notional</div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn" onclick="setPresetQuote('100-00')">100-00 (Par)</button>
+                    <button class="btn" onclick="setPresetQuote('112-16+')">112-16+ (10Y Typical)</button>
+                    <button class="btn" onclick="setPresetQuote('98-242')">98-242 (Quarter-Tick)</button>
+                    <button class="btn" onclick="setPresetQuote('125-087')">125-087 (3/4 32nd)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 2: CONVERSION FACTORS                                            -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel" id="tab-cf">
+            <div class="card">
+                <h2>Conversion Factors (CF) & Invoice Pricing</h2>
+                <p>Because any bond in the deliverable basket can be delivered by the short position, CME assigns each bond an official <strong>Conversion Factor (CF)</strong>. The Conversion Factor is mathematically defined as:</p>
+
+                <div class="formula-box">
+                    <div class="formula-label">Conversion Factor Definition</div>
+                    <div id="formula-cf-def"></div>
+                </div>
+
+                <p><strong>Intuition & Rules of Thumb:</strong></p>
+                <ul style="margin-left: 20px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7;">
+                    <li>If a bond's coupon <strong>$C = 6.00\%$</strong>, its yield to maturity at 6% is exactly par ($1.0000$), so $\text{CF} = 1.0000$.</li>
+                    <li>If a bond's coupon <strong>$C > 6.00\%$</strong>, the bond trades at a premium when discounted at 6%, so $\mathbf{\text{CF} > 1.0000}$.</li>
+                    <li>If a bond's coupon <strong>$C < 6.00\%$</strong>, the bond trades at a discount when discounted at 6%, so $\mathbf{\text{CF} < 1.0000}$.</li>
+                </ul>
+
+                <div class="formula-box">
+                    <div class="formula-label">Cash Invoice Price Received by the Short</div>
+                    <div id="formula-invoice-price"></div>
+                </div>
+
+                <h3>Interactive Conversion Factor Calculator</h3>
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label>Coupon Rate (% p.a.)</label>
+                        <input type="number" id="cfCoupon" class="form-control" value="4.00" step="0.125" min="0.5" max="10.0">
+                    </div>
+                    <div class="form-group">
+                        <label>Maturity (Years from Delivery)</label>
+                        <input type="number" id="cfMaturity" class="form-control" value="7.5" step="0.25" min="1.0" max="30.0">
+                    </div>
+                    <div class="form-group">
+                        <label>Futures Settlement Price</label>
+                        <input type="number" id="cfFutPrice" class="form-control" value="110.50" step="0.25">
+                    </div>
+                    <div class="form-group">
+                        <label>Accrued Interest ($ per 100 par)</label>
+                        <input type="number" id="cfAccrued" class="form-control" value="0.75" step="0.05">
+                    </div>
+                </div>
+
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <div class="metric-label">Conversion Factor (CF)</div>
+                        <div class="metric-val" id="resCFVal">0.8845</div>
+                        <div class="metric-sub" id="resCFStatus">Coupon < 6% → CF < 1</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Converted Futures Price</div>
+                        <div class="metric-val" id="resAdjFutPrice">$97.74</div>
+                        <div class="metric-sub">Futures Price × CF</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Invoice Price / $100 Par</div>
+                        <div class="metric-val" id="resInvoicePar">$98.49</div>
+                        <div class="metric-sub">(Fut × CF) + Accrued</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Total Delivery Payment</div>
+                        <div class="metric-val" id="resTotalDelivery">$98,487</div>
+                        <div class="metric-sub">Per $100,000 Notional Contract</div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="reinitCFCalc()">Reset Defaults</button>
+                    <button class="btn" onclick="setCFPreset(6.0, 7.5)">6.0% Par Bond (CF = 1.0)</button>
+                    <button class="btn" onclick="setCFPreset(2.5, 7.0)">Low Coupon 2.5% (CF < 1)</button>
+                    <button class="btn" onclick="setCFPreset(7.5, 8.0)">High Coupon 7.5% (CF > 1)</button>
+                </div>
+
+                <h3>Example 10-Year T-Note (ZN) Deliverable Basket</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Deliverable Treasury</th>
+                                <th>Coupon</th>
+                                <th>Maturity</th>
+                                <th>Conversion Factor</th>
+                                <th>Clean Cash Price</th>
+                                <th>Converted Futures (Fut=110.50)</th>
+                                <th>Gross Basis</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cfBasketTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 3: CHEAPEST-TO-DELIVER (CTD)                                     -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel" id="tab-ctd">
+            <div class="card">
+                <h2>Cheapest-to-Deliver (CTD) Analytics & Basis</h2>
+                <p>Because the seller (short position) holds the right to choose which eligible bond to deliver, they will choose the bond that minimizes their delivery cost. This bond is known as the <strong>Cheapest-to-Deliver (CTD)</strong>.</p>
+
+                <div class="formula-box">
+                    <div class="formula-label">Gross Basis vs Net Basis (Basis Net of Carry - BNOC)</div>
+                    <div id="formula-basis-def"></div>
+                </div>
+
+                <div class="callout warning">
+                    <strong>CTD Selection Rules:</strong>
+                    <ul style="margin-top: 6px; margin-left: 18px; line-height: 1.6;">
+                        <li><strong>Rule 1 (Net Basis):</strong> The CTD is the bond that <strong>minimizes Net Basis</strong> (BNOC). In an efficient market with no arbitrage, the CTD's net basis is typically near zero (or slightly positive due to delivery options).</li>
+                        <li><strong>Rule 2 (Implied Repo Rate - IRR):</strong> The CTD is the bond that <strong>maximizes the Implied Repo Rate</strong>. An arbitrageur financing a cash-and-carry trade earns the highest return by buying the CTD.</li>
+                    </ul>
+                </div>
+
+                <h3>The Golden Rules of CTD Yield Sensitivity</h3>
+                <p>How does the CTD switch when market yields shift?</p>
+                <div class="metrics-row">
+                    <div class="metric-card" style="border-left: 4px solid var(--green);">
+                        <div class="metric-label">When Market Yields > 6.00%</div>
+                        <div class="metric-val" style="color:var(--green); font-size:1.05rem;">Long Duration / Low Coupon</div>
+                        <div class="metric-sub">Conversion factors under-adjust. Longest maturity & lowest coupon bond becomes CTD.</div>
+                    </div>
+                    <div class="metric-card" style="border-left: 4px solid var(--blue);">
+                        <div class="metric-label">When Market Yields < 6.00%</div>
+                        <div class="metric-val" style="color:var(--blue); font-size:1.05rem;">Short Duration / High Coupon</div>
+                        <div class="metric-sub">Conversion factors over-adjust. Shortest maturity & highest coupon bond becomes CTD.</div>
+                    </div>
+                </div>
+
+                <h3>Interactive CTD Switch Engine</h3>
+                <p>Adjust market yield shifts across the curve to watch net basis curves cross over and see the CTD dynamically switch between deliverable bonds.</p>
+
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label>Yield Shift: <span id="valCtdShift" style="color:var(--accent); font-weight:700;">0 bps</span></label>
+                        <input type="range" id="ctdShift" min="-250" max="250" step="10" value="0" oninput="calculateCTD()">
+                    </div>
+                    <div class="form-group">
+                        <label>Base Repo Financing Rate (%)</label>
+                        <input type="number" id="ctdRepo" class="form-control" value="4.50" step="0.10" oninput="calculateCTD()">
+                    </div>
+                    <div class="form-group">
+                        <label>Days to Delivery</label>
+                        <input type="number" id="ctdDays" class="form-control" value="60" step="5" oninput="calculateCTD()">
+                    </div>
+                </div>
+
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <div class="metric-label">Cheapest-to-Deliver (CTD)</div>
+                        <div class="metric-val" id="resCtdName" style="color:var(--accent); font-size:1.15rem;">Bond B (3.875% 7.2Y)</div>
+                        <div class="metric-sub" id="resCtdReason">Minimizes Net Basis to Delivery</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">CTD Net Basis (BNOC)</div>
+                        <div class="metric-val" id="resCtdNetBasis" style="color:var(--green); font-size:1.15rem;">+0.042 pts</div>
+                        <div class="metric-sub">$42 per $100k contract</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">CTD Implied Repo Rate</div>
+                        <div class="metric-val" id="resCtdIRR" style="color:var(--blue); font-size:1.15rem;">4.24%</div>
+                        <div class="metric-sub">Annualized return of Cash & Carry</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">CTD Conversion Factor</div>
+                        <div class="metric-val" id="resCtdCF" style="font-size:1.15rem;">0.8762</div>
+                        <div class="metric-sub">Determines Futures Hedge Ratio</div>
+                    </div>
+                </div>
+
+                <!-- Canvas Chart: CTD Net Basis vs Yield Shift -->
+                <div class="chart-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--text);">Net Basis vs Yield Shift: CTD Switch Crossover</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Hover chart for precise crosshair stats</span>
+                    </div>
+                    <canvas id="ctdCanvas" class="chart-canvas"></canvas>
+                    <div id="ctdHud" class="chart-hud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 4: BASIS & ARBITRAGE                                             -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel" id="tab-basis">
+            <div class="card">
+                <h2>Basis Trading & Delivery Options</h2>
+                <p><strong>Basis Trading</strong> is one of the foundational trading activities on any Treasury trading desk or fixed income relative-value hedge fund. It exploits the spread between a cash bond and its equivalent futures position.</p>
+
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <div class="metric-label">Long the Basis (Cash & Carry)</div>
+                        <div class="metric-val" style="font-size:0.95rem; color:var(--blue);">Buy Cash Bond + Sell Futures</div>
+                        <div class="metric-sub">Finance bond in repo market. Profitable if Implied Repo Rate (IRR) > Actual Repo Rate.</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Short the Basis (Reverse Cash & Carry)</div>
+                        <div class="metric-val" style="font-size:0.95rem; color:var(--red);">Short Cash Bond + Buy Futures</div>
+                        <div class="metric-sub">Lend cash via reverse repo. Profitable if actual repo rate > Implied Repo Rate (IRR).</div>
+                    </div>
+                </div>
+
+                <h3>The Four Embedded Delivery Options of the Short</h3>
+                <p>Because the futures contract grants four asymmetric privileges to the short position, Treasury futures trade at a discount to theoretical forward value, creating positive <strong>Net Basis</strong> (the cost of these embedded options):</p>
+
+                <div class="qa-list">
+                    <div class="qa-item open">
+                        <div class="qa-header">
+                            <span>1. The Quality Option (Switch Option)</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            The short can choose <em>which</em> bond from the basket to deliver. If market yields surge or collapse before delivery, the identity of the CTD switches. The short can purchase whichever bond has become cheapest and deliver it.
+                        </div>
+                    </div>
+
+                    <div class="qa-item open">
+                        <div class="qa-header">
+                            <span>2. The Timing Option</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            The short can choose <em>on which business day</em> during the delivery month to initiate delivery. If carry is positive (coupon yield > repo financing rate), the short will hold the bond and collect positive carry until the end of the month. If carry is negative, the short will deliver on the very first delivery day.
+                        </div>
+                    </div>
+
+                    <div class="qa-item open">
+                        <div class="qa-header">
+                            <span>3. The Wild Card Option</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            Treasury futures pit trading in Chicago halts at <strong>2:00 PM CST</strong>, locking in the official settlement price. However, the short has until <strong>8:00 PM CST</strong> to submit a <em>Notice of Intent to Deliver</em>. Meanwhile, the cash bond market continues trading in New York until 4:00 PM CST (5:00 PM EST). If cash bonds plummet in price after 2:00 PM (e.g. following late economic news or Treasury auction announcements), the short can buy cheap cash bonds in the open market and deliver them at the higher locked-in 2:00 PM futures settlement price!
+                        </div>
+                    </div>
+
+                    <div class="qa-item open">
+                        <div class="qa-header">
+                            <span>4. The End-of-Month Option</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            Trading in Treasury futures terminates 7 business days prior to month-end, freezing the final settlement price. However, physical delivery can take place up through the final business day of the month. The short effectively gets an unhedged 7-day look-back put option on the entire deliverable basket.
+                        </div>
+                    </div>
+                </div>
+
+                <h3>Interactive Basis Arbitrage Simulator</h3>
+                <p>Examine the arbitrage profit of a Cash & Carry trade (Long Basis) over a 60-day holding period:</p>
+
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label>Cash Clean Price</label>
+                        <input type="number" id="arbCashPrice" class="form-control" value="98.50" step="0.25">
+                    </div>
+                    <div class="form-group">
+                        <label>Futures Settlement Price</label>
+                        <input type="number" id="arbFutPrice" class="form-control" value="110.50" step="0.25">
+                    </div>
+                    <div class="form-group">
+                        <label>CTD Conversion Factor</label>
+                        <input type="number" id="arbCF" class="form-control" value="0.8845" step="0.005">
+                    </div>
+                    <div class="form-group">
+                        <label>Bond Coupon Rate (%)</label>
+                        <input type="number" id="arbCoupon" class="form-control" value="4.00" step="0.125">
+                    </div>
+                    <div class="form-group">
+                        <label>Repo Financing Rate (%)</label>
+                        <input type="number" id="arbRepoRate" class="form-control" value="4.50" step="0.10">
+                    </div>
+                    <div class="form-group">
+                        <label>Days to Delivery</label>
+                        <input type="number" id="arbDays" class="form-control" value="60" step="5">
+                    </div>
+                </div>
+
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <div class="metric-label">Gross Basis</div>
+                        <div class="metric-val" id="resArbGross">+0.76 pts</div>
+                        <div class="metric-sub">Cash - (Futures × CF)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Net Carry (Coupon - Repo)</div>
+                        <div class="metric-val" id="resArbCarry">-0.08 pts</div>
+                        <div class="metric-sub">Negative Carry Environment</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Net Basis (BNOC)</div>
+                        <div class="metric-val" id="resArbNet">+0.84 pts</div>
+                        <div class="metric-sub">Value of Embedded Short Options</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Implied Repo Rate (IRR)</div>
+                        <div class="metric-val" id="resArbIRR" style="color:var(--blue);">3.98%</div>
+                        <div class="metric-sub">vs Actual Repo Rate: 4.50%</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Basis PnL -->
+                <div class="chart-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--text);">Basis Convergence over Holding Period (Days to Expiry)</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Gross Basis Pulled to Zero at Expiry</span>
+                    </div>
+                    <canvas id="basisCanvas" class="chart-canvas"></canvas>
+                    <div id="basisHud" class="chart-hud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 5: HEDGING & DESK SIMULATOR                                      -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel" id="tab-hedging">
+            <div class="card">
+                <h2>Treasury Portfolio Hedging with Futures</h2>
+                <p>In Sales & Trading and asset management, portfolio managers use Treasury futures to rapidly adjust portfolio duration or fully immunize a bond portfolio against interest rate shocks. Because futures trade without upfront principal, they offer instantaneous execution with minimal balance sheet friction.</p>
+
+                <div class="formula-box">
+                    <div class="formula-label">Futures Hedge Ratio Formula (DV01 / PV01 Matching)</div>
+                    <div id="formula-hedge-ratio"></div>
+                </div>
+
+                <div class="callout">
+                    <strong>The CTD Link:</strong> A futures contract's sensitivity is governed by the <strong>Cheapest-to-Deliver</strong> bond:
+                    $$\text{DV01}_{\text{futures}} \approx \frac{\text{DV01}_{\text{CTD}}}{\text{CF}_{\text{CTD}}}$$
+                    Therefore, to hedge a cash portfolio of size $V$ and duration $D_{\text{port}}$, the required number of futures contracts $N$ is:
+                    $$N = - \frac{\text{DV01}_{\text{portfolio}}}{\text{DV01}_{\text{futures}}} = - \frac{\text{DV01}_{\text{portfolio}} \times \text{CF}_{\text{CTD}}}{\text{DV01}_{\text{CTD}}}$$
+                </div>
+
+                <h3>Interactive Desk Hedging Calculator</h3>
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label>Portfolio Market Value ($)</label>
+                        <input type="number" id="hdgPortVal" class="form-control" value="100000000" step="5000000">
+                    </div>
+                    <div class="form-group">
+                        <label>Portfolio Modified Duration (Years)</label>
+                        <input type="number" id="hdgPortDur" class="form-control" value="6.80" step="0.10">
+                    </div>
+                    <div class="form-group">
+                        <label>Target Duration After Hedge</label>
+                        <input type="number" id="hdgTargetDur" class="form-control" value="0.00" step="0.25">
+                    </div>
+                    <div class="form-group">
+                        <label>Futures Contract Selected</label>
+                        <select id="hdgContract" class="form-control" onchange="updateHdgContractSpecs()">
+                            <option value="ZN" selected>10-Year T-Note (ZN)</option>
+                            <option value="ZF">5-Year T-Note (ZF)</option>
+                            <option value="ZT">2-Year T-Note (ZT)</option>
+                            <option value="TN">Ultra 10-Year (TN)</option>
+                            <option value="ZB">Classic T-Bond (ZB)</option>
+                            <option value="UB">Ultra T-Bond (UB)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>CTD DV01 ($ per $100k bond)</label>
+                        <input type="number" id="hdgCtdDV01" class="form-control" value="68.50" step="0.50">
+                    </div>
+                    <div class="form-group">
+                        <label>CTD Conversion Factor</label>
+                        <input type="number" id="hdgCtdCF" class="form-control" value="0.8845" step="0.005">
+                    </div>
+                </div>
+
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <div class="metric-label">Portfolio DV01</div>
+                        <div class="metric-val" id="resPortDV01" style="color:var(--text);">$68,000</div>
+                        <div class="metric-sub">Loss per 1 bp yield rise</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Single Futures DV01</div>
+                        <div class="metric-val" id="resFutDV01" style="color:var(--blue);">$77.45</div>
+                        <div class="metric-sub">DV01_CTD / CF_CTD</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Required Hedge Position</div>
+                        <div class="metric-val" id="resHedgeContracts" style="color:var(--red); font-size:1.35rem;">-878 Lots</div>
+                        <div class="metric-sub" id="resHedgeAction">Sell 878 ZN Contracts</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Residual DV01 Unhedged</div>
+                        <div class="metric-val" id="resResidualDV01" style="color:var(--green);">$3.89</div>
+                        <div class="metric-sub">Rounding Imprecision</div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="reinitHedgingCalc()">Reset Standard $100M 10Y Hedge</button>
+                    <button class="btn" onclick="setHedgingPreset(50000000, 4.2, 0.0, 'ZF')">Hedge $50M 5Y Portfolio with ZF</button>
+                    <button class="btn" onclick="setHedgingPreset(200000000, 2.0, 0.0, 'ZT')">Hedge $200M 2Y Portfolio with ZT</button>
+                    <button class="btn" onclick="setHedgingPreset(75000000, 15.5, 0.0, 'ZB')">Hedge $75M 30Y Long Bond with ZB</button>
+                </div>
+
+                <!-- Canvas: Stress Testing Unhedged vs Hedged -->
+                <div class="chart-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--text);">Portfolio Stress Test: Unhedged vs Hedged P&L (-100 bps to +100 bps)</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Hover chart for P&L tracking</span>
+                    </div>
+                    <canvas id="hedgingCanvas" class="chart-canvas"></canvas>
+                    <div id="hedgingHud" class="chart-hud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 6: INTERVIEW Q&A                                                 -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel" id="tab-qa">
+            <div class="card">
+                <h2>Fixed Income S&T Interview Flashcards</h2>
+                <p>10 essential interview questions on Treasury futures, CTD analytics, conversion factors, basis trading, and desk hedging.</p>
+
+                <div class="qa-list">
+                    <!-- Q1 -->
+                    <div class="qa-item" id="qa1">
+                        <div class="qa-header" onclick="toggleQA('qa1')">
+                            <span>1. What is a CME Treasury futures Conversion Factor and why is it necessary?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            Because physical deliverable Treasuries in the marketplace have diverse coupons and maturities, CME standardizes the futures contract around a hypothetical 6.00% annual coupon. The <strong>Conversion Factor (CF)</strong> represents the clean price of $1.00 face value of the deliverable bond if it were priced to yield exactly 6.00% to maturity on the first day of the delivery month.<br><br>
+                            If a bond's coupon is greater than 6%, its CF is > 1.0; if its coupon is less than 6%, its CF is < 1.0. This scales the invoice amount so high-coupon bonds receive higher delivery proceeds, neutralizing coupon bias.
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> Remember: CF is fixed for a contract month and does NOT change with market yields. It is published by CME prior to contract launch.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q2 -->
+                    <div class="qa-item" id="qa2">
+                        <div class="qa-header" onclick="toggleQA('qa2')">
+                            <span>2. How do you calculate the cash invoice price received by the short upon delivery?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            The invoice price received by the short seller when delivering a bond is:
+                            $$\text{Invoice Price} = (\text{Futures Settlement Price} \times \text{Conversion Factor}) + \text{Accrued Interest}$$
+                            For a standard $100,000 contract, multiply the decimal price per $100 par by 1,000.
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> The buyer pays accrued interest up to the delivery date to the seller, exactly as in a secondary cash bond trade.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q3 -->
+                    <div class="qa-item" id="qa3">
+                        <div class="qa-header" onclick="toggleQA('qa3')">
+                            <span>3. What is the Cheapest-to-Deliver (CTD) bond and how is it identified?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            The <strong>Cheapest-to-Deliver (CTD)</strong> is the bond in the deliverable basket that minimizes the net cost of delivery for the short position. Mathematically, it is identified as:
+                            <ol style="margin-left: 20px; margin-top: 6px;">
+                                <li>The bond that <strong>minimizes Net Basis (Basis Net of Carry - BNOC)</strong>.</li>
+                                <li>The bond that <strong>maximizes the Implied Repo Rate (IRR)</strong>.</li>
+                                <li>Rough proxy: The bond with the lowest Gross Basis ($\text{Cash Price} - \text{Futures} \times \text{CF}$).</li>
+                            </ol>
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> In practice, traders look at the <em>Implied Repo Rate</em>. The CTD offers the highest IRR for a cash-and-carry trade.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q4 -->
+                    <div class="qa-item" id="qa4">
+                        <div class="qa-header" onclick="toggleQA('qa4')">
+                            <span>4. How does the CTD switch when market yields rise well above 6% versus falling below 6%?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            This is the famous <strong>6% Crossover Rule</strong>:
+                            <ul style="margin-left: 20px; margin-top: 6px;">
+                                <li><strong>When Yields > 6.00%:</strong> The CTD tends to be the bond with the <strong>highest duration</strong> (longest maturity, lowest coupon). Because CF discounts at 6%, when yields rise above 6%, cash bond prices fall faster than CF-adjusted futures prices, making high-duration bonds cheaper.</li>
+                                <li><strong>When Yields < 6.00%:</strong> The CTD tends to be the bond with the <strong>lowest duration</strong> (shortest maturity, highest coupon).</li>
+                            </ul>
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> If the market trades near 6%, small yield twists cause frequent CTD switches, making futures tracking error and gamma spikes acute.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q5 -->
+                    <div class="qa-item" id="qa5">
+                        <div class="qa-header" onclick="toggleQA('qa5')">
+                            <span>5. What is the difference between Gross Basis and Net Basis (BNOC)?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            $$\text{Gross Basis} = \text{Cash Clean Price} - (\text{Futures Price} \times \text{CF})$$
+                            $$\text{Net Basis} = \text{Gross Basis} - \text{Carry}$$
+                            Where $\text{Carry} = \text{Coupon Income Earned} - \text{Financing Repo Cost}$.<br><br>
+                            Gross basis simply reflects the raw cash-futures spread. Net basis deducts the cost or benefit of holding (carrying) the bond to the delivery date. In no-arbitrage equilibrium without delivery options, Net Basis should be zero.
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> When traders say "the basis", they almost always mean <strong>Net Basis</strong> (BNOC). A positive net basis represents the premium paid for the short's delivery options.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q6 -->
+                    <div class="qa-item" id="qa6">
+                        <div class="qa-header" onclick="toggleQA('qa6')">
+                            <span>6. What is the Implied Repo Rate (IRR) and how does an arbitrageur trade it?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            The <strong>Implied Repo Rate (IRR)</strong> is the annualized rate of return earned by buying a cash bond, simultaneously selling futures against it, and delivering the bond at maturity. It is the financing rate that sets Net Basis to exactly zero.<br><br>
+                            <strong>Arbitrage Rule:</strong>
+                            <ul style="margin-left: 20px; margin-top: 6px;">
+                                <li>If $\text{IRR} > \text{Actual Repo Rate}$: <strong>Cash-and-Carry Arbitrage</strong> (Buy Cash, Short Futures, finance at repo). The trader locks in an arbitrage spread equal to $\text{IRR} - \text{Repo}$.</li>
+                                <li>If $\text{IRR} < \text{Actual Repo Rate}$: <strong>Reverse Cash-and-Carry</strong> (Short Cash, Buy Futures, lend cash in reverse repo).</li>
+                            </ul>
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> Treasury markets are so efficient that IRR rarely exceeds general collateral repo (GC) by more than 1–2 bps after transaction costs, except during repo squeezes.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q7 -->
+                    <div class="qa-item" id="qa7">
+                        <div class="qa-header" onclick="toggleQA('qa7')">
+                            <span>7. What is the Wild Card delivery option?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            The <strong>Wild Card Option</strong> arises from a 6-hour timing mismatch on CME:<br>
+                            Futures trading halts at <strong>2:00 PM CST</strong>, fixing that day's settlement price. However, the short position has until <strong>8:00 PM CST</strong> to submit a delivery notice.<br><br>
+                            If cash Treasury prices tumble between 2:00 PM and 4:00 PM (e.g. after a bad 30Y Treasury auction or Fed announcement), the short can buy cash bonds at depressed prices in the late market and deliver them at the higher 2:00 PM locked settlement price, banking riskless profit!
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> This option has positive value for the short. Hence, futures prices trade slightly lower than pure forward parity to reflect this short privilege.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q8 -->
+                    <div class="qa-item" id="qa8">
+                        <div class="qa-header" onclick="toggleQA('qa8')">
+                            <span>8. How do you calculate the hedge ratio to immunize a $100M portfolio using 10Y futures (ZN)?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            The hedge ratio matches DV01 (dollar duration):
+                            $$N = - \frac{\text{DV01}_{\text{portfolio}}}{\text{DV01}_{\text{futures}}} = - \frac{\text{DV01}_{\text{portfolio}} \times \text{CF}_{\text{CTD}}}{\text{DV01}_{\text{CTD}}}$$
+                            <strong>Example:</strong>
+                            If Portfolio DV01 is $\$68,000$, and the CTD bond has $\text{DV01} = \$68.50$ per $\$100,000$ par with $\text{CF} = 0.8845$:
+                            $$\text{DV01}_{\text{futures}} = \frac{\$68.50}{0.8845} = \$77.44$$
+                            $$N = - \frac{\$68,000}{\$77.44} = -878 \text{ contracts (Short 878 ZN Lots)}$$
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> If market yields change significantly, the CTD might switch to a bond with different duration and CF, necessitating dynamic re-hedging.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q9 -->
+                    <div class="qa-item" id="qa9">
+                        <div class="qa-header" onclick="toggleQA('qa9')">
+                            <span>9. Why do Treasury futures typically trade at a discount to theoretical forward parity?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            Theoretical forward parity states:
+                            $$\text{Forward Price} = \frac{\text{Cash Spot Price} - \text{PV}(\text{Coupons})}{\text{DF}}$$
+                            However, Treasury futures trade below this parity because the short holds four embedded options:
+                            <ol style="margin-left: 20px; margin-top: 6px;">
+                                <li><strong>Quality (Switch) Option:</strong> Option to switch CTD if yields move.</li>
+                                <li><strong>Timing Option:</strong> Option to pick any delivery day in the month.</li>
+                                <li><strong>Wild Card Option:</strong> 2:00 PM to 8:00 PM price drop exploitation.</li>
+                                <li><strong>End-of-Month Option:</strong> Unhedged 7-day lookback put option after futures trading halts.</li>
+                            </ol>
+                            The combined value of these options reduces the futures price, which is why <strong>Net Basis is positive</strong>.
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> When rates volatility ($\sigma$) surges, the value of these delivery options expands, causing Net Basis to widen.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q10 -->
+                    <div class="qa-item" id="qa10">
+                        <div class="qa-header" onclick="toggleQA('qa10')">
+                            <span>10. Walk me through a Long the Basis trade: structure, risks, and monetization.</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            <strong>Structure:</strong> Buy the CTD cash bond and simultaneously sell the corresponding Treasury futures contract in the conversion factor ratio ($1 / \text{CF}$). The cash bond is funded in the repo market.<br><br>
+                            <strong>Economics:</strong> The trader locks in the gross basis minus repo financing. As expiry approaches, gross basis inevitably converges toward zero. If the trader holds until delivery, they deliver the bond and collect the Implied Repo Rate.<br><br>
+                            <strong>Risks:</strong>
+                            <ul style="margin-left: 20px; margin-top: 6px;">
+                                <li><strong>CTD Switch Risk:</strong> If yields move violently, the bond held might cease to be CTD. A new bond becomes CTD, and the held bond will trade at an unfavorable basis discount upon delivery.</li>
+                                <li><strong>Repo Squeeze:</strong> Financing rates in the repo market might spike above the Implied Repo Rate, turning carry deeply negative.</li>
+                            </ul>
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> Basis traders rarely hold to delivery; they trade basis volatility and unwind when net basis compresses toward the delivery option floor.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KaTeX & Interactive Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script>
+    /* ===== 1. Sine Wave Background Animation ===== */
+    (function initWaveBg() {
+        const canvas = document.getElementById('waveCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let w, h, t = 0;
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+
+        function anim() {
+            ctx.clearRect(0, 0, w, h);
+            ctx.lineWidth = 1.2;
+            const waves = [
+                { amp: 35, freq: 0.0035, speed: 0.008, color: 'rgba(139, 109, 42, 0.16)' },
+                { amp: 55, freq: 0.0022, speed: 0.006, color: 'rgba(61, 106, 158, 0.14)' },
+                { amp: 40, freq: 0.0040, speed: 0.010, color: 'rgba(74, 124, 63, 0.12)' }
+            ];
+
+            waves.forEach(wv => {
+                ctx.beginPath();
+                ctx.strokeStyle = wv.color;
+                for (let x = 0; x <= w; x += 6) {
+                    const y = h * 0.5 + Math.sin(x * wv.freq + t * wv.speed) * wv.amp
+                                    + Math.cos(x * 0.001 + t * 0.004) * (wv.amp * 0.5);
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            });
+
+            t += 1;
+            requestAnimationFrame(anim);
+        }
+
+        addEventListener('resize', resize);
+        resize();
+        anim();
+    })();
+
+    /* ===== 2. KaTeX Formulas Rendering ===== */
+    document.addEventListener('DOMContentLoaded', function() {
+        const formulas = {
+            'formula-cf-def': '\\text{CF} = \\frac{1}{1.03^{2v}} \\left[ \\frac{C}{2} + \\frac{C}{0.06}\\left(1 - \\frac{1}{1.03^{2n}}\\right) + \\frac{1}{1.03^{2n}} \\right] - \\text{Accrued}',
+            'formula-invoice-price': '\\text{Invoice Price} = \\left( \\text{Futures Settlement Price} \\times \\text{CF} \\right) + \\text{Accrued Interest}',
+            'formula-basis-def': '\\begin{aligned} \\text{Gross Basis} &= \\text{Cash Clean Price} - (\\text{Futures Price} \\times \\text{CF}) \\\\ \\text{Carry} &= \\text{Coupon Earned} - \\text{Repo Financing Cost} \\\\ \\text{Net Basis (BNOC)} &= \\text{Gross Basis} - \\text{Carry} \\end{aligned}',
+            'formula-hedge-ratio': 'N = - \\frac{\\text{DV01}_{\\text{portfolio}}}{\\text{DV01}_{\\text{futures}}} = - \\frac{\\text{DV01}_{\\text{portfolio}} \\times \\text{CF}_{\\text{CTD}}}{\\text{DV01}_{\\text{CTD}}}'
+        };
+
+        for (const [id, tex] of Object.entries(formulas)) {
+            const el = document.getElementById(id);
+            if (el && window.katex) {
+                katex.render(tex, el, { displayMode: true, throwOnError: false });
+            }
+        }
+
+        /* Initial Calculations */
+        initQuoteConverter();
+        calculateCF();
+        initDeliverableBasket();
+        calculateCTD();
+        calculateBasisArb();
+        calculateHedging();
+    });
+
+    /* ===== 3. Tab Switching & Window Resize ===== */
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const targetId = 'tab-' + this.dataset.tab;
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) targetPanel.classList.add('active');
+
+            const tabName = this.dataset.tab;
+            if (tabName === 'ctd') drawCTDChart();
+            if (tabName === 'basis') drawBasisChart();
+            if (tabName === 'hedging') drawHedgingChart();
+        });
+    });
+
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            const activePanel = document.querySelector('.tab-panel.active');
+            if (activePanel) {
+                if (activePanel.id === 'tab-ctd') drawCTDChart();
+                if (activePanel.id === 'tab-basis') drawBasisChart();
+                if (activePanel.id === 'tab-hedging') drawHedgingChart();
+            }
+        }, 150);
+    });
+
+    function toggleQA(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('open');
+    }
+
+    /* ===================================================================== */
+    /* TAB 1: 32NDS QUOTE CONVERTER                                          */
+    /* ===================================================================== */
+    function parse32nds(str) {
+        str = str.trim();
+        const parts = str.split('-');
+        if (parts.length < 2) return parseFloat(str) || 100.0;
+        const pts = parseInt(parts[0], 10) || 0;
+        let rem = parts[1];
+
+        let frac32 = 0;
+        let subFraction = 0;
+
+        if (rem.includes('+')) {
+            const base32 = parseInt(rem.replace('+', ''), 10) || 0;
+            frac32 = base32;
+            subFraction = 0.5; // + is 4/8 of a 32nd
+        } else if (rem.length === 3) {
+            const base32 = parseInt(rem.substring(0, 2), 10) || 0;
+            const subEighths = parseInt(rem.substring(2, 3), 10) || 0;
+            frac32 = base32;
+            subFraction = subEighths / 8.0;
+        } else {
+            frac32 = parseFloat(rem) || 0;
+        }
+
+        return pts + (frac32 + subFraction) / 32.0;
+    }
+
+    function decimalTo32nds(dec) {
+        const pts = Math.floor(dec);
+        const rem = dec - pts;
+        const total32 = rem * 32;
+        const base32 = Math.floor(total32);
+        const sub32 = total32 - base32;
+        const eighths = Math.round(sub32 * 8);
+
+        let subStr = '';
+        if (eighths === 4) subStr = '+';
+        else if (eighths > 0) subStr = eighths.toString();
+
+        const base32Str = (base32 < 10 ? '0' : '') + base32;
+        return `${pts}-${base32Str}${subStr}`;
+    }
+
+    function initQuoteConverter() {
+        const quoteIn = document.getElementById('quoteInput');
+        const decIn = document.getElementById('decimalInput');
+
+        quoteIn.addEventListener('input', function() {
+            const dec = parse32nds(this.value);
+            decIn.value = dec.toFixed(4);
+            updateQuoteDisplays(this.value, dec);
+        });
+
+        decIn.addEventListener('input', function() {
+            const val = parseFloat(this.value) || 100.0;
+            const quoteStr = decimalTo32nds(val);
+            quoteIn.value = quoteStr;
+            updateQuoteDisplays(quoteStr, val);
+        });
+
+        updateQuoteDisplays(quoteIn.value, parseFloat(decIn.value));
+    }
+
+    function updateQuoteDisplays(quoteStr, dec) {
+        document.getElementById('resQuoteClean').innerText = quoteStr;
+        document.getElementById('resDecimal').innerText = dec.toFixed(4);
+
+        const pts = Math.floor(dec);
+        const rem64ths = Math.round((dec - pts) * 64);
+        document.getElementById('resFraction').innerText = `${pts} ${rem64ths}/64`;
+
+        const contractVal = (dec / 100) * 100000;
+        document.getElementById('resContractVal').innerText = '$' + contractVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function setPresetQuote(q) {
+        document.getElementById('quoteInput').value = q;
+        const dec = parse32nds(q);
+        document.getElementById('decimalInput').value = dec.toFixed(4);
+        updateQuoteDisplays(q, dec);
+    }
+
+    /* ===================================================================== */
+    /* TAB 2: CONVERSION FACTOR ENGINE & BASKET                              */
+    /* ===================================================================== */
+    function calcExactCF(coupon, maturityYrs) {
+        const C = coupon / 100;
+        const r = 0.03; // semi-annual 6%
+        const n = Math.round(maturityYrs * 2);
+        const pvAnnuity = (1 - Math.pow(1 + r, -n)) / r;
+        const pvPrincipal = Math.pow(1 + r, -n);
+        const cleanPrice = (C / 2) * pvAnnuity + pvPrincipal;
+        return cleanPrice;
+    }
+
+    function calculateCF() {
+        const coupon = parseFloat(document.getElementById('cfCoupon').value) || 4.0;
+        const maturity = parseFloat(document.getElementById('cfMaturity').value) || 7.5;
+        const futPrice = parseFloat(document.getElementById('cfFutPrice').value) || 110.50;
+        const accrued = parseFloat(document.getElementById('cfAccrued').value) || 0.75;
+
+        const cf = calcExactCF(coupon, maturity);
+        const adjFut = futPrice * cf;
+        const invoicePar = adjFut + accrued;
+        const totalPayment = (invoicePar / 100) * 100000;
+
+        document.getElementById('resCFVal').innerText = cf.toFixed(4);
+        if (coupon > 6.0) {
+            document.getElementById('resCFStatus').innerText = 'Coupon > 6% → CF > 1.0 (Premium Bond)';
+            document.getElementById('resCFStatus').style.color = 'var(--blue)';
+        } else if (coupon < 6.0) {
+            document.getElementById('resCFStatus').innerText = 'Coupon < 6% → CF < 1.0 (Discount Bond)';
+            document.getElementById('resCFStatus').style.color = 'var(--accent-dark)';
+        } else {
+            document.getElementById('resCFStatus').innerText = 'Coupon = 6% → CF = 1.0000 (Par Bond)';
+            document.getElementById('resCFStatus').style.color = 'var(--green)';
+        }
+
+        document.getElementById('resAdjFutPrice').innerText = '$' + adjFut.toFixed(2);
+        document.getElementById('resInvoicePar').innerText = '$' + invoicePar.toFixed(2);
+        document.getElementById('resTotalDelivery').innerText = '$' + Math.round(totalPayment).toLocaleString();
+    }
+
+    function reinitCFCalc() {
+        document.getElementById('cfCoupon').value = 4.00;
+        document.getElementById('cfMaturity').value = 7.5;
+        document.getElementById('cfFutPrice').value = 110.50;
+        document.getElementById('cfAccrued').value = 0.75;
+        calculateCF();
+    }
+
+    function setCFPreset(c, m) {
+        document.getElementById('cfCoupon').value = c;
+        document.getElementById('cfMaturity').value = m;
+        calculateCF();
+    }
+
+    const deliverableBasket = [
+        { name: 'US-T 3.50% Aug 2031', coupon: 3.50, mat: 6.8, clean: 95.80 },
+        { name: 'US-T 3.875% Feb 2032', coupon: 3.875, mat: 7.3, clean: 97.45 },
+        { name: 'US-T 4.125% Nov 2032', coupon: 4.125, mat: 8.0, clean: 98.90 },
+        { name: 'US-T 4.50% Feb 2033', coupon: 4.50, mat: 8.3, clean: 101.10 },
+        { name: 'US-T 6.25% May 2030', coupon: 6.25, mat: 6.7, clean: 111.40 }
+    ];
+
+    function initDeliverableBasket() {
+        const tbody = document.getElementById('cfBasketTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        const fut = 110.50;
+
+        deliverableBasket.forEach(b => {
+            const cf = calcExactCF(b.coupon, b.mat);
+            const adjFut = fut * cf;
+            const grossBasis = b.clean - adjFut;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${b.name}</strong></td>
+                <td style="font-family:var(--font-mono);">${b.coupon.toFixed(3)}%</td>
+                <td style="font-family:var(--font-mono);">${b.mat.toFixed(1)} Yrs</td>
+                <td style="font-family:var(--font-mono); font-weight:700; color:var(--accent);">${cf.toFixed(4)}</td>
+                <td style="font-family:var(--font-mono);">$${b.clean.toFixed(2)}</td>
+                <td style="font-family:var(--font-mono); color:var(--blue);">$${adjFut.toFixed(2)}</td>
+                <td style="font-family:var(--font-mono); font-weight:700; color:${grossBasis >= 0 ? 'var(--text)' : 'var(--red)'};">${(grossBasis >= 0 ? '+' : '')}${grossBasis.toFixed(3)} pts</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    /* ===================================================================== */
+    /* TAB 3: CHEAPEST-TO-DELIVER (CTD) ENGINE & CHART                       */
+    /* ===================================================================== */
+    const ctdCandidates = [
+        { id: 'b1', name: '3.50% 6.8Y (Low Dur)', coupon: 3.50, mat: 6.8, baseYield: 4.25, duration: 5.8 },
+        { id: 'b2', name: '3.875% 7.3Y (Mid Dur)', coupon: 3.875, mat: 7.3, baseYield: 4.30, duration: 6.2 },
+        { id: 'b3', name: '4.50% 8.3Y (High Dur)', coupon: 4.50, mat: 8.3, baseYield: 4.35, duration: 6.9 }
+    ];
+
+    let ctdChartData = [];
+
+    function calculateCTD() {
+        const shiftBps = parseInt(document.getElementById('ctdShift').value) || 0;
+        const repoRate = parseFloat(document.getElementById('ctdRepo').value) || 4.50;
+        const days = parseInt(document.getElementById('ctdDays').value) || 60;
+
+        document.getElementById('valCtdShift').innerText = (shiftBps >= 0 ? '+' : '') + shiftBps + ' bps';
+
+        const futPrice = 110.50;
+        const shiftDec = shiftBps / 10000;
+
+        let bestCTD = null;
+        let minNetBasis = 999999;
+
+        ctdCandidates.forEach(cand => {
+            const currentYield = cand.baseYield / 100 + shiftDec;
+            const cf = calcExactCF(cand.coupon, cand.mat);
+
+            const rSemi = currentYield / 2;
+            const nSemi = Math.round(cand.mat * 2);
+            const pvAnn = (1 - Math.pow(1 + rSemi, -nSemi)) / rSemi;
+            const cashPrice = (cand.coupon / 2) * pvAnn + 100 * Math.pow(1 + rSemi, -nSemi);
+
+            const grossBasis = cashPrice - (futPrice * cf);
+            const couponCarry = cand.coupon * (days / 365);
+            const financingCost = cashPrice * (repoRate / 100) * (days / 360);
+            const netCarry = couponCarry - financingCost;
+            const netBasis = grossBasis - netCarry;
+
+            const irr = ((couponCarry + (futPrice * cf) - cashPrice) / cashPrice) * (360 / days) * 100;
+
+            if (netBasis < minNetBasis) {
+                minNetBasis = netBasis;
+                bestCTD = {
+                    cand: cand,
+                    netBasis: netBasis,
+                    irr: irr,
+                    cf: cf,
+                    cashPrice: cashPrice
+                };
+            }
+        });
+
+        if (bestCTD) {
+            document.getElementById('resCtdName').innerText = bestCTD.cand.name;
+            document.getElementById('resCtdNetBasis').innerText = (bestCTD.netBasis >= 0 ? '+' : '') + bestCTD.netBasis.toFixed(3) + ' pts';
+            document.getElementById('resCtdIRR').innerText = bestCTD.irr.toFixed(2) + '%';
+            document.getElementById('resCtdCF').innerText = bestCTD.cf.toFixed(4);
+
+            if (shiftBps > 100) {
+                document.getElementById('resCtdReason').innerText = 'High Yields (>6%): High Duration dominates';
+            } else if (shiftBps < -100) {
+                document.getElementById('resCtdReason').innerText = 'Low Yields (<6%): Low Duration dominates';
+            } else {
+                document.getElementById('resCtdReason').innerText = 'Minimizes Net Basis to Delivery';
+            }
+        }
+
+        drawCTDChart();
+    }
+
+    function drawCTDChart() {
+        const canvas = document.getElementById('ctdCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const m = { l: 60, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const repoRate = parseFloat(document.getElementById('ctdRepo').value) || 4.50;
+        const days = parseInt(document.getElementById('ctdDays').value) || 60;
+        const futPrice = 110.50;
+
+        const shiftRange = [];
+        for (let s = -250; s <= 250; s += 10) shiftRange.push(s);
+
+        const curves = ctdCandidates.map(c => ({ cand: c, pts: [] }));
+
+        shiftRange.forEach(s => {
+            const shiftDec = s / 10000;
+            curves.forEach(crv => {
+                const yld = crv.cand.baseYield / 100 + shiftDec;
+                const cf = calcExactCF(crv.cand.coupon, crv.cand.mat);
+                const rSemi = yld / 2;
+                const nSemi = Math.round(crv.cand.mat * 2);
+                const pvAnn = (1 - Math.pow(1 + rSemi, -nSemi)) / rSemi;
+                const cashPrice = (crv.cand.coupon / 2) * pvAnn + 100 * Math.pow(1 + rSemi, -nSemi);
+
+                const grossBasis = cashPrice - (futPrice * cf);
+                const couponCarry = crv.cand.coupon * (days / 365);
+                const financingCost = cashPrice * (repoRate / 100) * (days / 360);
+                const netBasis = grossBasis - (couponCarry - financingCost);
+
+                crv.pts.push({ shift: s, netBasis: netBasis });
+            });
+        });
+
+        ctdChartData = curves;
+
+        const allNet = curves.flatMap(c => c.pts.map(p => p.netBasis));
+        const minNet = Math.min(-0.8, Math.min(...allNet));
+        const maxNet = Math.max(1.8, Math.max(...allNet));
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let v = Math.floor(minNet * 2) / 2; v <= maxNet; v += 0.5) {
+            const py = m.t + cH - ((v - minNet) / (maxNet - minNet)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(v.toFixed(2) + ' pts', m.l - 8, py + 3);
+        }
+
+        [-200, -100, 0, 100, 200].forEach(s => {
+            const px = m.l + ((s + 250) / 500) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText((s >= 0 ? '+' : '') + s + ' bps', px, m.t + cH + 16);
+        });
+
+        /* Zero Net Basis line */
+        const zeroY = m.t + cH - ((0 - minNet) / (maxNet - minNet)) * cH;
+        ctx.strokeStyle = '#8a7a62'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(m.l, zeroY); ctx.lineTo(m.l + cW, zeroY); ctx.stroke();
+
+        const colors = ['#3d6a9e', '#8b6d2a', '#4a7c3f'];
+
+        curves.forEach((crv, idx) => {
+            ctx.beginPath();
+            crv.pts.forEach((pt, i) => {
+                const px = m.l + ((pt.shift + 250) / 500) * cW;
+                const py = m.t + cH - ((pt.netBasis - minNet) / (maxNet - minNet)) * cH;
+                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            });
+            ctx.strokeStyle = colors[idx];
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+        });
+
+        /* Legend */
+        curves.forEach((crv, idx) => {
+            const lx = m.l + 10 + idx * 170;
+            ctx.fillStyle = colors[idx]; ctx.fillRect(lx, 10, 14, 8);
+            ctx.fillStyle = '#2c2418'; ctx.font = '600 10px Inter'; ctx.textAlign = 'left';
+            ctx.fillText(crv.cand.name, lx + 18, 17);
+        });
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('ctdHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverShift = Math.round(-250 + ((mx - m.l) / cW) * 500);
+            let hudHTML = `<div class="hud-row"><span class="hud-label">Yield Shift</span><span class="hud-val">${hoverShift >= 0 ? '+' : ''}${hoverShift} bps</span></div>`;
+
+            let minBasis = 999;
+            let ctdBond = '';
+
+            curves.forEach((crv, idx) => {
+                let nearest = crv.pts[0];
+                let minDist = 999;
+                crv.pts.forEach(p => {
+                    const d = Math.abs(p.shift - hoverShift);
+                    if (d < minDist) { minDist = d; nearest = p; }
+                });
+
+                if (nearest.netBasis < minBasis) {
+                    minBasis = nearest.netBasis;
+                    ctdBond = crv.cand.name;
+                }
+
+                hudHTML += `<div class="hud-row"><span class="hud-label" style="color:${colors[idx]};">${crv.cand.name.split(' ')[0]}</span><span class="hud-val">${nearest.netBasis.toFixed(3)} pts</span></div>`;
+            });
+
+            hudHTML += `<div class="hud-row" style="margin-top:4px; border-top:1px solid #5a4d3a; padding-top:4px;"><span class="hud-label" style="color:#d4a44c; font-weight:700;">CTD:</span><span class="hud-val" style="color:#d4a44c;">${ctdBond}</span></div>`;
+
+            hud.innerHTML = hudHTML;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 200) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('ctdHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 4: BASIS ARBITRAGE SIMULATOR & CONVERGENCE                        */
+    /* ===================================================================== */
+    function calculateBasisArb() {
+        const cash = parseFloat(document.getElementById('arbCashPrice').value) || 98.50;
+        const fut = parseFloat(document.getElementById('arbFutPrice').value) || 110.50;
+        const cf = parseFloat(document.getElementById('arbCF').value) || 0.8845;
+        const coupon = parseFloat(document.getElementById('arbCoupon').value) || 4.00;
+        const repo = parseFloat(document.getElementById('arbRepoRate').value) || 4.50;
+        const days = parseInt(document.getElementById('arbDays').value) || 60;
+
+        const grossBasis = cash - (fut * cf);
+        const couponEarned = coupon * (days / 365);
+        const repoCost = cash * (repo / 100) * (days / 360);
+        const netCarry = couponEarned - repoCost;
+        const netBasis = grossBasis - netCarry;
+
+        const irr = ((couponEarned + (fut * cf) - cash) / cash) * (360 / days) * 100;
+
+        document.getElementById('resArbGross').innerText = (grossBasis >= 0 ? '+' : '') + grossBasis.toFixed(3) + ' pts';
+        document.getElementById('resArbCarry').innerText = (netCarry >= 0 ? '+' : '') + netCarry.toFixed(3) + ' pts';
+        document.getElementById('resArbNet').innerText = (netBasis >= 0 ? '+' : '') + netBasis.toFixed(3) + ' pts';
+        document.getElementById('resArbIRR').innerText = irr.toFixed(2) + '%';
+
+        drawBasisChart();
+    }
+
+    ['arbCashPrice', 'arbFutPrice', 'arbCF', 'arbCoupon', 'arbRepoRate', 'arbDays'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', calculateBasisArb);
+    });
+
+    function drawBasisChart() {
+        const canvas = document.getElementById('basisCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const cash = parseFloat(document.getElementById('arbCashPrice').value) || 98.50;
+        const fut = parseFloat(document.getElementById('arbFutPrice').value) || 110.50;
+        const cf = parseFloat(document.getElementById('arbCF').value) || 0.8845;
+        const coupon = parseFloat(document.getElementById('arbCoupon').value) || 4.00;
+        const repo = parseFloat(document.getElementById('arbRepoRate').value) || 4.50;
+        const totalDays = parseInt(document.getElementById('arbDays').value) || 60;
+
+        const m = { l: 60, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const initialGross = cash - (fut * cf);
+
+        const ptsGross = [];
+        const ptsNet = [];
+
+        for (let d = 0; d <= totalDays; d += 2) {
+            const remDays = totalDays - d;
+            const gross = initialGross * (remDays / totalDays);
+            const carry = (coupon * (remDays / 365)) - (cash * (repo / 100) * (remDays / 360));
+            const net = gross - carry;
+            ptsGross.push({ day: d, val: gross });
+            ptsNet.push({ day: d, val: net });
+        }
+
+        const maxV = Math.max(1.2, initialGross * 1.3);
+        const minV = -0.3;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let v = 0; v <= maxV; v += 0.4) {
+            const py = m.t + cH - ((v - minV) / (maxV - minV)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(v.toFixed(2) + ' pts', m.l - 8, py + 3);
+        }
+
+        for (let d = 0; d <= totalDays; d += Math.round(totalDays / 5)) {
+            const px = m.l + (d / totalDays) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText('Day ' + d, px, m.t + cH + 16);
+        }
+
+        const zeroY = m.t + cH - ((0 - minV) / (maxV - minV)) * cH;
+        ctx.strokeStyle = '#8a7a62'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(m.l, zeroY); ctx.lineTo(m.l + cW, zeroY); ctx.stroke();
+
+        ctx.beginPath();
+        ptsGross.forEach((pt, i) => {
+            const px = m.l + (pt.day / totalDays) * cW;
+            const py = m.t + cH - ((pt.val - minV) / (maxV - minV)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#3d6a9e'; ctx.lineWidth = 2.5; ctx.stroke();
+
+        ctx.beginPath();
+        ptsNet.forEach((pt, i) => {
+            const px = m.l + (pt.day / totalDays) * cW;
+            const py = m.t + cH - ((pt.val - minV) / (maxV - minV)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#8b6d2a'; ctx.lineWidth = 3; ctx.stroke();
+
+        const lx = m.l + 10;
+        ctx.fillStyle = '#3d6a9e'; ctx.fillRect(lx, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('Gross Basis (Pulls to Zero at Expiry)', lx + 18, 17);
+
+        ctx.fillStyle = '#8b6d2a'; ctx.fillRect(lx + 230, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Net Basis (Basis Net of Carry - BNOC)', lx + 248, 17);
+
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('basisHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverDay = Math.round(((mx - m.l) / cW) * totalDays);
+            const remDays = totalDays - hoverDay;
+            const gross = initialGross * (remDays / totalDays);
+            const carry = (coupon * (remDays / 365)) - (cash * (repo / 100) * (remDays / 360));
+            const net = gross - carry;
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Holding Day</span><span class="hud-val">Day ${hoverDay} (${remDays}d left)</span></div>
+                <div class="hud-row"><span class="hud-label">Gross Basis</span><span class="hud-val" style="color:#3d6a9e;">${gross.toFixed(3)} pts</span></div>
+                <div class="hud-row"><span class="hud-label">Net Basis (BNOC)</span><span class="hud-val" style="color:#8b6d2a;">${net.toFixed(3)} pts</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('basisHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 5: HEDGING ENGINE & STRESS TEST                                   */
+    /* ===================================================================== */
+    const futuresContractSpecs = {
+        'ZT': { name: '2-Year T-Note', notional: 200000, defaultDur: 1.85, defaultDV01: 37.0, defaultCF: 0.9650 },
+        'ZF': { name: '5-Year T-Note', notional: 100000, defaultDur: 4.30, defaultDV01: 43.0, defaultCF: 0.9250 },
+        'ZN': { name: '10-Year T-Note', notional: 100000, defaultDur: 6.85, defaultDV01: 68.5, defaultCF: 0.8845 },
+        'TN': { name: 'Ultra 10-Year', notional: 100000, defaultDur: 8.50, defaultDV01: 85.0, defaultCF: 0.8450 },
+        'ZB': { name: 'Classic T-Bond', notional: 100000, defaultDur: 14.50, defaultDV01: 145.0, defaultCF: 0.7850 },
+        'UB': { name: 'Ultra T-Bond', notional: 100000, defaultDur: 18.50, defaultDV01: 185.0, defaultCF: 0.7150 }
+    };
+
+    function updateHdgContractSpecs() {
+        const sel = document.getElementById('hdgContract').value;
+        const spec = futuresContractSpecs[sel];
+        if (spec) {
+            document.getElementById('hdgCtdDV01').value = spec.defaultDV01.toFixed(2);
+            document.getElementById('hdgCtdCF').value = spec.defaultCF.toFixed(4);
+            calculateHedging();
+        }
+    }
+
+    function calculateHedging() {
+        const portVal = parseFloat(document.getElementById('hdgPortVal').value) || 100000000;
+        const portDur = parseFloat(document.getElementById('hdgPortDur').value) || 6.80;
+        const targetDur = parseFloat(document.getElementById('hdgTargetDur').value) || 0.00;
+        const ctdDV01 = parseFloat(document.getElementById('hdgCtdDV01').value) || 68.50;
+        const ctdCF = parseFloat(document.getElementById('hdgCtdCF').value) || 0.8845;
+
+        const durDelta = targetDur - portDur;
+        const portDV01 = portVal * portDur * 0.0001;
+        const futDV01 = ctdDV01 / ctdCF;
+
+        const hedgeContracts = Math.round((portVal * durDelta * 0.0001) / futDV01);
+        const actualHedgedDV01 = hedgeContracts * futDV01;
+        const targetDV01Delta = portVal * durDelta * 0.0001;
+        const residualDV01 = Math.abs(targetDV01Delta - actualHedgedDV01);
+
+        document.getElementById('resPortDV01').innerText = '$' + Math.round(portDV01).toLocaleString();
+        document.getElementById('resFutDV01').innerText = '$' + futDV01.toFixed(2);
+
+        const actionText = hedgeContracts < 0 ? `Sell ${Math.abs(hedgeContracts)} Contracts` : `Buy ${hedgeContracts} Contracts`;
+        document.getElementById('resHedgeContracts').innerText = (hedgeContracts >= 0 ? '+' : '') + hedgeContracts + ' Lots';
+        document.getElementById('resHedgeAction').innerText = actionText;
+
+        document.getElementById('resResidualDV01').innerText = '$' + residualDV01.toFixed(2);
+
+        drawHedgingChart();
+    }
+
+    ['hdgPortVal', 'hdgPortDur', 'hdgTargetDur', 'hdgCtdDV01', 'hdgCtdCF'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', calculateHedging);
+    });
+
+    function reinitHedgingCalc() {
+        document.getElementById('hdgPortVal').value = 100000000;
+        document.getElementById('hdgPortDur').value = 6.80;
+        document.getElementById('hdgTargetDur').value = 0.00;
+        document.getElementById('hdgContract').value = 'ZN';
+        updateHdgContractSpecs();
+    }
+
+    function setHedgingPreset(val, dur, targetDur, contract) {
+        document.getElementById('hdgPortVal').value = val;
+        document.getElementById('hdgPortDur').value = dur;
+        document.getElementById('hdgTargetDur').value = targetDur;
+        document.getElementById('hdgContract').value = contract;
+        updateHdgContractSpecs();
+    }
+
+    function drawHedgingChart() {
+        const canvas = document.getElementById('hedgingCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const portVal = parseFloat(document.getElementById('hdgPortVal').value) || 100000000;
+        const portDur = parseFloat(document.getElementById('hdgPortDur').value) || 6.80;
+        const targetDur = parseFloat(document.getElementById('hdgTargetDur').value) || 0.00;
+        const ctdDV01 = parseFloat(document.getElementById('hdgCtdDV01').value) || 68.50;
+        const ctdCF = parseFloat(document.getElementById('hdgCtdCF').value) || 0.8845;
+
+        const durDelta = targetDur - portDur;
+        const futDV01 = ctdDV01 / ctdCF;
+        const hedgeContracts = Math.round((portVal * durDelta * 0.0001) / futDV01);
+
+        const m = { l: 75, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const maxBps = 100;
+        const maxUnhedgedPnL = portVal * portDur * 0.0001 * maxBps;
+        const yBound = Math.ceil(maxUnhedgedPnL / 1000000) * 1000000;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let p = -yBound; p <= yBound; p += yBound / 2) {
+            const py = m.t + cH - ((p + yBound) / (2 * yBound)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText((p >= 0 ? '+$' : '-$') + Math.abs(p / 1000000).toFixed(2) + 'M', m.l - 8, py + 3);
+        }
+
+        [-100, -50, 0, 50, 100].forEach(s => {
+            const px = m.l + ((s + maxBps) / (2 * maxBps)) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText((s >= 0 ? '+' : '') + s + ' bps', px, m.t + cH + 16);
+        });
+
+        const zeroY = m.t + cH / 2;
+        ctx.strokeStyle = '#8a7a62'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(m.l, zeroY); ctx.lineTo(m.l + cW, zeroY); ctx.stroke();
+
+        ctx.beginPath();
+        for (let s = -maxBps; s <= maxBps; s += 5) {
+            const px = m.l + ((s + maxBps) / (2 * maxBps)) * cW;
+            const pnl = - (portVal * portDur * 0.0001) * s;
+            const py = m.t + cH - ((pnl + yBound) / (2 * yBound)) * cH;
+            if (s === -maxBps) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.strokeStyle = '#a63d3d'; ctx.lineWidth = 2.5; ctx.stroke();
+
+        ctx.beginPath();
+        for (let s = -maxBps; s <= maxBps; s += 5) {
+            const px = m.l + ((s + maxBps) / (2 * maxBps)) * cW;
+            const portPnL = - (portVal * portDur * 0.0001) * s;
+            const futPnL = - hedgeContracts * futDV01 * s;
+            const totalPnL = portPnL + futPnL;
+            const py = m.t + cH - ((totalPnL + yBound) / (2 * yBound)) * cH;
+            if (s === -maxBps) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.strokeStyle = '#4a7c3f'; ctx.lineWidth = 3; ctx.stroke();
+
+        const lx = m.l + 10;
+        ctx.fillStyle = '#a63d3d'; ctx.fillRect(lx, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('Unhedged Portfolio (Vulnerable to Rate Rises)', lx + 18, 17);
+
+        ctx.fillStyle = '#4a7c3f'; ctx.fillRect(lx + 270, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Hedged Portfolio (Duration Neutral)', lx + 288, 17);
+
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('hedgingHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverS = Math.round(-maxBps + ((mx - m.l) / cW) * (2 * maxBps));
+            const portPnL = - (portVal * portDur * 0.0001) * hoverS;
+            const futPnL = - hedgeContracts * futDV01 * hoverS;
+            const netPnL = portPnL + futPnL;
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Yield Shock</span><span class="hud-val">${hoverS >= 0 ? '+' : ''}${hoverS} bps</span></div>
+                <div class="hud-row"><span class="hud-label">Unhedged P&L</span><span class="hud-val" style="color:#a63d3d;">${portPnL >= 0 ? '+$' : '-$'}${Math.round(Math.abs(portPnL)).toLocaleString()}</span></div>
+                <div class="hud-row"><span class="hud-label">Futures Hedge</span><span class="hud-val" style="color:#3d6a9e;">${futPnL >= 0 ? '+$' : '-$'}${Math.round(Math.abs(futPnL)).toLocaleString()}</span></div>
+                <div class="hud-row"><span class="hud-label">Hedged Net P&L</span><span class="hud-val" style="color:#4a7c3f;">${netPnL >= 0 ? '+$' : '-$'}${Math.round(Math.abs(netPnL)).toLocaleString()}</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 200) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('hedgingHud').style.display = 'none';
+        };
+    }
+    </script>
+</body>
+</html>
