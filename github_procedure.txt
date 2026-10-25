@@ -1,0 +1,195 @@
+================================================================================
+          GITHUB REPOSITORY CREATION, DEPLOYMENT & WORKFLOW GUIDE
+            For All Market Finance Mastery Websites & Projects
+================================================================================
+Author: Frédéric Bandeira (MSc Financial Markets & Investments)
+Date: October 2026
+Applicable to: Fixed Income Mastery, Options Mastery, Macro, Equities, etc.
+================================================================================
+
+TABLE OF CONTENTS:
+  PART 1: How to Create a New Repository on GitHub
+  PART 2: How to Connect Your Local Folder and Push First Time
+  PART 3: How to Set Your Website Live on the Internet (GitHub Pages)
+  PART 4: The Core Daily Commands (Check, Add, Commit, Push)
+  PART 5: Troubleshooting & Useful Tips
+
+================================================================================
+PART 1: HOW TO CREATE A REPOSITORY ON GITHUB (IN YOUR BROWSER)
+================================================================================
+
+1. Go to https://github.com and log in with your account (FredericBANDEIRA).
+2. Click the "+" icon at the top right of the page and select "New repository"
+   (or navigate directly to https://github.com/new).
+3. Fill in the repository details:
+   - Repository name: Choose a clear, hyphenated name.
+     Examples:
+       * fixed-income-mastery
+       * options-mastery
+       * macro-mastery
+       * market-finance-mastery
+   - Description: Short overview of the topic (e.g., "Master bonds, yields, duration, and the rates complex").
+   - Visibility: Select "Public" (required for free GitHub Pages hosting).
+   - "Initialize this repository with:"
+     CRITICAL: Leave ALL checkboxes UNCHECKED:
+       [ ] Add a README file        <-- DO NOT check this
+       [ ] Add .gitignore           <-- DO NOT check this
+       [ ] Choose a license         <-- DO NOT check this
+     (Why? Your local project folder already contains these files. Keeping
+     the GitHub repository completely empty avoids merge conflicts.)
+4. Click the green button "Create repository".
+5. Keep the page open. GitHub will show your repository URL, for example:
+   HTTPS: https://github.com/FredericBANDEIRA/fixed-income-mastery.git
+   SSH:   git@github.com:FredericBANDEIRA/fixed-income-mastery.git
+
+
+================================================================================
+PART 2: HOW TO LINK YOUR LOCAL FOLDER AND PUSH FOR THE FIRST TIME
+================================================================================
+
+Open PowerShell or Terminal inside your project directory (for example inside
+"Fixed Income Academy"), and run these commands:
+
+Step 2.1: Verify git is initialized locally
+------------------------------------------
+If git is not yet initialized in that specific project folder:
+  git init
+  git branch -M main
+
+Step 2.2: Add your GitHub repository as the "origin" remote
+----------------------------------------------------------
+Replace the URL with your exact repository URL from Part 1:
+
+  git remote add origin https://github.com/FredericBANDEIRA/fixed-income-mastery.git
+
+  (To check if it was set properly, type: git remote -v)
+
+Step 2.3: Stage and commit all existing project files
+----------------------------------------------------
+  git add .
+  git commit -m "Initial commit: Project website and modules"
+
+Step 2.4: Push everything to GitHub
+-----------------------------------
+  git push -u origin main
+
+  * Note: The "-u" flag sets "origin/main" as the default upstream branch.
+    For all future pushes, you will only need to type: git push
+
+
+================================================================================
+PART 3: HOW TO SET YOUR WEBSITE LIVE ON THE INTERNET (GITHUB PAGES)
+================================================================================
+
+Once your code is pushed to GitHub, you can publish it as a live website in 30 seconds:
+
+1. Open your repository on GitHub in your web browser.
+2. Click on the "Settings" tab (located at the top right of the repository menu).
+3. In the left-hand sidebar, click on "Pages" (under the "Code and automation" section).
+4. Under "Build and deployment":
+   - Source: Select "Deploy from a branch"
+   - Branch: Click the dropdown and select "main"
+   - Folder: Select "/ (root)"
+5. Click the "Save" button.
+6. Wait 1 to 2 minutes for GitHub to build and publish your site.
+7. Refresh the page. You will see a green banner at the top:
+   "Your site is live at https://fredericbandeira.github.io/<repository-name>/"
+
+Your website is now permanently live on the internet, accessible on desktop,
+tablets, and mobile phones, with free automatic HTTPS encryption.
+
+
+================================================================================
+PART 4: THE CORE DAILY COMMANDS (CHECK, ADD, COMMIT, PUSH)
+================================================================================
+
+Whenever you make changes, add a new module, or update code, follow this exact
+three-step routine:
+
+--------------------------------------------------------------------------------
+COMMAND 1: CHECK WHAT HAS CHANGED & CHECK IF YOU ARE UP TO DATE
+--------------------------------------------------------------------------------
+
+First, pull any updates that might have been made online (or from another machine):
+  git pull origin main
+
+Then, inspect your local modifications:
+  git status
+
+What you will see:
+- Red files: Files you edited, created, or deleted that are not yet staged.
+- Green files: Files that are staged and ready to be committed.
+- "nothing to commit, working tree clean": Everything is already saved and synchronized.
+
+--------------------------------------------------------------------------------
+COMMAND 2: ADD (STAGE) YOUR CHANGES
+--------------------------------------------------------------------------------
+
+To stage ALL new, edited, and deleted files in the current directory:
+  git add .
+
+(Alternatively, if you only want to stage one specific file):
+  git add index.html
+  git add 06_Swaps.html
+
+--------------------------------------------------------------------------------
+COMMAND 3: COMMIT WITH A CLEAR MESSAGE
+--------------------------------------------------------------------------------
+
+Save a snapshot of your staged changes to your local git history:
+  git commit -m "Add Module 06 Swaps and update index navigation"
+
+Rule of thumb for commit messages:
+- Use action verbs: "Add", "Fix", "Update", "Refactor".
+- Keep it concise and descriptive.
+
+--------------------------------------------------------------------------------
+COMMAND 4: PUSH TO GITHUB (AUTOMATICALLY UPDATES THE LIVE WEBSITE)
+--------------------------------------------------------------------------------
+
+Send your committed changes to GitHub:
+  git push
+
+Within 30 to 60 seconds after running "git push", GitHub Pages will automatically
+re-deploy, and your live website URL will immediately reflect your latest code!
+
+
+================================================================================
+SUMMARY CHEATSHEET (COPY & PASTE WORKFLOW)
+================================================================================
+
+Daily Quick Workflow:
+--------------------
+  git status                  # 1. Check your current status
+  git add .                   # 2. Stage all modifications
+  git commit -m "Your message" # 3. Save the snapshot locally
+  git push                    # 4. Upload to GitHub & update live site
+
+
+================================================================================
+PART 5: TROUBLESHOOTING & USEFUL TIPS
+================================================================================
+
+1. Authentication Issues on "git push":
+   If Windows asks for your credentials:
+   - Modern GitHub requires a Personal Access Token (PAT) or browser authentication,
+     not your account password.
+   - You can generate a token on GitHub: Settings > Developer Settings >
+     Personal access tokens > Tokens (classic) > check "repo" scope > Generate.
+   - Or simply use the GitHub credential manager popup in Windows.
+
+2. Changing the Remote URL:
+   If you ever rename your repository on GitHub or typed the wrong URL:
+     git remote set-url origin https://github.com/FredericBANDEIRA/<new-name>.git
+
+3. Checking Your Commit History:
+     git log --oneline -n 5
+
+4. Discarding Unwanted Local Changes to a File (Before git add):
+     git restore <filename>
+
+5. File Organization for Multi-Project Portfolios:
+   Each project folder (e.g. Fixed Income, Options, Equity, Macro) can either be:
+   - Its own separate standalone GitHub repository (recommended for distinct live sites), OR
+   - A subfolder inside one master "market-finance-mastery" repository.
+================================================================================
