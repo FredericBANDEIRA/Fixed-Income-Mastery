@@ -1,0 +1,2214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swaps — Fixed Income Mastery</title>
+    <meta name="description" content="Master interest rate swaps: IRS mechanics, par swap rate pricing, swap spreads, OIS discounting, basis swaps, and swap DV01 risk management.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        /* ===== CSS Custom Properties (Parchment / Classic Bond Aesthetic) ===== */
+        :root {
+            --bg: #e8dcc8;
+            --bg-warm: #dfd3be;
+            --surface: #d6c9b1;
+            --surface-2: #cdbfa5;
+            --surface-3: #c4b599;
+            --surface-hover: #bfae90;
+            --border: #b8a688;
+            --border-glow: #8b6d2a55;
+            --text: #2c2418;
+            --text-secondary: #5a4d3a;
+            --text-muted: #8a7a62;
+            --accent: #8b6d2a;
+            --accent-light: #a6843a;
+            --accent-dark: #6e5520;
+            --accent-glow: #8b6d2a20;
+            --accent-strong-glow: #8b6d2a38;
+            --green: #4a7c3f;
+            --red: #a63d3d;
+            --blue: #3d6a9e;
+            --orange: #b07328;
+            --purple: #6a4c93;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ===== Sine Wave Background ===== */
+        .wave-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .wave-bg canvas { width: 100%; height: 100%; }
+
+        /* ===== Layout ===== */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px 60px;
+        }
+
+        /* ===== Header ===== */
+        .top-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--accent); }
+        .back-link svg { width: 16px; height: 16px; transition: transform 0.2s; }
+        .back-link:hover svg { transform: translateX(-3px); }
+
+        .module-badge {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent);
+            background: var(--accent-glow);
+            border: 1px solid var(--border-glow);
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .module-title-bar {
+            text-align: center;
+            padding: 32px 0 24px;
+        }
+
+        .module-title-bar h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .module-title-bar .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== Tab Navigation ===== */
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 32px;
+            overflow-x: auto;
+            padding-bottom: 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-tab {
+            padding: 12px 18px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            font-family: var(--font-body);
+            letter-spacing: 0.01em;
+        }
+        .nav-tab:hover { color: var(--text-secondary); }
+        .nav-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ===== Content Cards ===== */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            font-weight: 650;
+            color: var(--text);
+            margin: 20px 0 10px;
+        }
+
+        .card p, .card li {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .card ul, .card ol {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+
+        .card li { margin-bottom: 6px; }
+
+        /* ===== KaTeX Formula Blocks ===== */
+        .formula-block {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            overflow-x: auto;
+            text-align: center;
+        }
+
+        .formula-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        /* ===== Tables ===== */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 16px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        th {
+            background: var(--surface-2);
+            color: var(--text);
+            font-weight: 650;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--accent-glow); }
+
+        /* ===== Alerts ===== */
+        .alert {
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin: 16px 0;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            display: flex;
+            gap: 10px;
+        }
+
+        .alert-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+        .alert-info {
+            background: #3d6a9e15;
+            border: 1px solid #3d6a9e30;
+            color: var(--blue);
+        }
+
+        .alert-tip {
+            background: #4a7c3f15;
+            border: 1px solid #4a7c3f30;
+            color: var(--green);
+        }
+
+        .alert-warning {
+            background: #b0732815;
+            border: 1px solid #b0732830;
+            color: var(--orange);
+        }
+
+        .alert-key {
+            background: var(--accent-glow);
+            border: 1px solid var(--border-glow);
+            color: var(--accent-dark);
+        }
+
+        /* ===== Interactive Controls ===== */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin: 16px 0;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .control-group input[type="number"],
+        .control-group select {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .control-group input[type="range"] {
+            accent-color: var(--accent);
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus {
+            border-color: var(--accent);
+        }
+
+        /* ===== KPI Results ===== */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .kpi {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            text-align: center;
+        }
+
+        .kpi.highlight-kpi {
+            border: 2px solid var(--accent);
+            background: var(--accent-glow);
+        }
+
+        .kpi-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .kpi-value {
+            font-family: var(--font-mono);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .kpi-sub {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ===== Buttons ===== */
+        .btn {
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .btn-primary:hover { background: var(--accent-light); }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-secondary);
+        }
+        .btn-secondary:hover { background: var(--surface-2); }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== Canvas Chart Wrapper ===== */
+        .chart-wrapper {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            position: relative;
+        }
+
+        .chart-wrapper canvas {
+            width: 100%;
+            cursor: crosshair;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chart-title {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ===== Hover HUD (Floating Tooltip) ===== */
+        .chart-hud {
+            position: absolute;
+            pointer-events: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+            z-index: 10;
+            display: none;
+            white-space: nowrap;
+        }
+
+        .chart-hud .hud-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 2px;
+        }
+        .chart-hud .hud-row:last-child { margin-bottom: 0; }
+
+        .chart-hud .hud-label { color: var(--text-muted); }
+        .chart-hud .hud-val { font-weight: 600; color: var(--accent); }
+
+        /* ===== Pill Selector ===== */
+        .pill-group {
+            display: inline-flex;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 2px;
+            gap: 2px;
+            flex-wrap: wrap;
+        }
+
+        .pill-btn {
+            background: none;
+            border: none;
+            padding: 5px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-body);
+        }
+
+        .pill-btn.active {
+            background: var(--accent);
+            color: #ffffff;
+        }
+
+        /* ===== Interview Q&A Flashcards ===== */
+        .qa-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .qa-question {
+            padding: 16px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        .qa-question:hover { background: var(--accent-glow); }
+
+        .qa-toggle {
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-weight: 700;
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s;
+        }
+
+        .qa-card.open .qa-toggle { transform: rotate(45deg); }
+
+        .qa-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .qa-card.open .qa-answer { max-height: 800px; }
+
+        .qa-answer-inner {
+            padding: 0 20px 18px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            border-top: 1px solid var(--border);
+            padding-top: 14px;
+        }
+
+        .qa-answer-inner strong { color: var(--text); }
+        .qa-desk-tip {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: var(--accent-glow);
+            border-left: 3px solid var(--accent);
+            font-size: 0.8rem;
+            color: var(--accent-dark);
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* ===== Footer ===== */
+        .footer {
+            text-align: center;
+            padding: 24px 0;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-warm); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 700px) {
+            .module-title-bar h1 { font-size: 1.7rem; }
+            .nav-tabs { gap: 0; }
+            .nav-tab { padding: 10px 12px; font-size: 0.75rem; }
+            .card { padding: 20px 16px; }
+            .controls-grid { grid-template-columns: 1fr 1fr; }
+            .kpi-grid { grid-template-columns: 1fr 1fr; }
+            .formula-block { padding: 12px 14px; overflow-x: auto; }
+            .table-wrapper { font-size: 0.78rem; }
+        }
+
+        @media (max-width: 480px) {
+            .controls-grid { grid-template-columns: 1fr; }
+            .kpi-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wave-bg"><canvas id="waveCanvas"></canvas></div>
+
+    <div class="main-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-header">
+            <a href="index.html" class="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>All Modules</span>
+            </a>
+            <span class="module-badge">Module 06 · Swaps</span>
+        </header>
+
+        <!-- Module Header -->
+        <div class="module-title-bar">
+            <h1>Interest Rate Swaps (IRS)</h1>
+            <p class="subtitle">Swap anatomy, par rate derivation, negative swap spreads, OIS discounting, and swap DV01 sensitivity</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs" role="tablist">
+            <button class="nav-tab active" data-tab="mechanics" role="tab">1. IRS Mechanics</button>
+            <button class="nav-tab" data-tab="pricing" role="tab">2. Swap Pricing & MtM</button>
+            <button class="nav-tab" data-tab="spreads" role="tab">3. Swap Spreads</button>
+            <button class="nav-tab" data-tab="ois" role="tab">4. OIS & Basis Swaps</button>
+            <button class="nav-tab" data-tab="risk" role="tab">5. Swap Risk & DV01</button>
+            <button class="nav-tab" data-tab="qa" role="tab">6. Interview Q&A</button>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 1: IRS MECHANICS                                                 -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel active" id="tab-mechanics" role="tabpanel">
+            <div class="card">
+                <h2>Anatomy of an Interest Rate Swap</h2>
+                <p>
+                    An <strong>Interest Rate Swap (IRS)</strong> is an over-the-counter (OTC) derivative contract in which two counterparties agree to exchange periodic interest rate cash flows calculated on a specified <strong>Notional Principal ($N$)</strong> over a predetermined tenor.
+                </p>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Position</th>
+                                <th>Pays</th>
+                                <th>Receives</th>
+                                <th>Market Jargon</th>
+                                <th>Directional Stance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Fixed Rate Payer</strong></td>
+                                <td>Pre-agreed Fixed Coupon ($R_{\text{fixed}}$)</td>
+                                <td>Floating Benchmark (e.g. SOFR, Euribor)</td>
+                                <td><strong>"Payer Swap"</strong> (Bought Swap)</td>
+                                <td><strong>Bearish Rates:</strong> Profits if interest rates rise.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Floating Rate Payer</strong></td>
+                                <td>Floating Benchmark (e.g. SOFR, Euribor)</td>
+                                <td>Pre-agreed Fixed Coupon ($R_{\text{fixed}}$)</td>
+                                <td><strong>"Receiver Swap"</strong> (Sold Swap)</td>
+                                <td><strong>Bullish Rates:</strong> Profits if interest rates fall.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>The Golden Rule: No Principal Exchange</h3>
+                <p>
+                    Unlike bonds or loans, <strong>the notional principal is never exchanged</strong> at inception or maturity. It serves purely as the multiplier for interest calculations. On each payment date, cash flows are <strong>netted</strong>:
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Net Settlement Cash Flow Formula (Payer Perspective)</div>
+                    <div id="formula-net-settle"></div>
+                </div>
+
+                <h3>Why Institutions Trade Swaps</h3>
+                <ul>
+                    <li><strong>Corporate Borrowers:</strong> Issue floating-rate bank loans or commercial paper, then enter a Payer Swap to synthesize fixed-rate long-term debt.</li>
+                    <li><strong>Commercial Banks:</strong> Hold long-duration fixed mortgages; enter Payer Swaps to convert fixed assets to floating to match floating deposit liabilities.</li>
+                    <li><strong>Pension Funds & Life Insurers:</strong> Enter Receiver Swaps to add synthetic 30-year duration to match ultra-long liabilities without deploying massive cash capital.</li>
+                </ul>
+            </div>
+
+            <!-- Interactive IRS Cash Flow Simulator Card -->
+            <div class="card">
+                <h2>Interactive IRS Cash Flow & Netting Simulator</h2>
+                <p>
+                    Configure an institutional swap below to inspect the gross periodic fixed payments (Gold), floating payments (Blue), and net settlement cash flows.
+                </p>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label for="irsNotional">Notional Principal ($)</label>
+                        <input type="number" id="irsNotional" value="50000000" min="1000000" max="1000000000" step="5000000" oninput="calculateIRSMechanics()">
+                    </div>
+                    <div class="control-group">
+                        <label for="irsFixedRate">Fixed Swap Rate (%)</label>
+                        <input type="number" id="irsFixedRate" value="4.25" min="0.1" max="15.0" step="0.05" oninput="calculateIRSMechanics()">
+                    </div>
+                    <div class="control-group">
+                        <label for="irsTenor">Tenor (Years)</label>
+                        <input type="number" id="irsTenor" value="5" min="1" max="30" step="1" oninput="calculateIRSMechanics()">
+                    </div>
+                    <div class="control-group">
+                        <label for="irsBaseFloat">Initial Floating Rate (%)</label>
+                        <input type="number" id="irsBaseFloat" value="3.80" min="0.1" max="15.0" step="0.05" oninput="calculateIRSMechanics()">
+                    </div>
+                    <div class="control-group">
+                        <label for="irsFloatTrend">Floating Trend</label>
+                        <select id="irsFloatTrend" onchange="calculateIRSMechanics()">
+                            <option value="rising" selected>Rising Rates (+30 bps/yr)</option>
+                            <option value="flat">Flat Rates (Unchanged)</option>
+                            <option value="falling">Falling Rates (-30 bps/yr)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="reinitIRSMechanics()">Reset to $50M 5Y Standard</button>
+                </div>
+
+                <!-- KPIs -->
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi">
+                        <div class="kpi-label">Annual Fixed Leg Payment</div>
+                        <div class="kpi-value" id="resFixedPmt">$2,125,000</div>
+                        <div class="kpi-sub">Fixed at 4.25%</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Year 1 Floating Payment</div>
+                        <div class="kpi-value" id="resFloatPmt1">$1,900,000</div>
+                        <div class="kpi-sub">Reset at 3.80%</div>
+                    </div>
+                    <div class="kpi highlight-kpi">
+                        <div class="kpi-label">Year 1 Net Settlement</div>
+                        <div class="kpi-value" id="resNetPmt1" style="color:var(--red);">-$225,000</div>
+                        <div class="kpi-sub">Payer Pays Net Outflow</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Total Cumulative Net P&amp;L</div>
+                        <div class="kpi-value" id="resCumNetPayer" style="color:var(--green);">+$150,000</div>
+                        <div class="kpi-sub">Net over 5 Years</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Cash Flow Diagram -->
+                <div class="chart-header" style="margin-top: 24px;">
+                    <div class="chart-title">Gross Fixed Leg vs Gross Floating Leg Cash Flows ($ per Year)</div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="irsCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="irsHud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 2: SWAP PRICING & MTM                                            -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-pricing" role="tabpanel">
+            <div class="card">
+                <h2>The Par Swap Rate & Mark-to-Market Valuation</h2>
+                <p>
+                    At inception, an interest rate swap is an exchange of two commitments of equal value. Therefore, <strong>the initial Net Present Value (NPV) of a swap is exactly ZERO</strong>:
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">No-Arbitrage Inception Condition</div>
+                    <div id="formula-swap-zero"></div>
+                </div>
+
+                <h3>Deriving the Par Swap Rate</h3>
+                <p>
+                    A floating-rate note (FRN) paying benchmark coupons and redeeming principal at maturity $T$ is always worth par ($1.00$) on every reset date. Thus, the present value of all floating coupons equals:
+                </p>
+                <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                    PV(\text{Floating Leg}) = 1.00 - DF_n
+                </p>
+                <p>
+                    Equating this to the present value of the fixed coupon leg yields the famous <strong>Par Swap Rate formula</strong>:
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Par Swap Rate Analytical Formula</div>
+                    <div id="formula-par-swap"></div>
+                </div>
+                <p>
+                    Where $A_n = \sum_{i=1}^n \alpha_i \cdot DF_i$ is the <strong>Swap Annuity</strong> (or the PV01 per $1 notional).
+                </p>
+
+                <h3>Mark-to-Market (MtM) of a Seasoned Swap</h3>
+                <p>
+                    As market rates move after inception, the swap develops positive or negative replacement value:
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Seasoned Swap Mark-to-Market Valuation</div>
+                    <div id="formula-swap-mtm"></div>
+                </div>
+            </div>
+
+            <!-- Interactive Swap Valuation Tool Card -->
+            <div class="card">
+                <h2>Interactive Par Swap Rate & MtM Pricer</h2>
+                <p>
+                    Enter the original terms and the current prevailing market swap rate to calculate the exact dollar Mark-to-Market replacement value and swap annuity.
+                </p>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label for="prcNotional">Swap Notional ($)</label>
+                        <input type="number" id="prcNotional" value="100000000" min="1000000" max="1000000000" step="5000000" oninput="calculateSwapPricing()">
+                    </div>
+                    <div class="control-group">
+                        <label for="prcFixedRate">Contract Fixed Rate (%)</label>
+                        <input type="number" id="prcFixedRate" value="4.00" min="0.1" max="15.0" step="0.05" oninput="calculateSwapPricing()">
+                    </div>
+                    <div class="control-group">
+                        <label for="prcMarketRate">Current Market Par Rate (%)</label>
+                        <input type="number" id="prcMarketRate" value="4.75" min="0.1" max="15.0" step="0.05" oninput="calculateSwapPricing()">
+                    </div>
+                    <div class="control-group">
+                        <label for="prcRemainingTenor">Remaining Tenor (Years)</label>
+                        <input type="number" id="prcRemainingTenor" value="5" min="1" max="30" step="1" oninput="calculateSwapPricing()">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="reinitSwapPricing()">Reset Parameters</button>
+                </div>
+
+                <!-- KPIs -->
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi highlight-kpi">
+                        <div class="kpi-label">Payer Swap MtM</div>
+                        <div class="kpi-value" id="resPayerMtM" style="color:var(--green);">+$3,337,500</div>
+                        <div class="kpi-sub">Rates Rose &rarr; In-The-Money</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Receiver Swap MtM</div>
+                        <div class="kpi-value" id="resReceiverMtM" style="color:var(--red);">-$3,337,500</div>
+                        <div class="kpi-sub">Out-Of-The-Money Liability</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Swap Annuity ($A_n$)</div>
+                        <div class="kpi-value" id="resSwapAnnuity">4.450</div>
+                        <div class="kpi-sub">Sum of Discount Factors</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Swap PV01</div>
+                        <div class="kpi-value" id="resSwapPV01">$44,500</div>
+                        <div class="kpi-sub">Per Basis Point</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: PV of Legs vs Market Rates -->
+                <div class="chart-header" style="margin-top: 24px;">
+                    <div class="chart-title">PV of Fixed Leg vs PV of Floating Leg as Market Rates Shift</div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="pricingCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="pricingHud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 3: SWAP SPREADS                                                  -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-spreads" role="tabpanel">
+            <div class="card">
+                <h2>Swap Spreads & The Negative Spread Anomaly</h2>
+                <p>
+                    The <strong>Swap Spread</strong> is the difference between the benchmark par interest rate swap rate and the yield of the on-the-run government Treasury bond of the same maturity:
+                </p>
+
+                <div class="formula-block">
+                    <div class="formula-label">Swap Spread Definition</div>
+                    <div id="formula-swap-spread"></div>
+                </div>
+
+                <h3>The Historical Evolution</h3>
+                <ul>
+                    <li><strong>Pre-2008 Paradigm:</strong> A swap rate was universally expected to be <em>higher</em> than the Treasury yield ($\text{Swap Spread} > 0$, typically $+30$ to $+80\text{ bps}$) because swaps were linked to interbank lending (Libor), which carried AA-rated bank credit risk vs. default-free sovereign Treasuries.</li>
+                    <li><strong>Post-2015 Anomaly: Negative Swap Spreads!</strong> Today, long-term US swap spreads (10Y and 30Y) consistently trade <strong>NEGATIVE</strong> (e.g. 30Y swap spread $\approx -30\text{ to } -60\text{ bps}$).</li>
+                </ul>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">⚠️</span>
+                    <div>
+                        <strong>Why Did 30-Year Swap Spreads Go Negative?</strong>
+                        <ol style="margin-top: 6px; padding-left: 18px;">
+                            <li><strong>Treasury Supply Overhang:</strong> Massive US federal budget deficits led to record Treasury issuance, pushing physical 30Y bond yields UP.</li>
+                            <li><strong>Regulatory Balance Sheet Costs (Basel III / SLR):</strong> Primary dealers face steep capital charges for holding physical Treasury bonds on their balance sheets. Synthetic derivatives (swaps) do not consume cash balance sheet capacity!</li>
+                            <li><strong>Pension & LDI Hedging Demand:</strong> Pension funds aggressively receive fixed on 30Y swaps to hedge duration, pulling the 30Y swap rate DOWN relative to Treasuries.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Swap Spread Term Structure Visualizer -->
+            <div class="card">
+                <h2>Interactive Swap Spread Term Structure Visualizer</h2>
+                <p>
+                    Inspect the current Treasury yield curve against the Par Swap Curve to examine the transition from positive spreads at the short end to negative spreads at the long end.
+                </p>
+
+                <div class="chart-header">
+                    <div class="chart-title">Treasury Yields vs Swap Rates (% vs Maturity)</div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="spreadsCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="spreadsHud"></div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="drawSpreadsChart()">Refresh Curve</button>
+                </div>
+
+                <!-- Table Breakdown -->
+                <div class="table-wrapper" style="margin-top: 20px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tenor</th>
+                                <th>Benchmark Treasury</th>
+                                <th>Par Swap Rate</th>
+                                <th>Swap Spread</th>
+                                <th>Regime Description</th>
+                            </tr>
+                        </thead>
+                        <tbody id="spreadsTableBody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 4: OIS & BASIS SWAPS                                             -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-ois" role="tabpanel">
+            <div class="card">
+                <h2>OIS Discounting & The Multi-Curve Framework</h2>
+                <p>
+                    Prior to the 2008 global financial crisis, trading desks used a simple <strong>single-curve framework</strong>: Libor swap rates were used to both project future floating cash flows AND discount them back to present value.
+                </p>
+                <p>
+                    When interbank credit spreads exploded during the Lehman collapse, the industry realized that collateralized bilateral derivatives (governed by Credit Support Annexes &mdash; CSAs) earn the <strong>Overnight Risk-Free Rate</strong> (interest paid on posted cash collateral). This birthed the <strong>Dual-Curve (OIS Discounting) Framework</strong>.
+                </p>
+
+                <h3>Overnight Index Swap (OIS) Mechanics</h3>
+                <p>
+                    An OIS is an interest rate swap where the floating leg pays the geometric daily compounded overnight rate (<strong>SOFR</strong> in the US, <strong>&euro;STR</strong> in the Eurozone, <strong>SONIA</strong> in the UK):
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Compounded Overnight Floating Rate Formula</div>
+                    <div id="formula-ois-compound"></div>
+                </div>
+
+                <h3>Tenor Basis Swaps</h3>
+                <p>
+                    A <strong>Basis Swap</strong> exchanges two floating benchmark rates (e.g., 3-Month SOFR vs. 1-Month SOFR, or 3M Euribor vs. 6M Euribor). The spread quoted on one leg is the <strong>Basis Spread</strong>, reflecting liquidity preference and credit risk differences across tenors.
+                </p>
+            </div>
+
+            <!-- Canvas: OIS vs Benchmark Swap Curve -->
+            <div class="card">
+                <h2>OIS Discount Curve vs Benchmark Term Curve</h2>
+                <p>
+                    Observe the persistent spread between the pure overnight collateral discounting curve (OIS) and standard term benchmark yields.
+                </p>
+
+                <div class="chart-wrapper">
+                    <canvas id="oisCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="oisHud"></div>
+                </div>
+
+                <div class="alert alert-key">
+                    <strong>Desk Insight:</strong> Collateral posted under standard ISDA CSAs earns the overnight rate (SOFR). Therefore, every cash flow of every swap must be discounted along the OIS zero-coupon curve, regardless of which floating index determines the coupons!
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 5: SWAP RISK & DV01                                              -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-risk" role="tabpanel">
+            <div class="card">
+                <h2>Swap Risk Management & DV01 Sensitivity</h2>
+                <p>
+                    How sensitive is an interest rate swap to parallel and non-parallel curve moves? Because a swap has no principal exchange, its interest rate risk is derived entirely from the difference between the duration of its two legs:
+                </p>
+
+                <div class="formula-block">
+                    <div class="formula-label">Swap Decomposition & Duration</div>
+                    <div id="formula-swap-dur"></div>
+                </div>
+
+                <h3>Payer vs Receiver Risk Profiles</h3>
+                <ul>
+                    <li><strong>Receiver Swap (Long Fixed):</strong> Equivalent to Long Fixed Bond + Short Floating Note. Has <strong>positive duration</strong> ($\approx +D_{\text{fixed}}$). Gains when yields fall; loses when yields rise.</li>
+                    <li><strong>Payer Swap (Short Fixed):</strong> Equivalent to Short Fixed Bond + Long Floating Note. Has <strong>negative duration</strong> ($\approx -D_{\text{fixed}}$). Gains when yields rise; loses when yields fall.</li>
+                </ul>
+
+                <h3>The Swap DV01 (PV01) Formula</h3>
+                <p>
+                    For a swap with notional $N$ and swap annuity $A_n$:
+                </p>
+                <div class="formula-block">
+                    <div class="formula-label">Swap DV01 Identity</div>
+                    <div id="formula-swap-dv01"></div>
+                </div>
+            </div>
+
+            <!-- Interactive Swap Risk Simulator Card -->
+            <div class="card">
+                <h2>Interactive Swap Risk & P&amp;L Simulator</h2>
+                <p>
+                    Size a swap position and simulate its mark-to-market P&amp;L under yield curve shifts from $-150\text{ bps}$ to $+150\text{ bps}$.
+                </p>
+
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label for="rskNotional">Notional ($)</label>
+                        <input type="number" id="rskNotional" value="50000000" min="1000000" max="1000000000" step="5000000" oninput="calculateSwapRisk()">
+                    </div>
+                    <div class="control-group">
+                        <label for="rskTenor">Tenor (Years)</label>
+                        <input type="number" id="rskTenor" value="10" min="1" max="30" step="1" oninput="calculateSwapRisk()">
+                    </div>
+                    <div class="control-group">
+                        <label for="rskType">Swap Direction</label>
+                        <select id="rskType" onchange="calculateSwapRisk()">
+                            <option value="payer" selected>Payer Swap (Pay Fixed / Rec Float)</option>
+                            <option value="receiver">Receiver Swap (Rec Fixed / Pay Float)</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="rskShift">Simulated Shift: <span id="valRskShift" style="font-family:var(--font-mono); color:var(--accent);">+25 bps</span></label>
+                        <input type="range" id="rskShift" min="-150" max="150" step="5" value="25" oninput="calculateSwapRisk()">
+                    </div>
+                </div>
+
+                <!-- KPIs -->
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi highlight-kpi">
+                        <div class="kpi-label">Mark-to-Market P&amp;L</div>
+                        <div class="kpi-value" id="resRskPnL" style="color:var(--green);">+$98,750</div>
+                        <div class="kpi-sub">On +25 bps Move</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Swap DV01</div>
+                        <div class="kpi-value" id="resRskDV01">$39,500</div>
+                        <div class="kpi-sub">Per Basis Point</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Swap Duration</div>
+                        <div class="kpi-value" id="resRskDur">-7.90 Yrs</div>
+                        <div class="kpi-sub">Payer = Negative Duration</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="kpi-label">Swap Annuity ($A_{10}$)</div>
+                        <div class="kpi-value" id="resRskAnnuity">7.900</div>
+                        <div class="kpi-sub">Sum of $DF_i$</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Swap P&L Profile -->
+                <div class="chart-header" style="margin-top: 24px;">
+                    <div class="chart-title">Swap Mark-to-Market P&amp;L Profile (&plusmn;150 bps)</div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="riskCanvas" height="280"></canvas>
+                    <div class="chart-hud" id="riskHud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================================================================== -->
+        <!-- TAB 6: INTERVIEW Q&A                                                 -->
+        <!-- ==================================================================== -->
+        <div class="tab-panel" id="tab-qa" role="tabpanel">
+            <div class="card">
+                <h2>Sales & Trading, Structuring & CFA L1/L2 Interview Flashcards</h2>
+                <p>
+                    These questions are core staples in fixed income derivatives trading, DCM origination, and institutional structuring interviews.
+                </p>
+            </div>
+
+            <!-- Q1 -->
+            <div class="qa-card" id="qa1">
+                <div class="qa-question" onclick="toggleQA('qa1')">
+                    <span>1. Explain how an Interest Rate Swap works and why the notional is never exchanged.</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> An interest rate swap (IRS) is an agreement between two parties to exchange periodic interest payments on an agreed notional principal ($N$) over a specified tenor:
+                        </p>
+                        <ul>
+                            <li>The <strong>Fixed Payer</strong> pays a predetermined fixed coupon and receives a floating reference rate (e.g. SOFR).</li>
+                            <li>The <strong>Fixed Receiver</strong> pays the floating reference rate and receives the fixed coupon.</li>
+                        </ul>
+                        <p>
+                            <strong>Why Notional is Never Exchanged:</strong> Both parties are denominating interest payments in the <em>same currency</em>. Exchanging $100M at inception and returning the exact same $100M at maturity would consume balance sheet capacity without altering interest rate risk. Instead, on each payment date, the cash flows are <strong>netted</strong>: the party owing more simply wires the net differential:
+                            $$\text{Net Cash Flow} = N \times (L - R_{\text{fixed}}) \times \alpha$$
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="qa-card" id="qa2">
+                <div class="qa-question" onclick="toggleQA('qa2')">
+                    <span>2. How do you calculate the Par Swap Rate from discount factors?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> At inception, the swap has zero Net Present Value ($NPV = 0$), meaning the present value of the fixed leg must equal the present value of the floating leg:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            PV(\text{Fixed Leg}) = PV(\text{Floating Leg})
+                        </p>
+                        <p>
+                            Since a floating-rate note paying benchmark coupons is worth par ($1.00$) at inception and redeems principal at date $T$, the present value of its coupons alone is $1 - DF_T$.
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            R_{\text{par}} \times \sum_{i=1}^n \alpha_i DF_i = 1 - DF_n \implies \mathbf{R_{\text{par}} = \frac{1 - DF_n}{\sum_{i=1}^n \alpha_i DF_i}}
+                        </p>
+                        <div class="qa-desk-tip">
+                            <strong>Trader Tip:</strong> The denominator $\sum \alpha_i DF_i$ is known as the <strong>Swap Annuity ($A_n$)</strong> or the PV01 per dollar notional.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="qa-card" id="qa3">
+                <div class="qa-question" onclick="toggleQA('qa3')">
+                    <span>3. What is a Swap Spread, and why have 10-year and 30-year US swap spreads traded negative?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> A Swap Spread is defined as:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \text{Swap Spread} = \text{Par Swap Rate} - \text{Treasury Yield of Same Maturity}
+                        </p>
+                        <p>
+                            Historically, swap spreads were always positive because swaps involved interbank credit risk. However, 10Y and 30Y swap spreads turned <strong>negative</strong> post-2015 due to three structural factors:
+                        </p>
+                        <ol>
+                            <li><strong>Massive Treasury Issuance:</strong> Huge US federal borrowing flooded the market with long-end Treasuries, pushing Treasury yields above swap rates.</li>
+                            <li><strong>Bank Balance Sheet Regulations (SLR / Basel III):</strong> Holding physical Treasury bonds consumes scarce bank balance sheet leverage. In contrast, cleared swaps do not require financing cash on balance sheet, making swaps cheaper than Treasuries.</li>
+                            <li><strong>Pension & LDI Hedging:</strong> Defined-benefit pension funds heavily receive fixed on 30Y swaps to match long liability duration, depressing long swap rates.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q4 -->
+            <div class="qa-card" id="qa4">
+                <div class="qa-question" onclick="toggleQA('qa4')">
+                    <span>4. What is OIS discounting, and why did global derivatives desks abandon Libor discounting?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> An Overnight Index Swap (OIS) exchanges fixed rate payments for the compounded daily risk-free overnight rate (SOFR in USD, &euro;STR in EUR).
+                        </p>
+                        <p>
+                            <strong>Why OIS Discounting was Adopted:</strong>
+                        </p>
+                        <ul>
+                            <li>Under standard ISDA Credit Support Annexes (CSAs), counterparties must post cash collateral against out-of-the-money swap positions daily.</li>
+                            <li>The interest paid on this posted cash collateral is the overnight rate (SOFR/&euro;STR).</li>
+                            <li>Under no-arbitrage finance, cash flows must be discounted at the return earned on the collateral that backs them. Therefore, <strong>the OIS curve is the true risk-free discount curve</strong> for all collateralized derivatives.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q5 -->
+            <div class="qa-card" id="qa5">
+                <div class="qa-question" onclick="toggleQA('qa5')">
+                    <span>5. A bank holds $500M of fixed-rate mortgages funded by floating-rate deposits. How does it hedge using a swap?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> The bank faces asset-liability mismatch:
+                        </p>
+                        <ul>
+                            <li><strong>Assets:</strong> Receive fixed mortgage interest (e.g. 5.50%).</li>
+                            <li><strong>Liabilities:</strong> Pay floating deposit interest (e.g. SOFR). If interest rates spike, deposit costs jump while mortgage revenues stay flat, destroying bank net interest margin (NIM).</li>
+                        </ul>
+                        <p>
+                            <strong>The Hedge:</strong> The bank enters a <strong>Payer Swap (Pay Fixed, Receive Floating)</strong> for $500M notional:
+                        </p>
+                        <ul>
+                            <li>The floating cash received from the swap offsets the rising deposit payments.</li>
+                            <li>The fixed payment paid on the swap is funded by the mortgage income.</li>
+                            <li>The bank successfully locks in a guaranteed net interest margin spread regardless of where rates move.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q6 -->
+            <div class="qa-card" id="qa6">
+                <div class="qa-question" onclick="toggleQA('qa6')">
+                    <span>6. What is the DV01 of a 10-year $100M receiver swap, and what is its P&amp;L if 10Y swap rates fall by 20 bps?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong>
+                        </p>
+                        <p>
+                            A 10-year swap has a typical swap annuity $A_{10} \approx 7.90$ (sum of semi-annual discount factors).
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \text{DV01} = \text{Notional} \times 0.0001 \times A_{10} = \$100,000,000 \times 0.0001 \times 7.90 = \mathbf{\$79,000\text{ per bp}}
+                        </p>
+                        <p>
+                            A <strong>Receiver Swap</strong> benefits when market rates fall (it locked in higher fixed receipts).
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \text{P\&L} = +\text{DV01} \times (-\Delta y_{\text{bps}}) = \$79,000 \times (+20\text{ bps}) = \mathbf{+\$1,580,000}
+                        </p>
+                        <p>
+                            The desk makes an immediate mark-to-market gain of <strong>$1.58 million</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q7 -->
+            <div class="qa-card" id="qa7">
+                <div class="qa-question" onclick="toggleQA('qa7')">
+                    <span>7. What is the duration of an Interest Rate Swap, and why does a payer swap have negative duration?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> A swap can be decomposed into two synthetic bonds:
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            \text{Payer Swap} = \text{Long Floating Rate Note} + \text{Short Fixed Rate Bond}
+                        </p>
+                        <p>
+                            The duration of a floating-rate note between reset dates is approximately the time to the next reset (e.g. 0.25 years for quarterly SOFR). The duration of a 10-year fixed bond is ~7.8 years.
+                        </p>
+                        <p style="text-align:center; font-family:var(--font-mono); margin: 8px 0;">
+                            D_{\text{payer}} \approx D_{\text{floating}} - D_{\text{fixed}} \approx 0.25 - 7.8 = \mathbf{-7.55\text{ Years}}
+                        </p>
+                        <p>
+                            Because the short fixed leg dominates, <strong>a payer swap has large negative duration</strong> (its value rises when yields rise, exactly like a short bond position).
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q8 -->
+            <div class="qa-card" id="qa8">
+                <div class="qa-question" onclick="toggleQA('qa8')">
+                    <span>8. What is a Cross-Currency Basis Swap and what causes a non-zero basis?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> A Cross-Currency Basis Swap involves exchanging floating interest rate payments and principal amounts in <strong>two different currencies</strong> (e.g. 3M USD SOFR vs 3M EUR €STR).
+                        </p>
+                        <p>
+                            Under textbook Covered Interest Parity (CIP), the basis spread should be zero. In practice:
+                        </p>
+                        <ul>
+                            <li><strong>Non-Zero Basis:</strong> The EUR/USD and JPY/USD basis spreads have historically traded substantially negative (e.g. -20 to -60 bps).</li>
+                            <li><strong>Cause:</strong> Massive structural global demand for US dollar funding from foreign banks and institutional investors, combined with bank balance sheet constraints that prevent arbitrageurs from closing the gap. Foreign borrowers must pay a premium to borrow USD synthetically.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q9 -->
+            <div class="qa-card" id="qa9">
+                <div class="qa-question" onclick="toggleQA('qa9')">
+                    <span>9. How does a rates trading desk structure a 2s10s curve steepener trade using swaps?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> In a 2s10s curve steepener, the trader profits if the 10Y swap rate rises relative to the 2Y swap rate:
+                        </p>
+                        <ol>
+                            <li><strong>Legs:</strong> Receive Fixed on 2Y swap (benefits from short rates falling) and Pay Fixed on 10Y swap (benefits from long rates rising).</li>
+                            <li><strong>DV01-Neutral Weighting:</strong> To avoid losing money if the whole curve moves in parallel, the trade must have zero net DV01:
+                            $$\text{Notional}_{2\text{Y}} \times \text{DV01}_{2\text{Y}} = \text{Notional}_{10\text{Y}} \times \text{DV01}_{10\text{Y}}$$</li>
+                            <li><strong>Ratio:</strong> If a 2Y swap has a DV01 of $1.90 per $10k and a 10Y swap has a DV01 of $7.90 per $10k, the notional ratio is:
+                            $$\frac{\text{Notional}_{2\text{Y}}}{\text{Notional}_{10\text{Y}}} = \frac{7.90}{1.90} \approx 4.16$$
+                            The desk receives fixed on $416M of 2Y swaps for every $100M of 10Y swaps paid.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Q10 -->
+            <div class="qa-card" id="qa10">
+                <div class="qa-question" onclick="toggleQA('qa10')">
+                    <span>10. What is CSA discounting, and how does the choice of collateral currency impact swap valuation?</span>
+                    <span class="qa-toggle">+</span>
+                </div>
+                <div class="qa-answer">
+                    <div class="qa-answer-inner">
+                        <p>
+                            <strong>Answer:</strong> Under a Credit Support Annex (CSA), the currency of posted cash collateral dictates the discount curve used for valuation:
+                        </p>
+                        <ul>
+                            <li>If collateral is posted in USD cash, the discount rate is <strong>USD SOFR</strong>.</li>
+                            <li>If collateral is posted in EUR cash, the discount rate is <strong>EUR €STR</strong>.</li>
+                            <li><strong>Collateral Option (Cheapest-to-Deliver Collateral):</strong> Many legacy multi-currency CSAs gave the posting counterparty the right to choose which currency to post (USD, EUR, GBP, JPY). Desks had to model this as an embedded currency option, discounting at the "cheapest-to-deliver" collateral rate, which significantly impacted the mark-to-market valuation of long-dated swap books!</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            Module 06 · Swaps · Fixed Income Mastery
+        </footer>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- SCRIPTS: KaTeX & Interactive Engines                                 -->
+    <!-- ==================================================================== -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script>
+    /* ===== 1. Sine Wave Background ===== */
+    (function(){
+        const c = document.getElementById('waveCanvas'), ctx = c.getContext('2d');
+        let w, h, t = 0;
+        function resize(){
+            const d = devicePixelRatio || 1;
+            w = innerWidth; h = innerHeight;
+            c.width = w * d; c.height = h * d;
+            ctx.scale(d, d);
+            c.style.width = w + 'px'; c.style.height = h + 'px';
+        }
+        const W = [
+            { a: 38, f: 0.003, s: 0.008, o: 0, op: 0.12, c: '139,109,42' },
+            { a: 28, f: 0.004, s: 0.012, o: 2, op: 0.08, c: '139,109,42' },
+            { a: 45, f: 0.002, s: 0.006, o: 4, op: 0.10, c: '110,85,32' },
+            { a: 22, f: 0.005, s: 0.015, o: 1, op: 0.06, c: '166,132,58' }
+        ];
+        function dw(wv, yc){
+            ctx.beginPath();
+            ctx.moveTo(0, yc);
+            for(let x = 0; x <= w; x += 2){
+                const y = yc + wv.a * Math.sin(x * wv.f + t * wv.s + wv.o) + wv.a * 0.5 * Math.sin(x * wv.f * 1.8 + t * wv.s * 0.7 + wv.o + 1);
+                ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = `rgba(${wv.c},${wv.op})`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+        function anim(){
+            ctx.clearRect(0, 0, w, h);
+            dw(W[0], h * 0.25);
+            dw(W[1], h * 0.40);
+            dw(W[2], h * 0.60);
+            dw(W[3], h * 0.78);
+            t++;
+            requestAnimationFrame(anim);
+        }
+        addEventListener('resize', resize);
+        resize();
+        anim();
+    })();
+
+    /* ===== 2. KaTeX Formulas Rendering ===== */
+    document.addEventListener('DOMContentLoaded', function() {
+        const formulas = {
+            'formula-net-settle': '\\text{Net Cash Flow} = \\text{Notional} \\times \\left( R_{\\text{floating}} - R_{\\text{fixed}} \\right) \\times \\alpha',
+            'formula-swap-zero': 'NPV_{\\text{swap}} = PV(\\text{Fixed Leg}) - PV(\\text{Floating Leg}) = 0',
+            'formula-par-swap': 'R_{\\text{par}} = \\frac{1 - DF_n}{\\sum_{i=1}^{n} \\alpha_i \\cdot DF_i} = \\frac{1 - DF_n}{A_n}',
+            'formula-swap-mtm': 'V_{\\text{payer}} = \\text{Notional} \\times \\left( R_{\\text{market}} - R_{\\text{fixed}} \\right) \\times A_n',
+            'formula-swap-spread': '\\text{Swap Spread}_T = R_{\\text{par}}(T) - Y_{\\text{Treasury}}(T)',
+            'formula-ois-compound': 'R_{\\text{OIS}} = \\left[ \\prod_{k=1}^{d_b} \\left( 1 + \\frac{r_k \\times n_k}{360} \\right) - 1 \\right] \\times \\frac{360}{d}',
+            'formula-swap-dur': 'D_{\\text{payer}} \\approx D_{\\text{floating}} - D_{\\text{fixed}} \\approx 0.25 - D_{\\text{fixed}} < 0',
+            'formula-swap-dv01': '\\text{DV01}_{\\text{swap}} \\approx \\text{Notional} \\times 0.0001 \\times A_n = \\text{PV01}'
+        };
+
+        for (const [id, tex] of Object.entries(formulas)) {
+            const el = document.getElementById(id);
+            if (el && window.katex) {
+                katex.render(tex, el, { displayMode: true, throwOnError: false });
+            }
+        }
+
+        /* Initial Calculations */
+        calculateIRSMechanics();
+        calculateSwapPricing();
+        drawSpreadsChart();
+        drawOisChart();
+        calculateSwapRisk();
+    });
+
+    /* ===== 3. Tab Switching & Window Resize ===== */
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const targetId = 'tab-' + this.dataset.tab;
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) targetPanel.classList.add('active');
+
+            const tabName = this.dataset.tab;
+            if (tabName === 'mechanics') drawIRSChart();
+            if (tabName === 'pricing') drawPricingChart();
+            if (tabName === 'spreads') drawSpreadsChart();
+            if (tabName === 'ois') drawOisChart();
+            if (tabName === 'risk') drawRiskChart();
+        });
+    });
+
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            const activePanel = document.querySelector('.tab-panel.active');
+            if (activePanel) {
+                if (activePanel.id === 'tab-mechanics') drawIRSChart();
+                if (activePanel.id === 'tab-pricing') drawPricingChart();
+                if (activePanel.id === 'tab-spreads') drawSpreadsChart();
+                if (activePanel.id === 'tab-ois') drawOisChart();
+                if (activePanel.id === 'tab-risk') drawRiskChart();
+            }
+        }, 150);
+    });
+
+    function toggleQA(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('open');
+    }
+
+    /* ===================================================================== */
+    /* TAB 1: IRS MECHANICS ENGINE                                           */
+    /* ===================================================================== */
+    let irsCashFlowData = [];
+
+    function calculateIRSMechanics() {
+        const notional = parseFloat(document.getElementById('irsNotional').value) || 50000000;
+        const fixedRate = parseFloat(document.getElementById('irsFixedRate').value) || 4.25;
+        const tenor = parseInt(document.getElementById('irsTenor').value) || 5;
+        const baseFloat = parseFloat(document.getElementById('irsBaseFloat').value) || 3.80;
+        const trend = document.getElementById('irsFloatTrend').value;
+
+        irsCashFlowData = [];
+        let cumNetPayer = 0;
+
+        for (let yr = 1; yr <= tenor; yr++) {
+            let floatRate = baseFloat;
+            if (trend === 'rising') floatRate = baseFloat + (yr - 1) * 0.30;
+            else if (trend === 'falling') floatRate = Math.max(0.2, baseFloat - (yr - 1) * 0.30);
+
+            const fixedPmt = notional * (fixedRate / 100);
+            const floatPmt = notional * (floatRate / 100);
+            const netPayer = floatPmt - fixedPmt; /* Payer perspective: receives float, pays fixed */
+
+            cumNetPayer += netPayer;
+
+            irsCashFlowData.push({
+                year: yr,
+                fixedPmt: fixedPmt,
+                floatPmt: floatPmt,
+                floatRate: floatRate,
+                netPayer: netPayer
+            });
+        }
+
+        const fixedPmtAnnual = notional * (fixedRate / 100);
+        const floatPmtY1 = irsCashFlowData[0].floatPmt;
+        const netPmtY1 = irsCashFlowData[0].netPayer;
+
+        document.getElementById('resFixedPmt').innerText = '$' + Math.round(fixedPmtAnnual).toLocaleString();
+        document.getElementById('resFloatPmt1').innerText = '$' + Math.round(floatPmtY1).toLocaleString();
+        document.getElementById('resNetPmt1').innerText = (netPmtY1 >= 0 ? '+$' : '-$') + Math.round(Math.abs(netPmtY1)).toLocaleString();
+        document.getElementById('resNetPmt1').style.color = netPmtY1 >= 0 ? 'var(--green)' : 'var(--red)';
+
+        document.getElementById('resCumNetPayer').innerText = (cumNetPayer >= 0 ? '+$' : '-$') + Math.round(Math.abs(cumNetPayer)).toLocaleString();
+        document.getElementById('resCumNetPayer').style.color = cumNetPayer >= 0 ? 'var(--green)' : 'var(--red)';
+
+        drawIRSChart();
+    }
+
+    function reinitIRSMechanics() {
+        document.getElementById('irsNotional').value = 50000000;
+        document.getElementById('irsFixedRate').value = 4.25;
+        document.getElementById('irsTenor').value = 5;
+        document.getElementById('irsBaseFloat').value = 3.80;
+        document.getElementById('irsFloatTrend').value = 'rising';
+        calculateIRSMechanics();
+    }
+
+    function drawIRSChart() {
+        const canvas = document.getElementById('irsCanvas');
+        if (!canvas || !irsCashFlowData.length) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const m = { l: 75, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const maxPmt = Math.max(...irsCashFlowData.flatMap(cf => [cf.fixedPmt, cf.floatPmt]));
+        const yBound = Math.ceil(maxPmt / 500000) * 500000;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let v = 0; v <= yBound; v += yBound / 4) {
+            const py = m.t + cH - (v / yBound) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText('$' + (v / 1000000).toFixed(2) + 'M', m.l - 8, py + 3);
+        }
+
+        const barGroupW = cW / irsCashFlowData.length;
+        const singleBarW = barGroupW * 0.32;
+
+        irsCashFlowData.forEach((cf, i) => {
+            const groupX = m.l + i * barGroupW + barGroupW / 2;
+
+            /* Fixed Bar (Gold) */
+            const fixH = (cf.fixedPmt / yBound) * cH;
+            const fixX = groupX - singleBarW - 2;
+            const fixY = m.t + cH - fixH;
+            ctx.fillStyle = '#8b6d2a';
+            ctx.fillRect(fixX, fixY, singleBarW, fixH);
+
+            /* Floating Bar (Blue) */
+            const fltH = (cf.floatPmt / yBound) * cH;
+            const fltX = groupX + 2;
+            const fltY = m.t + cH - fltH;
+            ctx.fillStyle = '#3d6a9e';
+            ctx.fillRect(fltX, fltY, singleBarW, fltH);
+
+            /* Year tick */
+            ctx.fillStyle = '#8a7a62';
+            ctx.font = '10px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText('Year ' + cf.year, groupX, m.t + cH + 16);
+        });
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#8b6d2a'; ctx.fillRect(lx, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('Fixed Leg Paid', lx + 18, 17);
+
+        ctx.fillStyle = '#3d6a9e'; ctx.fillRect(lx + 120, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Floating Leg Received', lx + 138, 17);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('irsHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const step = Math.floor(((mx - m.l) / cW) * irsCashFlowData.length);
+            const idx = Math.max(0, Math.min(irsCashFlowData.length - 1, step));
+            const cf = irsCashFlowData[idx];
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Payment Period</span><span class="hud-val">Year ${cf.year}</span></div>
+                <div class="hud-row"><span class="hud-label">Fixed Leg Paid</span><span class="hud-val" style="color:#8b6d2a;">$${Math.round(cf.fixedPmt).toLocaleString()}</span></div>
+                <div class="hud-row"><span class="hud-label">Float Leg Rec'd</span><span class="hud-val" style="color:#3d6a9e;">$${Math.round(cf.floatPmt).toLocaleString()} (${cf.floatRate.toFixed(2)}%)</span></div>
+                <div class="hud-row"><span class="hud-label">Net Settlement</span><span class="hud-val" style="color:${cf.netPayer >= 0 ? '#4a7c3f' : '#a63d3d'};">${cf.netPayer >= 0 ? '+$' : '-$'}${Math.round(Math.abs(cf.netPayer)).toLocaleString()}</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('irsHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 2: SWAP PRICING ENGINE                                            */
+    /* ===================================================================== */
+    function calculateSwapPricing() {
+        const notional = parseFloat(document.getElementById('prcNotional').value) || 100000000;
+        const contractRate = parseFloat(document.getElementById('prcFixedRate').value) || 4.0;
+        const marketRate = parseFloat(document.getElementById('prcMarketRate').value) || 4.75;
+        const tenor = parseInt(document.getElementById('prcRemainingTenor').value) || 5;
+
+        /* Calculate annuity An = sum(DF_i) assuming flat curve at marketRate */
+        let annuity = 0;
+        const y_semi = (marketRate / 100) / 2;
+        const nPeriods = tenor * 2;
+        for (let i = 1; i <= nPeriods; i++) {
+            annuity += 0.5 / Math.pow(1 + y_semi, i);
+        }
+
+        const deltaRate = (marketRate - contractRate) / 100;
+        const payerMtM = notional * deltaRate * annuity;
+        const receiverMtM = -payerMtM;
+        const swapPV01 = notional * 0.0001 * annuity;
+
+        document.getElementById('resPayerMtM').innerText = (payerMtM >= 0 ? '+$' : '-$') + Math.round(Math.abs(payerMtM)).toLocaleString();
+        document.getElementById('resPayerMtM').style.color = payerMtM >= 0 ? 'var(--green)' : 'var(--red)';
+
+        document.getElementById('resReceiverMtM').innerText = (receiverMtM >= 0 ? '+$' : '-$') + Math.round(Math.abs(receiverMtM)).toLocaleString();
+        document.getElementById('resReceiverMtM').style.color = receiverMtM >= 0 ? 'var(--green)' : 'var(--red)';
+
+        document.getElementById('resSwapAnnuity').innerText = annuity.toFixed(3);
+        document.getElementById('resSwapPV01').innerText = '$' + Math.round(swapPV01).toLocaleString();
+
+        drawPricingChart();
+    }
+
+    function reinitSwapPricing() {
+        document.getElementById('prcNotional').value = 100000000;
+        document.getElementById('prcFixedRate').value = 4.00;
+        document.getElementById('prcMarketRate').value = 4.75;
+        document.getElementById('prcRemainingTenor').value = 5;
+        calculateSwapPricing();
+    }
+
+    function drawPricingChart() {
+        const canvas = document.getElementById('pricingCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const notional = parseFloat(document.getElementById('prcNotional').value) || 100000000;
+        const contractRate = parseFloat(document.getElementById('prcFixedRate').value) || 4.0;
+        const tenor = parseInt(document.getElementById('prcRemainingTenor').value) || 5;
+
+        const m = { l: 65, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const rateRange = [];
+        for (let r = 2.0; r <= 7.0; r += 0.2) rateRange.push(r);
+
+        const ptsFixed = [];
+        const ptsFloat = [];
+
+        rateRange.forEach(r => {
+            let annuity = 0;
+            const y_semi = (r / 100) / 2;
+            for (let i = 1; i <= tenor * 2; i++) {
+                annuity += 0.5 / Math.pow(1 + y_semi, i);
+            }
+            const pvFixed = notional * (contractRate / 100) * annuity;
+            const dfT = Math.pow(1 + y_semi, -tenor * 2);
+            const pvFloat = notional * (1 - dfT);
+
+            ptsFixed.push({ r: r, pv: pvFixed });
+            ptsFloat.push({ r: r, pv: pvFloat });
+        });
+
+        const maxPV = Math.max(...ptsFloat.map(p => p.pv), ...ptsFixed.map(p => p.pv));
+        const yBound = Math.ceil(maxPV / 5000000) * 5000000;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let v = 0; v <= yBound; v += yBound / 4) {
+            const py = m.t + cH - (v / yBound) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText('$' + (v / 1000000).toFixed(0) + 'M', m.l - 8, py + 3);
+        }
+
+        [2, 3, 4, 5, 6, 7].forEach(rx => {
+            const px = m.l + ((rx - 2.0) / 5.0) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(rx + '%', px, m.t + cH + 16);
+        });
+
+        /* Fixed Leg PV (Gold solid) */
+        ctx.beginPath();
+        ptsFixed.forEach((pt, i) => {
+            const px = m.l + ((pt.r - 2.0) / 5.0) * cW;
+            const py = m.t + cH - (pt.pv / yBound) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#8b6d2a'; ctx.lineWidth = 3; ctx.stroke();
+
+        /* Floating Leg PV (Blue solid) */
+        ctx.beginPath();
+        ptsFloat.forEach((pt, i) => {
+            const px = m.l + ((pt.r - 2.0) / 5.0) * cW;
+            const py = m.t + cH - (pt.pv / yBound) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#3d6a9e'; ctx.lineWidth = 3; ctx.stroke();
+
+        /* Breakeven intersection point (contractRate) */
+        const eqX = m.l + ((contractRate - 2.0) / 5.0) * cW;
+        ctx.strokeStyle = '#a63d3d'; ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(eqX, m.t); ctx.lineTo(eqX, m.t + cH); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#a63d3d'; ctx.font = '600 10px Inter'; ctx.textAlign = 'center';
+        ctx.fillText(`Par Rate: ${contractRate.toFixed(2)}% (NPV=0)`, eqX, m.t + 12);
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#8b6d2a'; ctx.fillRect(lx, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('PV Fixed Leg', lx + 18, 17);
+
+        ctx.fillStyle = '#3d6a9e'; ctx.fillRect(lx + 110, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('PV Floating Leg', lx + 128, 17);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('pricingHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverR = 2.0 + ((mx - m.l) / cW) * 5.0;
+            let annuity = 0;
+            const y_semi = (hoverR / 100) / 2;
+            for (let i = 1; i <= tenor * 2; i++) annuity += 0.5 / Math.pow(1 + y_semi, i);
+            const pvFix = notional * (contractRate / 100) * annuity;
+            const pvFlt = notional * (1 - Math.pow(1 + y_semi, -tenor * 2));
+            const netMtM = pvFlt - pvFix;
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Market Yield</span><span class="hud-val">${hoverR.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">PV Fixed Leg</span><span class="hud-val" style="color:#8b6d2a;">$${(pvFix / 1000000).toFixed(2)}M</span></div>
+                <div class="hud-row"><span class="hud-label">PV Float Leg</span><span class="hud-val" style="color:#3d6a9e;">$${(pvFlt / 1000000).toFixed(2)}M</span></div>
+                <div class="hud-row"><span class="hud-label">Payer MtM</span><span class="hud-val" style="color:${netMtM >= 0 ? '#4a7c3f' : '#a63d3d'};">${netMtM >= 0 ? '+$' : '-$'}${(Math.abs(netMtM) / 1000000).toFixed(2)}M</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('pricingHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 3: SWAP SPREADS ENGINE                                            */
+    /* ===================================================================== */
+    const swapSpreadData = [
+        { tenor: 2,  tsy: 4.35, swap: 4.45, spread: +10, desc: 'Positive interbank spread' },
+        { tenor: 3,  tsy: 4.20, swap: 4.25, spread: +5,  desc: 'Moderate positive basis' },
+        { tenor: 5,  tsy: 4.10, swap: 4.08, spread: -2,  desc: 'Crossing into negative' },
+        { tenor: 7,  tsy: 4.18, swap: 4.10, spread: -8,  desc: 'Negative spread regime' },
+        { tenor: 10, tsy: 4.25, swap: 4.05, spread: -20, desc: 'Heavy issuance pressure' },
+        { tenor: 30, tsy: 4.45, swap: 3.90, spread: -55, desc: 'Deep negative / SLR friction' }
+    ];
+
+    function drawSpreadsChart() {
+        const tbody = document.getElementById('spreadsTableBody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            swapSpreadData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${row.tenor}Y</strong></td>
+                    <td style="font-family:var(--font-mono); color:#3d6a9e;">${row.tsy.toFixed(2)}%</td>
+                    <td style="font-family:var(--font-mono); color:#8b6d2a;">${row.swap.toFixed(2)}%</td>
+                    <td style="font-family:var(--font-mono); font-weight:700; color:${row.spread >= 0 ? 'var(--green)' : 'var(--red)'};">${row.spread >= 0 ? '+' : ''}${row.spread} bps</td>
+                    <td>${row.desc}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        const canvas = document.getElementById('spreadsCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const m = { l: 50, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const minY = 3.5;
+        const maxY = 5.0;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let y = 3.6; y <= 4.8; y += 0.4) {
+            const py = m.t + cH - ((y - minY) / (maxY - minY)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(y.toFixed(2) + '%', m.l - 8, py + 3);
+        }
+
+        swapSpreadData.forEach(pt => {
+            const px = m.l + ((pt.tenor - 2) / 28) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(pt.tenor + 'Y', px, m.t + cH + 16);
+        });
+
+        /* Plot Treasury Curve (Blue Dashed) */
+        ctx.beginPath();
+        ctx.setLineDash([5, 4]);
+        swapSpreadData.forEach((pt, i) => {
+            const px = m.l + ((pt.tenor - 2) / 28) * cW;
+            const py = m.t + cH - ((pt.tsy - minY) / (maxY - minY)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#3d6a9e'; ctx.lineWidth = 2.5; ctx.stroke();
+        ctx.setLineDash([]);
+
+        /* Plot Swap Curve (Gold Solid) */
+        ctx.beginPath();
+        swapSpreadData.forEach((pt, i) => {
+            const px = m.l + ((pt.tenor - 2) / 28) * cW;
+            const py = m.t + cH - ((pt.swap - minY) / (maxY - minY)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#8b6d2a'; ctx.lineWidth = 3; ctx.stroke();
+
+        /* Dots */
+        swapSpreadData.forEach(pt => {
+            const px = m.l + ((pt.tenor - 2) / 28) * cW;
+            const pySwap = m.t + cH - ((pt.swap - minY) / (maxY - minY)) * cH;
+            ctx.beginPath(); ctx.arc(px, pySwap, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#8b6d2a'; ctx.fill();
+
+            const pyTsy = m.t + cH - ((pt.tsy - minY) / (maxY - minY)) * cH;
+            ctx.beginPath(); ctx.arc(px, pyTsy, 3.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#3d6a9e'; ctx.fill();
+        });
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#8b6d2a'; ctx.fillRect(lx, 10, 16, 3);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('Par Swap Rate', lx + 22, 14);
+
+        ctx.strokeStyle = '#3d6a9e'; ctx.setLineDash([4, 3]);
+        ctx.beginPath(); ctx.moveTo(lx + 130, 11); ctx.lineTo(lx + 146, 11); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Benchmark Treasury Yield', lx + 154, 14);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('spreadsHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverT = 2 + ((mx - m.l) / cW) * 28;
+            let nearest = swapSpreadData[0];
+            let minDist = 999;
+            swapSpreadData.forEach(pt => {
+                const d = Math.abs(pt.tenor - hoverT);
+                if (d < minDist) { minDist = d; nearest = pt; }
+            });
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Maturity</span><span class="hud-val">${nearest.tenor}Y</span></div>
+                <div class="hud-row"><span class="hud-label">Treasury Yield</span><span class="hud-val" style="color:#3d6a9e;">${nearest.tsy.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Par Swap Rate</span><span class="hud-val" style="color:#8b6d2a;">${nearest.swap.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Swap Spread</span><span class="hud-val" style="color:${nearest.spread >= 0 ? '#4a7c3f' : '#a63d3d'};">${nearest.spread >= 0 ? '+' : ''}${nearest.spread} bps</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('spreadsHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 4: OIS CANVAS ENGINE                                              */
+    /* ===================================================================== */
+    function drawOisChart() {
+        const canvas = document.getElementById('oisCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const m = { l: 50, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const tenors = [0.25, 0.5, 1, 2, 3, 5, 7, 10];
+        const oisRates = [4.80, 4.65, 4.40, 4.10, 4.00, 3.95, 4.02, 4.10];
+        const termRates = [4.95, 4.82, 4.60, 4.30, 4.22, 4.18, 4.26, 4.35];
+
+        const minY = 3.6;
+        const maxY = 5.2;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let y = 3.8; y <= 5.0; y += 0.4) {
+            const py = m.t + cH - ((y - minY) / (maxY - minY)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(y.toFixed(2) + '%', m.l - 8, py + 3);
+        }
+
+        tenors.forEach(tx => {
+            const px = m.l + ((tx - 0.25) / 9.75) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(tx + 'Y', px, m.t + cH + 16);
+        });
+
+        /* Area fill: Basis Spread */
+        ctx.beginPath();
+        tenors.forEach((t, i) => {
+            const px = m.l + ((t - 0.25) / 9.75) * cW;
+            const py = m.t + cH - ((termRates[i] - minY) / (maxY - minY)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        for (let i = tenors.length - 1; i >= 0; i--) {
+            const px = m.l + ((tenors[i] - 0.25) / 9.75) * cW;
+            const py = m.t + cH - ((oisRates[i] - minY) / (maxY - minY)) * cH;
+            ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fillStyle = '#b0732820';
+        ctx.fill();
+
+        /* Plot Term Rate (Gold) */
+        ctx.beginPath();
+        tenors.forEach((t, i) => {
+            const px = m.l + ((t - 0.25) / 9.75) * cW;
+            const py = m.t + cH - ((termRates[i] - minY) / (maxY - minY)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#8b6d2a'; ctx.lineWidth = 2.5; ctx.stroke();
+
+        /* Plot OIS Rate (Blue) */
+        ctx.beginPath();
+        tenors.forEach((t, i) => {
+            const px = m.l + ((t - 0.25) / 9.75) * cW;
+            const py = m.t + cH - ((oisRates[i] - minY) / (maxY - minY)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#3d6a9e'; ctx.lineWidth = 2.5; ctx.stroke();
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#3d6a9e'; ctx.fillRect(lx, 10, 16, 3);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('OIS Discount Curve (SOFR)', lx + 22, 14);
+
+        ctx.fillStyle = '#8b6d2a'; ctx.fillRect(lx + 190, 10, 16, 3);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Term Reference Curve', lx + 212, 14);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('oisHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverT = 0.25 + ((mx - m.l) / cW) * 9.75;
+            let nearestIdx = 0;
+            let minDist = 999;
+            tenors.forEach((t, i) => {
+                const d = Math.abs(t - hoverT);
+                if (d < minDist) { minDist = d; nearestIdx = i; }
+            });
+
+            const t = tenors[nearestIdx];
+            const ois = oisRates[nearestIdx];
+            const trm = termRates[nearestIdx];
+            const basisBps = Math.round((trm - ois) * 100);
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Maturity</span><span class="hud-val">${t} Years</span></div>
+                <div class="hud-row"><span class="hud-label">OIS Discount Rate</span><span class="hud-val" style="color:#3d6a9e;">${ois.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Term Swap Rate</span><span class="hud-val" style="color:#8b6d2a;">${trm.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Basis Spread</span><span class="hud-val">+${basisBps} bps</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('oisHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 5: SWAP RISK ENGINE                                               */
+    /* ===================================================================== */
+    function calculateSwapRisk() {
+        const notional = parseFloat(document.getElementById('rskNotional').value) || 50000000;
+        const tenor = parseInt(document.getElementById('rskTenor').value) || 10;
+        const swapType = document.getElementById('rskType').value;
+        const shiftBps = parseInt(document.getElementById('rskShift').value) || 25;
+
+        document.getElementById('valRskShift').innerText = (shiftBps >= 0 ? '+' : '') + shiftBps + ' bps';
+
+        /* Approximate Annuity An */
+        const baseRate = 0.045;
+        let annuity = 0;
+        for (let i = 1; i <= tenor * 2; i++) {
+            annuity += 0.5 / Math.pow(1 + baseRate / 2, i);
+        }
+
+        const swapDV01 = notional * 0.0001 * annuity;
+        const isPayer = (swapType === 'payer');
+
+        /* Payer gains when rates rise; Receiver gains when rates fall */
+        const pnl = isPayer ? (swapDV01 * shiftBps) : (-swapDV01 * shiftBps);
+        const swapDur = isPayer ? -annuity : annuity;
+
+        document.getElementById('resRskPnL').innerText = (pnl >= 0 ? '+$' : '-$') + Math.round(Math.abs(pnl)).toLocaleString();
+        document.getElementById('resRskPnL').style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+
+        document.getElementById('resRskDV01').innerText = '$' + Math.round(swapDV01).toLocaleString();
+        document.getElementById('resRskDur').innerText = (swapDur >= 0 ? '+' : '') + swapDur.toFixed(2) + ' Yrs';
+        document.getElementById('resRskAnnuity').innerText = annuity.toFixed(3);
+
+        drawRiskChart();
+    }
+
+    function drawRiskChart() {
+        const canvas = document.getElementById('riskCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const notional = parseFloat(document.getElementById('rskNotional').value) || 50000000;
+        const tenor = parseInt(document.getElementById('rskTenor').value) || 10;
+        const swapType = document.getElementById('rskType').value;
+        const isPayer = (swapType === 'payer');
+
+        let annuity = 0;
+        for (let i = 1; i <= tenor * 2; i++) annuity += 0.5 / Math.pow(1 + 0.045 / 2, i);
+        const swapDV01 = notional * 0.0001 * annuity;
+
+        const m = { l: 70, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const maxBps = 150;
+        const maxPnL = Math.ceil((swapDV01 * maxBps) / 100000) * 100000;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let p = -maxPnL; p <= maxPnL; p += maxPnL / 2) {
+            const py = m.t + cH - ((p + maxPnL) / (2 * maxPnL)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText((p >= 0 ? '+$' : '-$') + Math.abs(p / 1000000).toFixed(2) + 'M', m.l - 8, py + 3);
+        }
+
+        [-150, -100, -50, 0, 50, 100, 150].forEach(s => {
+            const px = m.l + ((s + maxBps) / (2 * maxBps)) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText((s >= 0 ? '+' : '') + s + ' bps', px, m.t + cH + 16);
+        });
+
+        /* Zero axis */
+        const zeroY = m.t + cH / 2;
+        ctx.strokeStyle = '#8a7a62'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(m.l, zeroY); ctx.lineTo(m.l + cW, zeroY); ctx.stroke();
+
+        /* Plot Active Swap Profile (Gold Solid) */
+        ctx.beginPath();
+        for (let s = -maxBps; s <= maxBps; s += 5) {
+            const px = m.l + ((s + maxBps) / (2 * maxBps)) * cW;
+            const pnl = isPayer ? (swapDV01 * s) : (-swapDV01 * s);
+            const py = m.t + cH - ((pnl + maxPnL) / (2 * maxPnL)) * cH;
+            if (s === -maxBps) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.strokeStyle = '#8b6d2a'; ctx.lineWidth = 3; ctx.stroke();
+
+        /* Plot Counterparty Profile (Blue Dashed) */
+        ctx.beginPath();
+        ctx.setLineDash([4, 4]);
+        for (let s = -maxBps; s <= maxBps; s += 5) {
+            const px = m.l + ((s + maxBps) / (2 * maxBps)) * cW;
+            const pnl = !isPayer ? (swapDV01 * s) : (-swapDV01 * s);
+            const py = m.t + cH - ((pnl + maxPnL) / (2 * maxPnL)) * cH;
+            if (s === -maxBps) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.strokeStyle = '#3d6a9e'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.setLineDash([]);
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#8b6d2a'; ctx.fillRect(lx, 10, 16, 3);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText(isPayer ? 'Payer Swap MtM (Long Rates)' : 'Receiver Swap MtM (Short Rates)', lx + 22, 14);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('riskHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverS = Math.round(-maxBps + ((mx - m.l) / cW) * (2 * maxBps));
+            const pnl = isPayer ? (swapDV01 * hoverS) : (-swapDV01 * hoverS);
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Yield Shift</span><span class="hud-val">${hoverS >= 0 ? '+' : ''}${hoverS} bps</span></div>
+                <div class="hud-row"><span class="hud-label">Position MtM</span><span class="hud-val" style="color:${pnl >= 0 ? '#4a7c3f' : '#a63d3d'};">${pnl >= 0 ? '+$' : '-$'}${Math.round(Math.abs(pnl)).toLocaleString()}</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('riskHud').style.display = 'none';
+        };
+    }
+    </script>
+</body>
+</html>
