@@ -1,0 +1,1965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structured Fixed Income — Fixed Income Mastery</title>
+    <meta name="description" content="Master structured fixed income: callable/putable bonds, negative convexity, mortgage-backed securities (MBS), PSA prepayment modeling, CMO tranching, ABS loss waterfalls, and Option-Adjusted Spread (OAS).">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        /* ===== CSS Custom Properties (Parchment / Classic Bond Aesthetic) ===== */
+        :root {
+            --bg: #e8dcc8;
+            --bg-warm: #dfd3be;
+            --surface: #d6c9b1;
+            --surface-2: #cdbfa5;
+            --surface-3: #c4b599;
+            --surface-hover: #bfae90;
+            --border: #b8a688;
+            --border-glow: #8b6d2a55;
+            --text: #2c2418;
+            --text-secondary: #5a4d3a;
+            --text-muted: #8a7a62;
+            --accent: #8b6d2a;
+            --accent-light: #a6843a;
+            --accent-dark: #6e5520;
+            --accent-glow: #8b6d2a20;
+            --accent-strong-glow: #8b6d2a38;
+            --green: #4a7c3f;
+            --red: #a63d3d;
+            --blue: #3d6a9e;
+            --orange: #b07328;
+            --purple: #6a4c93;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ===== Sine Wave Background ===== */
+        .wave-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .wave-bg canvas { width: 100%; height: 100%; }
+
+        /* ===== Layout ===== */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px 60px;
+        }
+
+        /* ===== Header ===== */
+        .top-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--accent); }
+        .back-link svg { width: 16px; height: 16px; transition: transform 0.2s; }
+        .back-link:hover svg { transform: translateX(-3px); }
+
+        .module-badge {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent);
+            background: var(--accent-glow);
+            border: 1px solid var(--border-glow);
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* ===== Hero ===== */
+        .module-hero {
+            text-align: center;
+            padding: 40px 0 30px;
+        }
+        .module-num {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .module-hero h1 {
+            font-size: 2.3rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+        .module-hero p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        /* ===== Tab Navigation ===== */
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--surface);
+            padding: 4px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .nav-tab {
+            flex: 1;
+            padding: 10px 14px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            border: none;
+            background: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .nav-tab:hover {
+            color: var(--text);
+            background: var(--surface-hover);
+        }
+        .nav-tab.active {
+            color: var(--text);
+            background: var(--bg);
+            box-shadow: 0 2px 8px rgba(44, 36, 24, 0.08);
+            border: 1px solid var(--border);
+        }
+
+        /* ===== Tab Panels ===== */
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .tab-panel.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== Content Cards ===== */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 16px rgba(44, 36, 24, 0.04);
+        }
+        .card h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+        }
+        .card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 18px 0 8px;
+            color: var(--text-secondary);
+        }
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.65;
+            margin-bottom: 14px;
+        }
+
+        /* ===== Formula Box ===== */
+        .formula-box {
+            background: var(--surface-2);
+            border-left: 4px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            padding: 14px 18px;
+            margin: 16px 0;
+            overflow-x: auto;
+        }
+        .formula-label {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--accent-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        /* ===== Interactive Grids & Form Controls ===== */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 18px;
+            background: var(--surface-2);
+            padding: 16px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .form-control {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+        }
+        .btn:hover {
+            background: var(--surface-hover);
+            border-color: var(--accent);
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent-dark);
+        }
+        .btn-primary:hover {
+            background: var(--accent-light);
+        }
+
+        /* ===== Metrics Row ===== */
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .metric-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px;
+            text-align: center;
+        }
+        .metric-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        .metric-val {
+            font-family: var(--font-mono);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .metric-sub {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* ===== Chart Container ===== */
+        .chart-box {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            position: relative;
+            margin: 16px 0;
+        }
+        .chart-canvas {
+            width: 100%;
+            height: 280px;
+            display: block;
+            cursor: crosshair;
+        }
+        .chart-hud {
+            position: absolute;
+            background: rgba(44, 36, 24, 0.92);
+            color: #f7f1e5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            pointer-events: none;
+            display: none;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            line-height: 1.4;
+            border: 1px solid var(--accent);
+        }
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .hud-label { color: #cdbfa5; }
+        .hud-val { font-weight: 700; }
+
+        /* ===== Tables ===== */
+        .table-responsive {
+            overflow-x: auto;
+            margin: 14px 0;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            background: var(--surface);
+        }
+        th, td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background: var(--surface-2);
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--surface-hover); }
+
+        /* ===== Highlighting Tags & Callouts ===== */
+        .callout {
+            background: var(--surface-2);
+            border-left: 4px solid var(--blue);
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            margin: 16px 0;
+            font-size: 0.88rem;
+        }
+        .callout.warning {
+            border-left-color: var(--orange);
+            background: #b0732812;
+        }
+        .callout.success {
+            border-left-color: var(--green);
+            background: #4a7c3f12;
+        }
+
+        /* ===== Accordion Flashcards ===== */
+        .qa-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 14px;
+        }
+        .qa-item {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .qa-item:hover { border-color: var(--accent); }
+        .qa-header {
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: var(--text);
+        }
+        .qa-header .icon {
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            color: var(--accent);
+            transition: transform 0.2s;
+        }
+        .qa-item.open .qa-header .icon {
+            transform: rotate(45deg);
+        }
+        .qa-body {
+            display: none;
+            padding: 0 18px 16px;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            line-height: 1.6;
+        }
+        .qa-item.open .qa-body { display: block; }
+        .qa-tip {
+            margin-top: 10px;
+            background: var(--bg);
+            border-left: 3px solid var(--accent);
+            padding: 8px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: var(--text);
+        }
+
+        /* ===== Responsive Design ===== */
+        @media (max-width: 768px) {
+            .module-hero h1 { font-size: 1.85rem; }
+            .nav-tabs { flex-wrap: nowrap; overflow-x: auto; }
+            .controls-grid { grid-template-columns: 1fr; }
+            .metrics-row { grid-template-columns: 1fr 1fr; }
+            .card { padding: 18px; }
+        }
+        @media (max-width: 480px) {
+            .metrics-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Sine Wave Background -->
+    <div class="wave-bg">
+        <canvas id="waveCanvas"></canvas>
+    </div>
+
+    <div class="main-container">
+        <!-- Top Navigation -->
+        <header class="top-header">
+            <a href="index.html" class="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"/>
+                    <polyline points="12 19 5 12 12 5"/>
+                </svg>
+                Fixed Income Mastery
+            </a>
+            <span class="module-badge">Module 09 · Structured Products & MBS</span>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="module-hero">
+            <div class="module-num">Securitization & Options · Module 09</div>
+            <h1>Structured Fixed Income & Prepayment Models</h1>
+            <p>Master callable/putable bonds, negative convexity, agency MBS pass-throughs, the PSA prepayment benchmark, CMO tranching waterfalls, ABS securitization, and Option-Adjusted Spread (OAS).</p>
+        </section>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs" role="tablist">
+            <button class="nav-tab active" data-tab="callable">1. Embedded Options</button>
+            <button class="nav-tab" data-tab="mbs">2. MBS & Prepayments</button>
+            <button class="nav-tab" data-tab="cmo">3. CMO Tranching</button>
+            <button class="nav-tab" data-tab="abs">4. ABS Waterfalls</button>
+            <button class="nav-tab" data-tab="oas">5. OAS Analysis</button>
+            <button class="nav-tab" data-tab="qa">6. Interview Q&A</button>
+        </nav>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 1: CALLABLE & PUTABLE BONDS                                      -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel active" id="tab-callable">
+            <div class="card">
+                <h2>Callable & Putable Bonds (Embedded Options)</h2>
+                <p>Many corporate and municipal bonds contain <strong>embedded options</strong> that alter the bond's cash flows depending on prevailing interest rates:</p>
+
+                <div class="formula-box">
+                    <div class="formula-label">Embedded Option Bond Valuation Decomposition</div>
+                    <div id="formula-embedded-val"></div>
+                </div>
+
+                <div class="callout warning">
+                    <strong>The Phenomenon of Negative Convexity:</strong>
+                    A standard bullet bond exhibits positive convexity—its price rises faster as yields drop than it falls when yields rise. However, for a <strong>callable bond</strong>, as interest rates decline toward or below the coupon rate, the issuer is increasingly likely to exercise the call option (refinance at cheaper rates). The call price ($P_{\text{call}}$) acts as an effective price ceiling. The price appreciation compresses, causing the price-yield curve to become concave (<strong>negative convexity</strong>).
+                </div>
+
+                <h3>Interactive Embedded Options Price-Yield Engine</h3>
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label>Coupon Rate (% p.a.)</label>
+                        <input type="number" id="embCoupon" class="form-control" value="5.50" step="0.25">
+                    </div>
+                    <div class="form-group">
+                        <label>Call Strike Price ($)</label>
+                        <input type="number" id="embCallPrice" class="form-control" value="102.00" step="0.50">
+                    </div>
+                    <div class="form-group">
+                        <label>Put Strike Price ($)</label>
+                        <input type="number" id="embPutPrice" class="form-control" value="97.00" step="0.50">
+                    </div>
+                    <div class="form-group">
+                        <label>Interest Rate Volatility ($\sigma$, %)</label>
+                        <input type="number" id="embVol" class="form-control" value="18.0" step="2.0">
+                    </div>
+                </div>
+
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <div class="metric-label">Bullet Bond Price (4.50% YTM)</div>
+                        <div class="metric-val" id="resBulletPrice" style="color:var(--text);">$106.82</div>
+                        <div class="metric-sub">Without Embedded Options</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Callable Bond Price</div>
+                        <div class="metric-val" id="resCallablePrice" style="color:var(--red);">$101.85</div>
+                        <div class="metric-sub">Bullet - Call Option ($4.97)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Putable Bond Price</div>
+                        <div class="metric-val" id="resPutablePrice" style="color:var(--green);">$107.45</div>
+                        <div class="metric-sub">Bullet + Put Option ($0.63)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Callable Effective Duration</div>
+                        <div class="metric-val" id="resCallableDur" style="color:var(--blue);">2.4 Yrs</div>
+                        <div class="metric-sub">vs 6.8 Yrs for Bullet Bond</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Price-Yield Profiles -->
+                <div class="chart-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--text);">Price-Yield Relationship: Bullet vs Callable vs Putable</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Notice the negative convexity plateau on Callable</span>
+                    </div>
+                    <canvas id="embeddedCanvas" class="chart-canvas"></canvas>
+                    <div id="embeddedHud" class="chart-hud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 2: MBS BASICS & PREPAYMENTS                                      -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel" id="tab-mbs">
+            <div class="card">
+                <h2>Mortgage-Backed Securities (MBS) & Prepayment Risk</h2>
+                <p>Agency Mortgage-Backed Securities (issued by <strong>Ginnie Mae, Fannie Mae, Freddie Mac</strong>) represent claims on the cash flows of large pools of residential mortgage loans. Unlike Treasuries, mortgage borrowers have the legal right to prepay all or part of their mortgage principal at any time without penalty.</p>
+
+                <div class="metrics-row">
+                    <div class="metric-card" style="border-left: 4px solid var(--red);">
+                        <div class="metric-label">Contraction Risk (Rates Fall)</div>
+                        <div class="metric-val" style="font-size:0.95rem; color:var(--red);">Accelerated Prepayments</div>
+                        <div class="metric-sub">Homeowners refinance cheaply. MBS investor gets paid back early and must reinvest at lower yields.</div>
+                    </div>
+                    <div class="metric-card" style="border-left: 4px solid var(--blue);">
+                        <div class="metric-label">Extension Risk (Rates Rise)</div>
+                        <div class="metric-val" style="font-size:0.95rem; color:var(--blue);">Decelerated Prepayments</div>
+                        <div class="metric-sub">Refinancing halts. Mortgage cash flows dry up, locking the investor into a low-yielding bond with extending duration.</div>
+                    </div>
+                </div>
+
+                <h3>Prepayment Metrics: SMM, CPR, and the PSA Model</h3>
+                <div class="formula-box">
+                    <div class="formula-label">SMM, CPR, and Public Securities Association (PSA) Prepayment Benchmark</div>
+                    <div id="formula-psa-def"></div>
+                </div>
+
+                <h3>Interactive PSA Prepayment & Cash Flow Simulator</h3>
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label>Initial Mortgage Pool Balance ($)</label>
+                        <input type="number" id="mbsBalance" class="form-control" value="10000000" step="1000000">
+                    </div>
+                    <div class="form-group">
+                        <label>Mortgage Gross Rate (% p.a.)</label>
+                        <input type="number" id="mbsGrossRate" class="form-control" value="6.00" step="0.25">
+                    </div>
+                    <div class="form-group">
+                        <label>Prepayment Speed: <span id="valPsaSpeed" style="color:var(--accent); font-weight:700;">150% PSA</span></label>
+                        <input type="range" id="mbsPsaSpeed" min="50" max="400" step="25" value="150" oninput="calculateMBS()">
+                    </div>
+                </div>
+
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <div class="metric-label">Terminal CPR at Month 30</div>
+                        <div class="metric-val" id="resMbsCPR" style="color:var(--accent);">9.00%</div>
+                        <div class="metric-sub">Annualized CPR Speed</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Terminal SMM</div>
+                        <div class="metric-val" id="resMbsSMM" style="color:var(--blue);">0.78%</div>
+                        <div class="metric-sub">Prepayment Rate per Month</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Weighted Average Life (WAL)</div>
+                        <div class="metric-val" id="resMbsWAL" style="color:var(--green);">6.8 Yrs</div>
+                        <div class="metric-sub">vs 11.2 Yrs at 50% PSA</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Peak Total Monthly Cash Flow</div>
+                        <div class="metric-val" id="resMbsPeakFlow">$112,450</div>
+                        <div class="metric-sub">Principal + Interest</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Scheduled vs Prepayment Principal Waterfall -->
+                <div class="chart-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--text);">30-Year Cash Flow Breakdown (Scheduled Amortization vs Prepayments vs Interest)</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Hover for monthly principal waterfall details</span>
+                    </div>
+                    <canvas id="mbsCanvas" class="chart-canvas"></canvas>
+                    <div id="mbsHud" class="chart-hud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 3: CMO TRANCHING & STRUCTURES                                    -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel" id="tab-cmo">
+            <div class="card">
+                <h2>Collateralized Mortgage Obligations (CMO) Tranching</h2>
+                <p>Pass-through MBS pass all prepayment uncertainty directly to investors. To accommodate institutional investors with strict duration needs (e.g. short-term banks vs long-term pension funds), Wall Street structures <strong>Collateralized Mortgage Obligations (CMOs)</strong>, carving the pool's cash flows into tailored <strong>tranches</strong>.</p>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Structure</th>
+                                <th>Mechanics</th>
+                                <th>Risk Allocation</th>
+                                <th>Typical Buyer</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Sequential-Pay</strong></td>
+                                <td>Tranche A receives all principal payments until completely retired; then Tranche B receives principal, followed by Tranche C.</td>
+                                <td>Tranche A has short WAL and high contraction risk. Tranche C has long WAL and high extension risk.</td>
+                                <td>A: Banks/Money Market<br>B: Insurance Companies<br>C: Pension Funds</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Accrual Bond (Z-Tranche)</strong></td>
+                                <td>Receives no cash coupons during its initial years; interest is accrued and added to principal. Once prior tranches retire, Z receives principal + coupon.</td>
+                                <td>Extremely high duration and convexity. High interest rate sensitivity.</td>
+                                <td>LDI Pension funds, speculative convexity buyers</td>
+                            </tr>
+                            <tr>
+                                <td><strong>PAC & Companion</strong></td>
+                                <td><strong>Planned Amortization Class (PAC)</strong> adheres to a strict predetermined principal schedule within a PSA band (PAC collar). <strong>Companion (Support)</strong> tranches absorb excess or shortfall prepayments.</td>
+                                <td>PAC has stable cash flows. Companion tranche absorbs massive extension and contraction volatility.</td>
+                                <td>PAC: Conservative Asset Managers<br>Support: High-yield hedge funds</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Interactive Sequential-Pay CMO Waterfall</h3>
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label>Prepayment Speed: <span id="valCmoPsa" style="color:var(--accent); font-weight:700;">125% PSA</span></label>
+                        <input type="range" id="cmoPsaSpeed" min="50" max="350" step="25" value="125" oninput="calculateCMO()">
+                    </div>
+                </div>
+
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <div class="metric-label">Tranche A ($40M) WAL</div>
+                        <div class="metric-val" id="resWalA" style="color:#3d6a9e;">2.8 Yrs</div>
+                        <div class="metric-sub">Fastest Retirement</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Tranche B ($35M) WAL</div>
+                        <div class="metric-val" id="resWalB" style="color:#8b6d2a;">7.4 Yrs</div>
+                        <div class="metric-sub">Intermediate Tenor</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Tranche C ($25M) WAL</div>
+                        <div class="metric-val" id="resWalC" style="color:#a63d3d;">15.2 Yrs</div>
+                        <div class="metric-sub">High Extension Exposure</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Sequential CMO Waterfall -->
+                <div class="chart-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--text);">Sequential CMO Principal Paydown Schedule</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Hover bars to see which tranche receives principal</span>
+                    </div>
+                    <canvas id="cmoCanvas" class="chart-canvas"></canvas>
+                    <div id="cmoHud" class="chart-hud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 4: ABS & SECURITIZATION WATERFALLS                               -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel" id="tab-abs">
+            <div class="card">
+                <h2>Asset-Backed Securities (ABS) & Loss Waterfalls</h2>
+                <p><strong>Asset-Backed Securities (ABS)</strong> pool non-mortgage consumer and corporate debts—such as auto loans, credit card balances, student loans, and equipment leases. The originator sells these receivables to a bankruptcy-remote <strong>Special Purpose Vehicle (SPV)</strong>, which issues rated debt tranches.</p>
+
+                <div class="callout">
+                    <strong>Internal Credit Enhancement Mechanisms:</strong>
+                    <ol style="margin-left: 20px; margin-top: 6px; line-height: 1.6;">
+                        <li><strong>Subordination:</strong> Tranches are tiered into Senior (AAA), Mezzanine (BBB/A), and Subordinated/Equity (First-Loss). Any collateral defaults are absorbed by the bottom tranches first.</li>
+                        <li><strong>Overcollateralization (O/C):</strong> The total face value of collateral loans exceeds the debt issued (e.g. $105M of auto loans funding $100M of bonds).</li>
+                        <li><strong>Excess Spread:</strong> The interest collected on consumer collateral (e.g. 9.5% on auto loans) exceeds the interest paid to ABS bondholders (e.g. 5.5%). The remaining spread covers credit losses and builds reserve funds.</li>
+                    </ol>
+                </div>
+
+                <h3>Interactive ABS Credit Loss Waterfall Simulator</h3>
+                <p>Simulate cumulative default losses on a $100M Auto ABS pool and observe which tranches suffer principal write-downs:</p>
+
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label>Collateral Cumulative Default Loss: <span id="valAbsLoss" style="color:var(--red); font-weight:700;">6.5% ($6.5M)</span></label>
+                        <input type="range" id="absLossRate" min="0" max="25" step="0.5" value="6.5" oninput="calculateABS()">
+                    </div>
+                    <div class="form-group">
+                        <label>Overcollateralization ($M)</label>
+                        <input type="number" id="absOC" class="form-control" value="2.0" step="0.5" oninput="calculateABS()">
+                    </div>
+                    <div class="form-group">
+                        <label>Excess Spread Reserve ($M)</label>
+                        <input type="number" id="absSpread" class="form-control" value="1.5" step="0.5" oninput="calculateABS()">
+                    </div>
+                </div>
+
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <div class="metric-label">Senior Class A (AAA - $85M)</div>
+                        <div class="metric-val" id="resLossA" style="color:var(--green);">0.0% Loss</div>
+                        <div class="metric-sub">100% Principal Protected</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Mezzanine Class B (BBB - $10M)</div>
+                        <div class="metric-val" id="resLossB" style="color:var(--green);">0.0% Loss</div>
+                        <div class="metric-sub">Protected by Equity & Reserves</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Equity First-Loss ($5M)</div>
+                        <div class="metric-val" id="resLossEq" style="color:var(--red);">-60.0% Loss</div>
+                        <div class="metric-sub">$3.0M Write-down</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: ABS Waterfall Distribution -->
+                <div class="chart-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--text);">ABS Capital Structure & Loss Absorption Capacity</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Subordinated capital shields senior bondholders</span>
+                    </div>
+                    <canvas id="absCanvas" class="chart-canvas"></canvas>
+                    <div id="absHud" class="chart-hud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 5: OPTION-ADJUSTED SPREAD (OAS)                                  -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel" id="tab-oas">
+            <div class="card">
+                <h2>Option-Adjusted Spread (OAS) & Spread Hierarchy</h2>
+                <p>When analyzing bonds with embedded options or path-dependent cash flows (such as MBS and callable debt), traditional spread measures fail because future cash flows vary with the interest rate path.</p>
+
+                <div class="formula-box">
+                    <div class="formula-label">The Spread Hierarchy & Option Cost</div>
+                    <div id="formula-oas-hierarchy"></div>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Spread Measure</th>
+                                <th>Definition</th>
+                                <th>Accounts for Curve Shape?</th>
+                                <th>Accounts for Optionality?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Nominal Spread</strong></td>
+                                <td>$YTM_{\text{bond}} - YTM_{\text{Treasury}}$</td>
+                                <td>No (single benchmark point)</td>
+                                <td>No</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Z-Spread (Zero-Volatility)</strong></td>
+                                <td>Constant spread added to each spot rate to match price</td>
+                                <td>Yes (entire spot curve)</td>
+                                <td>No (assumes fixed cash flows)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>OAS (Option-Adjusted)</strong></td>
+                                <td>Constant spread added to an interest rate tree or Monte Carlo paths to match market price</td>
+                                <td>Yes (entire term structure)</td>
+                                <td><strong>Yes (strips out option value)</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="callout">
+                    <strong>Interpreting Option Cost:</strong>
+                    $$\text{Option Cost (bps)} = \text{Z-Spread} - \text{OAS}$$
+                    For a <strong>callable bond</strong> or MBS, the issuer/homeowner holds the option to prepay or call. Therefore, the investor requires a higher Z-spread to compensate for this risk ($\text{Z-Spread} > \text{OAS}$, so $\text{Option Cost} > 0$). If interest rate volatility rises, the call option expands in value, widening the gap between Z-spread and OAS!
+                </div>
+
+                <h3>Interactive OAS & Volatility Impact Engine</h3>
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label>Z-Spread (bps)</label>
+                        <input type="number" id="oasZSpread" class="form-control" value="165" step="5">
+                    </div>
+                    <div class="form-group">
+                        <label>Interest Rate Volatility ($\sigma$): <span id="valOasVol" style="color:var(--accent); font-weight:700;">18%</span></label>
+                        <input type="range" id="oasVol" min="5" max="35" step="1" value="18" oninput="calculateOAS()">
+                    </div>
+                </div>
+
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <div class="metric-label">Z-Spread (Raw Spread)</div>
+                        <div class="metric-val" id="resZSpreadVal">165 bps</div>
+                        <div class="metric-sub">Over Zero-Curve</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Option Cost (Prepayment/Call)</div>
+                        <div class="metric-val" id="resOptionCostVal" style="color:var(--red);">54 bps</div>
+                        <div class="metric-sub">Value of Short Optionality</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Option-Adjusted Spread (OAS)</div>
+                        <div class="metric-val" id="resOasVal" style="color:var(--green); font-size:1.35rem;">111 bps</div>
+                        <div class="metric-sub">Pure Credit & Liquidity Spread</div>
+                    </div>
+                </div>
+
+                <!-- Canvas: Spread vs Volatility Chart -->
+                <div class="chart-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--text);">Z-Spread vs OAS vs Option Cost Across Interest Rate Volatility ($\sigma$)</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Hover for exact spread decomposition</span>
+                    </div>
+                    <canvas id="oasCanvas" class="chart-canvas"></canvas>
+                    <div id="oasHud" class="chart-hud"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 6: INTERVIEW Q&A                                                 -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel" id="tab-qa">
+            <div class="card">
+                <h2>Structured Fixed Income Interview Flashcards</h2>
+                <p>10 essential interview questions on callable bonds, negative convexity, MBS prepayments, CMO waterfalls, ABS securitization, and Option-Adjusted Spread (OAS).</p>
+
+                <div class="qa-list">
+                    <!-- Q1 -->
+                    <div class="qa-item" id="qa1">
+                        <div class="qa-header" onclick="toggleQA('qa1')">
+                            <span>1. Explain negative convexity in the context of callable bonds and MBS.</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            A conventional bullet bond has positive convexity—as interest rates drop, its price rises at an accelerating rate. However, when interest rates decline on a <strong>callable bond</strong> or <strong>MBS</strong>, borrowers refinance early to lower their borrowing costs.<br><br>
+                            This early redemption prevents the bond price from rising significantly above the call/par price. The price appreciation slows and flattens out, causing the price-yield curve to become concave ($\frac{d^2P}{dy^2} < 0$). In summary:
+                            <ul style="margin-left: 20px; margin-top: 6px;">
+                                <li>When yields drop, price gains are compressed.</li>
+                                <li>When yields rise, price losses are fully experienced.</li>
+                            </ul>
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> Negative convexity is why MBS desks constantly dynamically hedge with Treasury futures or swaptions—they must sell duration when rates fall and buy duration when rates rise.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q2 -->
+                    <div class="qa-item" id="qa2">
+                        <div class="qa-header" onclick="toggleQA('qa2')">
+                            <span>2. What are Contraction Risk and Extension Risk in Mortgage-Backed Securities?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            Prepayment optionality exposes the MBS investor to two asymmetric risks:
+                            <ul style="margin-left: 20px; margin-top: 6px;">
+                                <li><strong>Contraction Risk (Rates Fall):</strong> Homeowners accelerate mortgage refinancings. Cash flows return to the investor much earlier than expected, forcing them to reinvest capital at prevailing lower yields (reinvestment risk).</li>
+                                <li><strong>Extension Risk (Rates Rise):</strong> Homeowners stop prepaying and hold onto low-rate mortgages. The expected life and duration of the MBS extends significantly just when interest rates are high and bond prices are crashing.</li>
+                            </ul>
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> The combination of contraction and extension risk is the direct operational manifestation of negative convexity.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q3 -->
+                    <div class="qa-item" id="qa3">
+                        <div class="qa-header" onclick="toggleQA('qa3')">
+                            <span>3. How do SMM, CPR, and the PSA benchmark relate to each other?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            <ul style="margin-left: 20px; margin-top: 6px;">
+                                <li><strong>SMM (Single Monthly Mortality):</strong> The percentage of remaining pool principal prepaid in a single month.</li>
+                                <li><strong>CPR (Constant Prepayment Rate):</strong> The annualized equivalent of SMM:
+                                    $$\text{CPR} = 1 - (1 - \text{SMM})^{12}$$
+                                </li>
+                                <li><strong>PSA Benchmark (Public Securities Association):</strong> A standardized industry curve assuming CPR ramps up linearly by 0.2% per month for the first 30 months until reaching 6.0% CPR, after which it stays constant at 6.0%.</li>
+                            </ul>
+                            A speed of $150\%$ PSA means CPR ramps to $1.5 \times 6\% = 9.0\%$ CPR at month 30.
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> Remember: SMM is monthly; CPR is annual. PSA is an entire 30-year curve of CPRs scaled by a percentage factor.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q4 -->
+                    <div class="qa-item" id="qa4">
+                        <div class="qa-header" onclick="toggleQA('qa4')">
+                            <span>4. Walk me through a basic Sequential-Pay CMO structure.</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            A <strong>Sequential-Pay CMO</strong> carves an MBS collateral pool into ordered tranches (e.g. Tranche A, B, C):<br>
+                            All tranches receive coupon interest monthly based on their outstanding principal. However, <strong>all principal payments</strong> (both scheduled amortization and prepayments) flow exclusively to Tranche A until its principal is completely retired. Once Tranche A is paid off, principal flows to Tranche B until retired, and then to Tranche C.<br><br>
+                            This protects Tranche C from contraction risk (since Tranche A absorbs all early principal), while giving Tranche A short, bank-friendly duration.
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> Sequential tranching redistributes prepayment risk among investors without eliminating it from the total collateral pool.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q5 -->
+                    <div class="qa-item" id="qa5">
+                        <div class="qa-header" onclick="toggleQA('qa5')">
+                            <span>5. What is a PAC tranche and how does a Companion tranche protect it?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            A <strong>Planned Amortization Class (PAC)</strong> tranche provides cash flow certainty by adhering to a predetermined principal amortization schedule, provided that the actual collateral prepayment speed remains within a defined <strong>PAC Collar</strong> (e.g. 100% to 250% PSA).<br><br>
+                            <strong>How the Companion protects it:</strong>
+                            <ul style="margin-left: 20px; margin-top: 6px;">
+                                <li>If prepayments accelerate, the excess principal is absorbed by the Companion (Support) tranche.</li>
+                                <li>If prepayments slow down, principal is diverted away from the Companion tranche to keep the PAC on schedule.</li>
+                            </ul>
+                            The PAC enjoys positive convexity inside the collar, while the Companion bears extreme negative convexity.
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> If prepayments bust through the collar (e.g. 350% PSA), the companion is retired early ("busted companion"), and the PAC loses its cash flow protection.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q6 -->
+                    <div class="qa-item" id="qa6">
+                        <div class="qa-header" onclick="toggleQA('qa6')">
+                            <span>6. What is Option-Adjusted Spread (OAS) and how does it differ from Z-spread?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            The <strong>Z-Spread</strong> is the constant spread added to the Treasury spot curve to discount a bond's contractual cash flows to match its market price, assuming cash flows never change.<br><br>
+                            The <strong>Option-Adjusted Spread (OAS)</strong> models the interest rate optionality using an interest rate tree or Monte Carlo simulation. It calculates cash flows along hundreds of interest rate paths, adjusting for prepayments and calls, and finds the constant spread required across all paths to match the market price.<br><br>
+                            $$\text{Option Cost} = \text{Z-Spread} - \text{OAS}$$
+                            OAS strips out the embedded option, leaving the pure compensation for credit, liquidity, and term risk.
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> When evaluating whether an MBS is cheap or rich, traders always compare <strong>OAS</strong>, never nominal spread or Z-spread.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q7 -->
+                    <div class="qa-item" id="qa7">
+                        <div class="qa-header" onclick="toggleQA('qa7')">
+                            <span>7. If interest rate volatility surges, what happens to the OAS and price of a callable bond?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            If market volatility ($\sigma$) increases:
+                            <ol style="margin-left: 20px; margin-top: 6px;">
+                                <li><strong>Option Value Increases:</strong> The embedded call option held by the issuer becomes more valuable ($\text{Value of Call} \uparrow$).</li>
+                                <li><strong>Bond Price Falls:</strong> Since $\text{Price}_{\text{callable}} = \text{Price}_{\text{bullet}} - \text{Price}_{\text{call}}$, the callable bond price falls.</li>
+                                <li><strong>Spread Behavior:</strong> If the bond's market price has not dropped yet, the model's calculated <strong>OAS will collapse</strong> (or turn negative) because the increased option cost consumes more of the raw Z-spread: $\text{OAS} = \text{Z-Spread} - \text{Option Cost} \downarrow$.</li>
+                            </ol>
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> An investor long a callable bond or MBS is short volatility ($\text{Vega} < 0$).
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q8 -->
+                    <div class="qa-item" id="qa8">
+                        <div class="qa-header" onclick="toggleQA('qa8')">
+                            <span>8. What is the role of a Special Purpose Vehicle (SPV) in ABS securitization?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            A <strong>Special Purpose Vehicle (SPV)</strong> is a bankruptcy-remote legal entity created solely to purchase loans from the originator and issue asset-backed securities to investors.<br><br>
+                            <strong>Key Benefit:</strong> If the originating bank or auto finance company goes bankrupt, the collateral inside the SPV is shielded from the originator's creditors. This "true sale" allows the senior ABS tranches to obtain AAA credit ratings even if the originating company is rated BBB or in financial distress.
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> The SPV isolates asset credit risk from corporate operating risk.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q9 -->
+                    <div class="qa-item" id="qa9">
+                        <div class="qa-header" onclick="toggleQA('qa9')">
+                            <span>9. Explain the three primary internal credit enhancements in structured finance.</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            <ul style="margin-left: 20px; margin-top: 6px;">
+                                <li><strong>1. Subordination (Tranching):</strong> Junior/Equity tranches absorb initial credit losses before senior classes take any hit.</li>
+                                <li><strong>2. Overcollateralization (O/C):</strong> The loan pool principal exceeds the debt securities issued (e.g. $105M loans backing $100M ABS debt), creating a 5% instant equity buffer.</li>
+                                <li><strong>3. Excess Spread:</strong> The interest rate earned on underlying consumer loans (e.g. 10%) exceeds the weighted coupon paid to ABS bondholders plus servicing fees (e.g. 6%). The 4% excess spread covers monthly default losses and funds cash reserve accounts.</li>
+                            </ul>
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> Rating agencies model worst-case economic depression scenarios to verify that senior AAA tranches survive even if all excess spread and subordination are wiped out.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q10 -->
+                    <div class="qa-item" id="qa10">
+                        <div class="qa-header" onclick="toggleQA('qa10')">
+                            <span>10. Why do Agency MBS trade at a spread over Treasuries even though they have zero credit risk?</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            Ginnie Mae securities are backed by the full faith and credit of the US government, and Fannie/Freddie carry an explicit/implicit government guarantee. Despite essentially zero default risk, Agency MBS trade at a <strong>100 to 180 bps spread</strong> over benchmark Treasuries due to:
+                            <ol style="margin-left: 20px; margin-top: 6px;">
+                                <li><strong>Prepayment / Convexity Risk:</strong> Investors demand yield compensation for bearing negative convexity, contraction risk, and extension risk.</li>
+                                <li><strong>Hedging Costs:</strong> Institutional holders must continuously rebalance duration hedges.</li>
+                                <li><strong>Liquidity & Balance Sheet Frictions:</strong> MBS require complex operational pooling, monthly factor accounting, and tie up bank leverage ratio capacity.</li>
+                            </ol>
+                            <div class="qa-tip">
+                                <strong>Desk Tip:</strong> When interest rate volatility spikes, the MBS spread over Treasuries widens dramatically to compensate for higher prepayment uncertainty.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KaTeX & Interactive Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script>
+    /* ===== 1. Sine Wave Background Animation ===== */
+    (function initWaveBg() {
+        const canvas = document.getElementById('waveCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let w, h, t = 0;
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+
+        function anim() {
+            ctx.clearRect(0, 0, w, h);
+            ctx.lineWidth = 1.2;
+            const waves = [
+                { amp: 35, freq: 0.0035, speed: 0.008, color: 'rgba(139, 109, 42, 0.16)' },
+                { amp: 55, freq: 0.0022, speed: 0.006, color: 'rgba(61, 106, 158, 0.14)' },
+                { amp: 40, freq: 0.0040, speed: 0.010, color: 'rgba(74, 124, 63, 0.12)' }
+            ];
+
+            waves.forEach(wv => {
+                ctx.beginPath();
+                ctx.strokeStyle = wv.color;
+                for (let x = 0; x <= w; x += 6) {
+                    const y = h * 0.5 + Math.sin(x * wv.freq + t * wv.speed) * wv.amp
+                                    + Math.cos(x * 0.001 + t * 0.004) * (wv.amp * 0.5);
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            });
+
+            t += 1;
+            requestAnimationFrame(anim);
+        }
+
+        addEventListener('resize', resize);
+        resize();
+        anim();
+    })();
+
+    /* ===== 2. KaTeX Formulas Rendering ===== */
+    document.addEventListener('DOMContentLoaded', function() {
+        const formulas = {
+            'formula-embedded-val': '\\begin{aligned} \\text{Value of Callable Bond} &= \\text{Value of Bullet Bond} - \\text{Value of Call Option} \\\\ \\text{Value of Putable Bond} &= \\text{Value of Bullet Bond} + \\text{Value of Put Option} \\end{aligned}',
+            'formula-psa-def': '\\text{CPR}(t) = \\begin{cases} 6\\% \\times \\frac{t}{30} & \\text{if } t \\le 30 \\\\ 6\\% & \\text{if } t > 30 \\end{cases}, \\quad \\text{SMM} = 1 - (1 - \\text{CPR})^{1/12}',
+            'formula-oas-hierarchy': '\\begin{aligned} \\text{Nominal Spread} &= Y_{\\text{bond}} - Y_{\\text{Treasury}} \\\\ \\text{Option Cost (bps)} &= \\text{Z-Spread} - \\text{OAS} \\end{aligned}'
+        };
+
+        for (const [id, tex] of Object.entries(formulas)) {
+            const el = document.getElementById(id);
+            if (el && window.katex) {
+                katex.render(tex, el, { displayMode: true, throwOnError: false });
+            }
+        }
+
+        /* Initial Calculations */
+        calculateEmbedded();
+        calculateMBS();
+        calculateCMO();
+        calculateABS();
+        calculateOAS();
+    });
+
+    /* ===== 3. Tab Switching & Window Resize ===== */
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const targetId = 'tab-' + this.dataset.tab;
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) targetPanel.classList.add('active');
+
+            const tabName = this.dataset.tab;
+            if (tabName === 'callable') drawEmbeddedChart();
+            if (tabName === 'mbs') drawMBSChart();
+            if (tabName === 'cmo') drawCMOChart();
+            if (tabName === 'abs') drawABSChart();
+            if (tabName === 'oas') drawOASChart();
+        });
+    });
+
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            const activePanel = document.querySelector('.tab-panel.active');
+            if (activePanel) {
+                if (activePanel.id === 'tab-callable') drawEmbeddedChart();
+                if (activePanel.id === 'tab-mbs') drawMBSChart();
+                if (activePanel.id === 'tab-cmo') drawCMOChart();
+                if (activePanel.id === 'tab-abs') drawABSChart();
+                if (activePanel.id === 'tab-oas') drawOASChart();
+            }
+        }, 150);
+    });
+
+    function toggleQA(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('open');
+    }
+
+    /* ===================================================================== */
+    /* TAB 1: EMBEDDED OPTIONS ENGINE                                        */
+    /* ===================================================================== */
+    function calcBulletPrice(coupon, ytm, tenor = 10) {
+        const r = ytm / 100 / 2;
+        const c = coupon / 2;
+        const n = tenor * 2;
+        const pvAnnuity = (1 - Math.pow(1 + r, -n)) / r;
+        const pvPrincipal = 100 * Math.pow(1 + r, -n);
+        return c * pvAnnuity + pvPrincipal;
+    }
+
+    function calculateEmbedded() {
+        const coupon = parseFloat(document.getElementById('embCoupon').value) || 5.50;
+        const callPrice = parseFloat(document.getElementById('embCallPrice').value) || 102.00;
+        const putPrice = parseFloat(document.getElementById('embPutPrice').value) || 97.00;
+        const vol = parseFloat(document.getElementById('embVol').value) || 18.0;
+
+        const baseYield = 4.50;
+        const bulletP = calcBulletPrice(coupon, baseYield);
+
+        /* Approximate call option value via Black-Derman-Toy proxy */
+        const moneynessCall = (bulletP - callPrice);
+        const callVal = Math.max(0.1, moneynessCall * 0.75 + (vol / 100) * 8.5);
+        const callableP = Math.min(callPrice + 0.3, bulletP - callVal);
+
+        /* Approximate put option value */
+        const moneynessPut = (putPrice - bulletP);
+        const putVal = Math.max(0.05, moneynessPut > 0 ? moneynessPut * 0.8 : (vol / 100) * 3.5);
+        const putableP = Math.max(putPrice - 0.2, bulletP + putVal);
+
+        /* Effective Duration delta */
+        const dy = 0.005;
+        const pUp = Math.min(callPrice + 0.3, calcBulletPrice(coupon, baseYield + dy * 100) - callVal * 0.8);
+        const pDn = Math.min(callPrice + 0.3, calcBulletPrice(coupon, baseYield - dy * 100) - callVal * 1.2);
+        const effDur = (pDn - pUp) / (2 * callableP * dy);
+
+        document.getElementById('resBulletPrice').innerText = '$' + bulletP.toFixed(2);
+        document.getElementById('resCallablePrice').innerText = '$' + callableP.toFixed(2);
+        document.getElementById('resPutablePrice').innerText = '$' + putableP.toFixed(2);
+        document.getElementById('resCallableDur').innerText = effDur.toFixed(1) + ' Yrs';
+
+        drawEmbeddedChart();
+    }
+
+    ['embCoupon', 'embCallPrice', 'embPutPrice', 'embVol'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', calculateEmbedded);
+    });
+
+    function drawEmbeddedChart() {
+        const canvas = document.getElementById('embeddedCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const coupon = parseFloat(document.getElementById('embCoupon').value) || 5.50;
+        const callPrice = parseFloat(document.getElementById('embCallPrice').value) || 102.00;
+        const putPrice = parseFloat(document.getElementById('embPutPrice').value) || 97.00;
+        const vol = parseFloat(document.getElementById('embVol').value) || 18.0;
+
+        const m = { l: 55, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const yields = [];
+        for (let y = 2.0; y <= 8.5; y += 0.25) yields.push(y);
+
+        const ptsBullet = [];
+        const ptsCallable = [];
+        const ptsPutable = [];
+
+        yields.forEach(y => {
+            const bP = calcBulletPrice(coupon, y);
+            const callVal = Math.max(0.1, (bP - callPrice) * 0.75 + (vol / 100) * 6.5);
+            const cP = Math.min(callPrice + 0.35, Math.max(75, bP - (bP > callPrice - 4 ? callVal : 0.2)));
+
+            const putVal = Math.max(0.05, (putPrice - bP > 0 ? (putPrice - bP) * 0.8 : (vol / 100) * 3.0));
+            const pP = Math.max(putPrice - 0.3, bP + putVal);
+
+            ptsBullet.push({ y: y, p: bP });
+            ptsCallable.push({ y: y, p: cP });
+            ptsPutable.push({ y: y, p: pP });
+        });
+
+        const minP = 75;
+        const maxP = 125;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let p = 80; p <= 120; p += 10) {
+            const py = m.t + cH - ((p - minP) / (maxP - minP)) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText('$' + p, m.l - 8, py + 3);
+        }
+
+        [2, 3, 4, 5, 6, 7, 8].forEach(yx => {
+            const px = m.l + ((yx - 2.0) / 6.5) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(yx + '%', px, m.t + cH + 16);
+        });
+
+        /* Strike horizontal reference lines */
+        const callY = m.t + cH - ((callPrice - minP) / (maxP - minP)) * cH;
+        ctx.strokeStyle = '#a63d3d66'; ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(m.l, callY); ctx.lineTo(m.l + cW, callY); ctx.stroke();
+        ctx.fillStyle = '#a63d3d'; ctx.font = '500 10px Inter'; ctx.textAlign = 'right';
+        ctx.fillText('Call Strike $' + callPrice.toFixed(0), m.l + cW - 4, callY - 4);
+
+        const putY = m.t + cH - ((putPrice - minP) / (maxP - minP)) * cH;
+        ctx.strokeStyle = '#4a7c3f66';
+        ctx.beginPath(); ctx.moveTo(m.l, putY); ctx.lineTo(m.l + cW, putY); ctx.stroke();
+        ctx.fillStyle = '#4a7c3f'; ctx.fillText('Put Strike $' + putPrice.toFixed(0), m.l + cW - 4, putY + 12);
+        ctx.setLineDash([]);
+
+        /* Plot Bullet (Dark Grey / Text) */
+        ctx.beginPath();
+        ptsBullet.forEach((pt, i) => {
+            const px = m.l + ((pt.y - 2.0) / 6.5) * cW;
+            const py = m.t + cH - ((pt.p - minP) / (maxP - minP)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#5a4d3a'; ctx.lineWidth = 2; ctx.stroke();
+
+        /* Plot Putable (Green) */
+        ctx.beginPath();
+        ptsPutable.forEach((pt, i) => {
+            const px = m.l + ((pt.y - 2.0) / 6.5) * cW;
+            const py = m.t + cH - ((pt.p - minP) / (maxP - minP)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#4a7c3f'; ctx.lineWidth = 2.5; ctx.stroke();
+
+        /* Plot Callable (Red - Negative Convexity Plateau) */
+        ctx.beginPath();
+        ptsCallable.forEach((pt, i) => {
+            const px = m.l + ((pt.y - 2.0) / 6.5) * cW;
+            const py = m.t + cH - ((pt.p - minP) / (maxP - minP)) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#a63d3d'; ctx.lineWidth = 3; ctx.stroke();
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = '#5a4d3a'; ctx.fillRect(lx, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('Bullet Bond', lx + 18, 17);
+
+        ctx.fillStyle = '#a63d3d'; ctx.fillRect(lx + 100, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Callable Bond (Negative Convexity)', lx + 118, 17);
+
+        ctx.fillStyle = '#4a7c3f'; ctx.fillRect(lx + 320, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Putable Bond (Floored)', lx + 338, 17);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('embeddedHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverY = 2.0 + ((mx - m.l) / cW) * 6.5;
+            let nearestIdx = 0;
+            let minDist = 999;
+            yields.forEach((y, i) => {
+                const d = Math.abs(y - hoverY);
+                if (d < minDist) { minDist = d; nearestIdx = i; }
+            });
+
+            const yVal = yields[nearestIdx];
+            const pBul = ptsBullet[nearestIdx].p;
+            const pCal = ptsCallable[nearestIdx].p;
+            const pPut = ptsPutable[nearestIdx].p;
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Yield to Maturity</span><span class="hud-val">${yVal.toFixed(2)}%</span></div>
+                <div class="hud-row"><span class="hud-label">Bullet Bond</span><span class="hud-val">$${pBul.toFixed(2)}</span></div>
+                <div class="hud-row"><span class="hud-label">Callable Bond</span><span class="hud-val" style="color:#a63d3d;">$${pCal.toFixed(2)}</span></div>
+                <div class="hud-row"><span class="hud-label">Putable Bond</span><span class="hud-val" style="color:#4a7c3f;">$${pPut.toFixed(2)}</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('embeddedHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 2: MBS PREPAYMENT ENGINE & CASH FLOW SIMULATOR                    */
+    /* ===================================================================== */
+    let mbsMonthlyData = [];
+
+    function calculateMBS() {
+        const poolBal = parseFloat(document.getElementById('mbsBalance').value) || 10000000;
+        const grossRate = parseFloat(document.getElementById('mbsGrossRate').value) || 6.00;
+        const psaSpeed = parseInt(document.getElementById('mbsPsaSpeed').value) || 150;
+
+        document.getElementById('valPsaSpeed').innerText = psaSpeed + '% PSA';
+
+        const terminalCPR = 6.0 * (psaSpeed / 100);
+        const terminalSMM = (1 - Math.pow(1 - terminalCPR / 100, 1 / 12)) * 100;
+
+        document.getElementById('resMbsCPR').innerText = terminalCPR.toFixed(2) + '%';
+        document.getElementById('resMbsSMM').innerText = terminalSMM.toFixed(2) + '%';
+
+        /* Simulate 360 months */
+        mbsMonthlyData = [];
+        let curBalance = poolBal;
+        const monthlyRate = grossRate / 100 / 12;
+        let totalPrincipalWeightedTime = 0;
+        let totalPrincipalPaid = 0;
+        let peakFlow = 0;
+
+        for (let m = 1; m <= 360; m++) {
+            if (curBalance <= 0) break;
+
+            /* Base CPR at month m */
+            const baseCPR = m <= 30 ? (0.06 * (m / 30)) : 0.06;
+            const actualCPR = baseCPR * (psaSpeed / 100);
+            const smm = 1 - Math.pow(1 - actualCPR, 1 / 12);
+
+            /* Scheduled payment on remaining term */
+            const remMonths = 360 - m + 1;
+            const scheduledPayment = curBalance * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -remMonths)));
+            const interest = curBalance * monthlyRate;
+            const scheduledPrincipal = scheduledPayment - interest;
+
+            /* Prepayment */
+            const remainingAfterSched = curBalance - scheduledPrincipal;
+            const prepayment = remainingAfterSched * smm;
+            const totalPrincipal = scheduledPrincipal + prepayment;
+            const totalCashFlow = interest + totalPrincipal;
+
+            if (totalCashFlow > peakFlow) peakFlow = totalCashFlow;
+
+            totalPrincipalWeightedTime += totalPrincipal * (m / 12);
+            totalPrincipalPaid += totalPrincipal;
+
+            mbsMonthlyData.push({
+                month: m,
+                scheduled: scheduledPrincipal,
+                prepayment: prepayment,
+                interest: interest,
+                totalFlow: totalCashFlow,
+                balance: curBalance
+            });
+
+            curBalance -= totalPrincipal;
+        }
+
+        const wal = totalPrincipalPaid > 0 ? (totalPrincipalWeightedTime / totalPrincipalPaid) : 0;
+        document.getElementById('resMbsWAL').innerText = wal.toFixed(1) + ' Yrs';
+        document.getElementById('resMbsPeakFlow').innerText = '$' + Math.round(peakFlow).toLocaleString();
+
+        drawMBSChart();
+    }
+
+    ['mbsBalance', 'mbsGrossRate'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', calculateMBS);
+    });
+
+    function drawMBSChart() {
+        const canvas = document.getElementById('mbsCanvas');
+        if (!canvas || !mbsMonthlyData.length) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const m = { l: 65, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const maxFlow = Math.max(...mbsMonthlyData.map(d => d.totalFlow));
+        const yBound = Math.ceil(maxFlow / 20000) * 20000;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let v = 0; v <= yBound; v += yBound / 4) {
+            const py = m.t + cH - (v / yBound) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText('$' + (v / 1000).toFixed(0) + 'k', m.l - 8, py + 3);
+        }
+
+        [1, 5, 10, 15, 20, 25, 30].forEach(yr => {
+            const px = m.l + ((yr * 12) / 360) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText('Y' + yr, px, m.t + cH + 16);
+        });
+
+        /* Area 1: Interest (Bottom - Blue) */
+        ctx.beginPath();
+        mbsMonthlyData.forEach((d, i) => {
+            const px = m.l + (d.month / 360) * cW;
+            const py = m.t + cH - (d.interest / yBound) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.lineTo(m.l + cW, m.t + cH);
+        ctx.lineTo(m.l, m.t + cH);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(61, 106, 158, 0.4)';
+        ctx.fill();
+
+        /* Area 2: Scheduled Principal (Middle - Gold) */
+        ctx.beginPath();
+        mbsMonthlyData.forEach((d, i) => {
+            const px = m.l + (d.month / 360) * cW;
+            const py = m.t + cH - ((d.interest + d.scheduled) / yBound) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        for (let i = mbsMonthlyData.length - 1; i >= 0; i--) {
+            const d = mbsMonthlyData[i];
+            const px = m.l + (d.month / 360) * cW;
+            const py = m.t + cH - (d.interest / yBound) * cH;
+            ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(139, 109, 42, 0.45)';
+        ctx.fill();
+
+        /* Area 3: Prepayments (Top - Red) */
+        ctx.beginPath();
+        mbsMonthlyData.forEach((d, i) => {
+            const px = m.l + (d.month / 360) * cW;
+            const py = m.t + cH - (d.totalFlow / yBound) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        for (let i = mbsMonthlyData.length - 1; i >= 0; i--) {
+            const d = mbsMonthlyData[i];
+            const px = m.l + (d.month / 360) * cW;
+            const py = m.t + cH - ((d.interest + d.scheduled) / yBound) * cH;
+            ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(166, 61, 61, 0.45)';
+        ctx.fill();
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = 'rgba(166, 61, 61, 0.8)'; ctx.fillRect(lx, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('Prepaid Principal', lx + 18, 17);
+
+        ctx.fillStyle = 'rgba(139, 109, 42, 0.8)'; ctx.fillRect(lx + 130, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Scheduled Amortization', lx + 148, 17);
+
+        ctx.fillStyle = 'rgba(61, 106, 158, 0.8)'; ctx.fillRect(lx + 295, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Mortgage Interest', lx + 313, 17);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('mbsHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const monthIdx = Math.max(0, Math.min(mbsMonthlyData.length - 1, Math.floor(((mx - m.l) / cW) * 360)));
+            const d = mbsMonthlyData[monthIdx];
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Month</span><span class="hud-val">Month ${d.month} (Yr ${(d.month/12).toFixed(1)})</span></div>
+                <div class="hud-row"><span class="hud-label">Prepayment</span><span class="hud-val" style="color:#a63d3d;">$${Math.round(d.prepayment).toLocaleString()}</span></div>
+                <div class="hud-row"><span class="hud-label">Scheduled Prin</span><span class="hud-val" style="color:#8b6d2a;">$${Math.round(d.scheduled).toLocaleString()}</span></div>
+                <div class="hud-row"><span class="hud-label">Interest</span><span class="hud-val" style="color:#3d6a9e;">$${Math.round(d.interest).toLocaleString()}</span></div>
+                <div class="hud-row"><span class="hud-label">Total Cash Flow</span><span class="hud-val">$${Math.round(d.totalFlow).toLocaleString()}</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('mbsHud').style.display = 'none';
+        };
+    }
+
+    /* ===================================================================== */
+    /* TAB 3: CMO SEQUENTIAL WATERFALL ENGINE                                */
+    /* ===================================================================== */
+    function calculateCMO() {
+        const speed = parseInt(document.getElementById('cmoPsaSpeed').value) || 125;
+        document.getElementById('valCmoPsa').innerText = speed + '% PSA';
+
+        /* Fast approximation of WAL shifts for Sequential Tranches A ($40M), B ($35M), C ($25M) */
+        const baseSpeed = 125;
+        const speedRatio = baseSpeed / speed;
+
+        const walA = Math.max(1.2, 2.8 * Math.pow(speedRatio, 0.7));
+        const walB = Math.max(3.5, 7.4 * Math.pow(speedRatio, 0.8));
+        const walC = Math.max(7.8, 15.2 * Math.pow(speedRatio, 0.95));
+
+        document.getElementById('resWalA').innerText = walA.toFixed(1) + ' Yrs';
+        document.getElementById('resWalB').innerText = walB.toFixed(1) + ' Yrs';
+        document.getElementById('resWalC').innerText = walC.toFixed(1) + ' Yrs';
+
+        drawCMOChart();
+    }
+
+    function drawCMOChart() {
+        const canvas = document.getElementById('cmoCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const speed = parseInt(document.getElementById('cmoPsaSpeed').value) || 125;
+
+        const m = { l: 60, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const speedFactor = speed / 125;
+        const endYearA = Math.max(1.5, 4.5 / speedFactor);
+        const endYearB = Math.max(endYearA + 2.5, 12.0 / speedFactor);
+        const endYearC = Math.min(30.0, Math.max(endYearB + 4.0, 26.0 / speedFactor));
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let p = 0; p <= 100; p += 25) {
+            const py = m.t + cH - (p / 100) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(p + '%', m.l - 8, py + 3);
+        }
+
+        [5, 10, 15, 20, 25, 30].forEach(yr => {
+            const px = m.l + (yr / 30) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText('Yr ' + yr, px, m.t + cH + 16);
+        });
+
+        /* Tranche A block (Blue) */
+        const x0 = m.l;
+        const x1 = m.l + (endYearA / 30) * cW;
+        ctx.fillStyle = 'rgba(61, 106, 158, 0.7)';
+        ctx.fillRect(x0, m.t + cH * 0.15, (x1 - x0), cH * 0.7);
+
+        /* Tranche B block (Gold) */
+        const x2 = m.l + (endYearB / 30) * cW;
+        ctx.fillStyle = 'rgba(139, 109, 42, 0.7)';
+        ctx.fillRect(x1, m.t + cH * 0.15, (x2 - x1), cH * 0.7);
+
+        /* Tranche C block (Red) */
+        const x3 = m.l + (endYearC / 30) * cW;
+        ctx.fillStyle = 'rgba(166, 61, 61, 0.7)';
+        ctx.fillRect(x2, m.t + cH * 0.15, (x3 - x2), cH * 0.7);
+
+        /* Tranche text labels inside blocks */
+        ctx.fillStyle = '#f7f1e5'; ctx.font = '700 12px Inter'; ctx.textAlign = 'center';
+        if (x1 - x0 > 30) ctx.fillText('Tranche A', (x0 + x1) / 2, m.t + cH * 0.52);
+        if (x2 - x1 > 30) ctx.fillText('Tranche B', (x1 + x2) / 2, m.t + cH * 0.52);
+        if (x3 - x2 > 30) ctx.fillText('Tranche C', (x2 + x3) / 2, m.t + cH * 0.52);
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.fillStyle = 'rgba(61, 106, 158, 0.8)'; ctx.fillRect(lx, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('Tranche A ($40M)', lx + 18, 17);
+
+        ctx.fillStyle = 'rgba(139, 109, 42, 0.8)'; ctx.fillRect(lx + 130, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Tranche B ($35M)', lx + 148, 17);
+
+        ctx.fillStyle = 'rgba(166, 61, 61, 0.8)'; ctx.fillRect(lx + 250, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Tranche C ($25M)', lx + 268, 17);
+    }
+
+    /* ===================================================================== */
+    /* TAB 4: ABS LOSS WATERFALL ENGINE                                      */
+    /* ===================================================================== */
+    function calculateABS() {
+        const lossPct = parseFloat(document.getElementById('absLossRate').value) || 6.5;
+        const oc = parseFloat(document.getElementById('absOC').value) || 2.0;
+        const excessSpread = parseFloat(document.getElementById('absSpread').value) || 1.5;
+
+        document.getElementById('valAbsLoss').innerText = lossPct.toFixed(1) + '% ($' + lossPct.toFixed(1) + 'M)';
+
+        /* Total collateral = $100M + OC */
+        const dollarLoss = (100.0 * (lossPct / 100));
+        let remLoss = Math.max(0, dollarLoss - excessSpread - oc);
+
+        /* Equity tranche = $5M */
+        const eqLoss = Math.min(5.0, remLoss);
+        remLoss = Math.max(0, remLoss - eqLoss);
+        const eqLossPct = (eqLoss / 5.0) * 100;
+
+        /* Mezzanine tranche = $10M */
+        const mezzLoss = Math.min(10.0, remLoss);
+        remLoss = Math.max(0, remLoss - mezzLoss);
+        const mezzLossPct = (mezzLoss / 10.0) * 100;
+
+        /* Senior tranche = $85M */
+        const seniorLoss = Math.min(85.0, remLoss);
+        const seniorLossPct = (seniorLoss / 85.0) * 100;
+
+        document.getElementById('resLossA').innerText = seniorLossPct.toFixed(1) + '% Loss';
+        document.getElementById('resLossA').style.color = seniorLossPct > 0 ? 'var(--red)' : 'var(--green)';
+
+        document.getElementById('resLossB').innerText = mezzLossPct.toFixed(1) + '% Loss';
+        document.getElementById('resLossB').style.color = mezzLossPct > 0 ? 'var(--red)' : 'var(--green)';
+
+        document.getElementById('resLossEq').innerText = (eqLossPct > 0 ? '-' : '') + eqLossPct.toFixed(1) + '% Loss';
+        document.getElementById('resLossEq').style.color = eqLossPct > 0 ? 'var(--red)' : 'var(--green)';
+
+        drawABSChart();
+    }
+
+    function drawABSChart() {
+        const canvas = document.getElementById('absCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const lossPct = parseFloat(document.getElementById('absLossRate').value) || 6.5;
+        const oc = parseFloat(document.getElementById('absOC').value) || 2.0;
+        const excessSpread = parseFloat(document.getElementById('absSpread').value) || 1.5;
+
+        const m = { l: 60, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        ctx.clearRect(0, 0, W, H);
+
+        const totalStack = 100 + oc;
+        const barW = cW * 0.45;
+        const barX = m.l + cW * 0.28;
+
+        /* Stack layers from top to bottom:
+           Senior ($85M), Mezz ($10M), Equity ($5M), OC ($2M), Spread ($1.5M) */
+        const layers = [
+            { name: 'Class A (AAA)', size: 85, color: '#3d6a9e' },
+            { name: 'Class B (BBB)', size: 10, color: '#8b6d2a' },
+            { name: 'Equity Class', size: 5, color: '#a63d3d' },
+            { name: 'Overcollateralization', size: oc, color: '#4a7c3f' },
+            { name: 'Excess Spread', size: excessSpread, color: '#6a4c93' }
+        ];
+
+        let curY = m.t;
+        layers.forEach(ly => {
+            const h = (ly.size / totalStack) * cH;
+            ctx.fillStyle = ly.color;
+            ctx.fillRect(barX, curY, barW, h);
+
+            ctx.strokeStyle = '#2c2418'; ctx.lineWidth = 1;
+            ctx.strokeRect(barX, curY, barW, h);
+
+            ctx.fillStyle = '#f7f1e5'; ctx.font = '600 11px Inter'; ctx.textAlign = 'center';
+            if (h > 14) ctx.fillText(ly.name + ' ($' + ly.size.toFixed(1) + 'M)', barX + barW / 2, curY + h / 2 + 4);
+
+            curY += h;
+        });
+
+        /* Draw Loss indicator line from bottom */
+        const dollarLoss = 100 * (lossPct / 100);
+        const lossH = (dollarLoss / totalStack) * cH;
+        const lossY = m.t + cH - lossH;
+
+        ctx.strokeStyle = '#a63d3d'; ctx.lineWidth = 2.5; ctx.setLineDash([4, 3]);
+        ctx.beginPath(); ctx.moveTo(barX - 40, lossY); ctx.lineTo(barX + barW + 40, lossY); ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#a63d3d'; ctx.font = '700 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText(`◄ Total Defaults: $${dollarLoss.toFixed(1)}M`, barX + barW + 45, lossY + 4);
+    }
+
+    /* ===================================================================== */
+    /* TAB 5: OPTION-ADJUSTED SPREAD (OAS) ENGINE                            */
+    /* ===================================================================== */
+    function calculateOAS() {
+        const zSpread = parseFloat(document.getElementById('oasZSpread').value) || 165;
+        const vol = parseFloat(document.getElementById('oasVol').value) || 18;
+
+        document.getElementById('valOasVol').innerText = vol + '%';
+
+        /* Option cost expands with interest rate volatility squared */
+        const optionCost = Math.round(18 + Math.pow(vol / 10, 1.8) * 12);
+        const oas = Math.max(0, zSpread - optionCost);
+
+        document.getElementById('resZSpreadVal').innerText = zSpread + ' bps';
+        document.getElementById('resOptionCostVal').innerText = optionCost + ' bps';
+        document.getElementById('resOasVal').innerText = oas + ' bps';
+
+        drawOASChart();
+    }
+
+    document.getElementById('oasZSpread').addEventListener('input', calculateOAS);
+
+    function drawOASChart() {
+        const canvas = document.getElementById('oasCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = devicePixelRatio || 1;
+        const W = canvas.parentElement.clientWidth - 32;
+        const H = 280;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+        const zSpread = parseFloat(document.getElementById('oasZSpread').value) || 165;
+
+        const m = { l: 55, r: 24, t: 26, b: 38 };
+        const cW = W - m.l - m.r;
+        const cH = H - m.t - m.b;
+
+        const volRange = [];
+        for (let v = 5; v <= 35; v += 1) volRange.push(v);
+
+        const ptsOas = [];
+        const ptsCost = [];
+
+        volRange.forEach(v => {
+            const cost = 18 + Math.pow(v / 10, 1.8) * 12;
+            const oas = Math.max(0, zSpread - cost);
+            ptsCost.push({ vol: v, cost: cost });
+            ptsOas.push({ vol: v, oas: oas });
+        });
+
+        const maxY = 220;
+
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid */
+        ctx.strokeStyle = '#b8a68833';
+        ctx.lineWidth = 1;
+        for (let v = 0; v <= maxY; v += 50) {
+            const py = m.t + cH - (v / maxY) * cH;
+            ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + cW, py); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(v + ' bps', m.l - 8, py + 3);
+        }
+
+        [5, 10, 15, 20, 25, 30, 35].forEach(vx => {
+            const px = m.l + ((vx - 5) / 30) * cW;
+            ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + cH); ctx.stroke();
+            ctx.fillStyle = '#8a7a62'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(vx + '%', px, m.t + cH + 16);
+        });
+
+        /* Z-Spread flat reference line (Dark text) */
+        const zY = m.t + cH - (zSpread / maxY) * cH;
+        ctx.strokeStyle = '#5a4d3a'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(m.l, zY); ctx.lineTo(m.l + cW, zY); ctx.stroke();
+        ctx.setLineDash([]);
+
+        /* Plot Option Cost (Red) */
+        ctx.beginPath();
+        ptsCost.forEach((pt, i) => {
+            const px = m.l + ((pt.vol - 5) / 30) * cW;
+            const py = m.t + cH - (pt.cost / maxY) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#a63d3d'; ctx.lineWidth = 2.5; ctx.stroke();
+
+        /* Plot OAS (Green) */
+        ctx.beginPath();
+        ptsOas.forEach((pt, i) => {
+            const px = m.l + ((pt.vol - 5) / 30) * cW;
+            const py = m.t + cH - (pt.oas / maxY) * cH;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#4a7c3f'; ctx.lineWidth = 3; ctx.stroke();
+
+        /* Legend */
+        const lx = m.l + 10;
+        ctx.strokeStyle = '#5a4d3a'; ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(lx, 14); ctx.lineTo(lx + 16, 14); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#2c2418'; ctx.font = '600 11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText('Z-Spread (Fixed)', lx + 22, 17);
+
+        ctx.fillStyle = '#4a7c3f'; ctx.fillRect(lx + 130, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Option-Adjusted Spread (OAS)', lx + 148, 17);
+
+        ctx.fillStyle = '#a63d3d'; ctx.fillRect(lx + 330, 10, 14, 8);
+        ctx.fillStyle = '#2c2418'; ctx.fillText('Option Cost', lx + 348, 17);
+
+        /* Mouse tracking */
+        canvas.onmousemove = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const hud = document.getElementById('oasHud');
+
+            if (mx < m.l || mx > m.l + cW || my < m.t || my > m.t + cH) {
+                hud.style.display = 'none'; return;
+            }
+
+            const hoverVol = Math.round(5 + ((mx - m.l) / cW) * 30);
+            const cost = Math.round(18 + Math.pow(hoverVol / 10, 1.8) * 12);
+            const oas = Math.max(0, zSpread - cost);
+
+            hud.innerHTML = `
+                <div class="hud-row"><span class="hud-label">Volatility (σ)</span><span class="hud-val">${hoverVol}%</span></div>
+                <div class="hud-row"><span class="hud-label">Z-Spread</span><span class="hud-val">${zSpread} bps</span></div>
+                <div class="hud-row"><span class="hud-label">Option Cost</span><span class="hud-val" style="color:#a63d3d;">${cost} bps</span></div>
+                <div class="hud-row"><span class="hud-label">Net OAS</span><span class="hud-val" style="color:#4a7c3f;">${oas} bps</span></div>
+            `;
+            hud.style.display = 'block';
+            hud.style.left = Math.min(mx + 14, W - 180) + 'px';
+            hud.style.top = Math.max(my - 30, 20) + 'px';
+        };
+
+        canvas.onmouseleave = function() {
+            document.getElementById('oasHud').style.display = 'none';
+        };
+    }
+    </script>
+</body>
+</html>
