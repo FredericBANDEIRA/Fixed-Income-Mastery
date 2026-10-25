@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Cheatsheet — Fixed Income Mastery</title>
+    <meta name="description" content="The definitive fixed income master cheatsheet: comprehensive formula reference, global market conventions, desk mental math rules of thumb, and 100+ searchable sales & trading interview questions.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        /* ===== CSS Custom Properties (Parchment / Classic Bond Aesthetic) ===== */
+        :root {
+            --bg: #e8dcc8;
+            --bg-warm: #dfd3be;
+            --surface: #d6c9b1;
+            --surface-2: #cdbfa5;
+            --surface-3: #c4b599;
+            --surface-hover: #bfae90;
+            --border: #b8a688;
+            --border-glow: #8b6d2a55;
+            --text: #2c2418;
+            --text-secondary: #5a4d3a;
+            --text-muted: #8a7a62;
+            --accent: #8b6d2a;
+            --accent-light: #a6843a;
+            --accent-dark: #6e5520;
+            --accent-glow: #8b6d2a20;
+            --accent-strong-glow: #8b6d2a38;
+            --green: #4a7c3f;
+            --red: #a63d3d;
+            --blue: #3d6a9e;
+            --orange: #b07328;
+            --purple: #6a4c93;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ===== Sine Wave Background ===== */
+        .wave-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .wave-bg canvas { width: 100%; height: 100%; }
+
+        /* ===== Layout ===== */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 0 24px 60px;
+        }
+
+        /* ===== Header ===== */
+        .top-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--accent); }
+        .back-link svg { width: 16px; height: 16px; transition: transform 0.2s; }
+        .back-link:hover svg { transform: translateX(-3px); }
+
+        .module-badge {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent);
+            background: var(--accent-glow);
+            border: 1px solid var(--border-glow);
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* ===== Hero ===== */
+        .module-hero {
+            text-align: center;
+            padding: 40px 0 30px;
+        }
+        .module-num {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .module-hero h1 {
+            font-size: 2.3rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+        .module-hero p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        /* ===== Tab Navigation ===== */
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--surface);
+            padding: 4px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .nav-tab {
+            flex: 1;
+            padding: 10px 14px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            border: none;
+            background: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .nav-tab:hover {
+            color: var(--text);
+            background: var(--surface-hover);
+        }
+        .nav-tab.active {
+            color: var(--text);
+            background: var(--bg);
+            box-shadow: 0 2px 8px rgba(44, 36, 24, 0.08);
+            border: 1px solid var(--border);
+        }
+
+        /* ===== Tab Panels ===== */
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .tab-panel.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== Content Cards ===== */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 16px rgba(44, 36, 24, 0.04);
+        }
+        .card h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+        }
+        .card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 18px 0 8px;
+            color: var(--text-secondary);
+        }
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.65;
+            margin-bottom: 14px;
+        }
+
+        /* ===== Formula Cards Grid ===== */
+        .formula-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            gap: 16px;
+            margin: 16px 0;
+        }
+        .formula-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .formula-card h4 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+        .formula-math {
+            overflow-x: auto;
+            margin: 8px 0;
+            padding: 8px 0;
+        }
+        .formula-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            line-height: 1.45;
+        }
+
+        /* ===== Tables ===== */
+        .table-responsive {
+            overflow-x: auto;
+            margin: 14px 0;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            background: var(--surface);
+        }
+        th, td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background: var(--surface-2);
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--surface-hover); }
+
+        /* ===== Rule of Thumb Card ===== */
+        .thumb-box {
+            background: var(--surface-2);
+            border-left: 4px solid var(--accent);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .thumb-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .thumb-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .thumb-badge {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            background: var(--accent-glow);
+            color: var(--accent-dark);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-glow);
+            font-weight: 600;
+        }
+        .thumb-body {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.55;
+        }
+        .thumb-formula {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-top: 4px;
+        }
+
+        /* ===== Search & Filter Controls ===== */
+        .search-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+            background: var(--surface-2);
+            padding: 16px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+        .search-bar {
+            width: 100%;
+            padding: 10px 16px;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-bar:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+        .category-filters {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .cat-btn {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        .cat-btn:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+        .cat-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent-dark);
+        }
+
+        /* ===== Accordion Flashcards ===== */
+        .qa-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .qa-item {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .qa-item:hover { border-color: var(--accent); }
+        .qa-header {
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: var(--text);
+        }
+        .qa-header .icon {
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            color: var(--accent);
+            transition: transform 0.2s;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+        .qa-item.open .qa-header .icon {
+            transform: rotate(45deg);
+        }
+        .qa-body {
+            display: none;
+            padding: 0 18px 16px;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            line-height: 1.6;
+        }
+        .qa-item.open .qa-body { display: block; }
+        .qa-tag {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--surface);
+            color: var(--accent-dark);
+            border: 1px solid var(--border);
+            margin-right: 8px;
+            vertical-align: middle;
+            text-transform: uppercase;
+        }
+        .qa-tip {
+            margin-top: 10px;
+            background: var(--bg);
+            border-left: 3px solid var(--accent);
+            padding: 8px 12px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.82rem;
+            color: var(--text);
+        }
+
+        /* ===== Responsive Design ===== */
+        @media (max-width: 768px) {
+            .module-hero h1 { font-size: 1.85rem; }
+            .nav-tabs { flex-wrap: nowrap; overflow-x: auto; }
+            .formula-grid { grid-template-columns: 1fr; }
+            .card { padding: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Sine Wave Background -->
+    <div class="wave-bg">
+        <canvas id="waveCanvas"></canvas>
+    </div>
+
+    <div class="main-container">
+        <!-- Top Navigation -->
+        <header class="top-header">
+            <a href="index.html" class="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"/>
+                    <polyline points="12 19 5 12 12 5"/>
+                </svg>
+                Fixed Income Mastery
+            </a>
+            <span class="module-badge">Module 10 · Master Cheatsheet</span>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="module-hero">
+            <div class="module-num">Capstone Reference · Module 10</div>
+            <h1>Fixed Income Interview & Desk Cheatsheet</h1>
+            <p>The definitive master reference: full mathematical formula matrix, global market conventions, desk mental math rules of thumb, and 100+ searchable sales & trading interview questions.</p>
+        </section>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs" role="tablist">
+            <button class="nav-tab active" data-tab="formulas">1. Formula Master Matrix</button>
+            <button class="nav-tab" data-tab="conventions">2. Market Conventions</button>
+            <button class="nav-tab" data-tab="mentalmath">3. Desk Rules of Thumb</button>
+            <button class="nav-tab" data-tab="qadb">4. 100+ Interview Q&A Database</button>
+        </nav>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 1: FORMULA MASTER MATRIX                                         -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel active" id="tab-formulas">
+            <div class="card">
+                <h2>Mathematical Formula Master Matrix</h2>
+                <p>Every core mathematical formula across Modules 01 through 09, formatted for desk reference, quantitative interviews, and model verification.</p>
+
+                <div class="formula-grid">
+                    <!-- Bond Pricing -->
+                    <div class="formula-card">
+                        <h4>Bond Pricing & YTM</h4>
+                        <div class="formula-math" id="fm-price"></div>
+                        <div class="formula-desc">Present value of coupon annuity + discounted principal face value.</div>
+                    </div>
+
+                    <!-- Clean vs Dirty -->
+                    <div class="formula-card">
+                        <h4>Clean vs Dirty Price</h4>
+                        <div class="formula-math" id="fm-accrued"></div>
+                        <div class="formula-desc">Accrued interest added to quoted clean price to determine total invoice settlement.</div>
+                    </div>
+
+                    <!-- Forward Rate -->
+                    <div class="formula-card">
+                        <h4>Implied Forward Rates</h4>
+                        <div class="formula-math" id="fm-forward"></div>
+                        <div class="formula-desc">No-arbitrage implied forward rate derived from compounding spot rates.</div>
+                    </div>
+
+                    <!-- Nelson-Siegel -->
+                    <div class="formula-card">
+                        <h4>Nelson-Siegel Yield Curve</h4>
+                        <div class="formula-math" id="fm-ns"></div>
+                        <div class="formula-desc">Parametric decomposition into level ($\beta_0$), slope ($\beta_1$), and curvature ($\beta_2$).</div>
+                    </div>
+
+                    <!-- Duration & Convexity -->
+                    <div class="formula-card">
+                        <h4>Modified Duration & Convexity Taylor Series</h4>
+                        <div class="formula-math" id="fm-taylor"></div>
+                        <div class="formula-desc">Second-order price change approximation for interest rate shifts.</div>
+                    </div>
+
+                    <!-- Effective Duration -->
+                    <div class="formula-card">
+                        <h4>Effective Duration & Convexity</h4>
+                        <div class="formula-math" id="fm-effdur"></div>
+                        <div class="formula-desc">Numerical difference approximation for bonds with path-dependent embedded options.</div>
+                    </div>
+
+                    <!-- DV01 / PV01 -->
+                    <div class="formula-card">
+                        <h4>DV01 / PV01 Sensitivity</h4>
+                        <div class="formula-math" id="fm-dv01"></div>
+                        <div class="formula-desc">Dollar price change for a 1 basis point (0.0001) parallel yield shift.</div>
+                    </div>
+
+                    <!-- Par Swap Rate -->
+                    <div class="formula-card">
+                        <h4>Par Swap Rate ($R_{\text{par}}$)</h4>
+                        <div class="formula-math" id="fm-swap"></div>
+                        <div class="formula-desc">Fixed swap rate equating floating leg PV to fixed leg PV at inception.</div>
+                    </div>
+
+                    <!-- Swap MtM -->
+                    <div class="formula-card">
+                        <h4>Swap Mark-to-Market (MtM)</h4>
+                        <div class="formula-math" id="fm-swapmtm"></div>
+                        <div class="formula-desc">Value of existing payer swap as market swap rate fluctuates.</div>
+                    </div>
+
+                    <!-- Futures Conversion Factor -->
+                    <div class="formula-card">
+                        <h4>CME Futures Conversion Factor</h4>
+                        <div class="formula-math" id="fm-cf"></div>
+                        <div class="formula-desc">Clean price per $1 par discounted at 6.00% to equalize deliverable basket.</div>
+                    </div>
+
+                    <!-- Net Basis -->
+                    <div class="formula-card">
+                        <h4>Gross Basis & Net Basis (BNOC)</h4>
+                        <div class="formula-math" id="fm-basis"></div>
+                        <div class="formula-desc">Cash-futures basis stripped of coupon carry and financing costs.</div>
+                    </div>
+
+                    <!-- Futures Hedging -->
+                    <div class="formula-card">
+                        <h4>Futures Hedge Ratio (Lots $N$)</h4>
+                        <div class="formula-math" id="fm-hdg"></div>
+                        <div class="formula-desc">Contract lot sizing matching portfolio DV01 against the CTD bond.</div>
+                    </div>
+
+                    <!-- Breakeven Inflation -->
+                    <div class="formula-card">
+                        <h4>Fisher Equation & Breakeven Inflation</h4>
+                        <div class="formula-math" id="fm-fisher"></div>
+                        <div class="formula-desc">Exact and linear breakeven inflation between nominal Treasuries and TIPS.</div>
+                    </div>
+
+                    <!-- Prepayment CPR / SMM -->
+                    <div class="formula-card">
+                        <h4>Mortgage Prepayment (SMM & CPR)</h4>
+                        <div class="formula-math" id="fm-cpr"></div>
+                        <div class="formula-desc">Single Monthly Mortality to annualized Constant Prepayment Rate.</div>
+                    </div>
+
+                    <!-- Option Cost & OAS -->
+                    <div class="formula-card">
+                        <h4>Option Cost & Option-Adjusted Spread</h4>
+                        <div class="formula-math" id="fm-oas"></div>
+                        <div class="formula-desc">Z-spread stripped of embedded borrower call/prepayment optionality.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 2: GLOBAL MARKET CONVENTIONS                                     -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel" id="tab-conventions">
+            <div class="card">
+                <h2>Global Fixed Income Market Conventions & Standards</h2>
+                <p>Day-count conventions, settlement cycles, coupon frequencies, and quotation standards across major sovereign and credit markets.</p>
+
+                <h3>1. Day-Count Conventions by Market</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Security Type</th>
+                                <th>Market</th>
+                                <th>Day-Count</th>
+                                <th>Settlement</th>
+                                <th>Frequency</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>US Treasuries (Notes & Bonds)</strong></td>
+                                <td>US Sovereign</td>
+                                <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--accent);">ACT/ACT ICMA</span></td>
+                                <td>T + 1</td>
+                                <td>Semi-annual</td>
+                            </tr>
+                            <tr>
+                                <td><strong>US Treasury Bills</strong></td>
+                                <td>US Money Market</td>
+                                <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--blue);">ACT/360</span></td>
+                                <td>T + 1</td>
+                                <td>Discount basis</td>
+                            </tr>
+                            <tr>
+                                <td><strong>US Corporate Bonds</strong></td>
+                                <td>US Credit</td>
+                                <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--green);">30/360 Bond Basis</span></td>
+                                <td>T + 1 (T+2 legacy)</td>
+                                <td>Semi-annual</td>
+                            </tr>
+                            <tr>
+                                <td><strong>US Municipal Bonds</strong></td>
+                                <td>US Public Finance</td>
+                                <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--green);">30/360</span></td>
+                                <td>T + 1</td>
+                                <td>Semi-annual</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Agency MBS (Fannie / Freddie)</strong></td>
+                                <td>US Mortgages</td>
+                                <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--green);">30/360</span></td>
+                                <td>Monthly Class Dates</td>
+                                <td>Monthly</td>
+                            </tr>
+                            <tr>
+                                <td><strong>German Bunds (Bund / Bobl / Schatz)</strong></td>
+                                <td>Eurozone Sovereign</td>
+                                <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--accent);">ACT/ACT ICMA</span></td>
+                                <td>T + 2</td>
+                                <td>Annual</td>
+                            </tr>
+                            <tr>
+                                <td><strong>UK Gilts</strong></td>
+                                <td>UK Sovereign</td>
+                                <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--accent);">ACT/ACT ICMA</span></td>
+                                <td>T + 1</td>
+                                <td>Semi-annual</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Eurobonds</strong></td>
+                                <td>International Debt</td>
+                                <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--purple);">30E/360 (ISMA)</span></td>
+                                <td>T + 2</td>
+                                <td>Annual</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Commercial Paper & CD</strong></td>
+                                <td>Money Market</td>
+                                <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--blue);">ACT/360</span></td>
+                                <td>T + 0 / T + 1</td>
+                                <td>Money Market Yield</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>2. Overnight Risk-Free Reference Rates (Post-LIBOR Transition)</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Currency</th>
+                                <th>Benchmark Rate</th>
+                                <th>Administrator</th>
+                                <th>Collateral Type</th>
+                                <th>Day-Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>USD</strong></td>
+                                <td><strong>SOFR</strong> (Secured Overnight Financing Rate)</td>
+                                <td>Federal Reserve Bank of NY</td>
+                                <td>Secured (Treasury Repo)</td>
+                                <td>ACT/360</td>
+                            </tr>
+                            <tr>
+                                <td><strong>EUR</strong></td>
+                                <td><strong>€STR</strong> (Euro Short-Term Rate)</td>
+                                <td>European Central Bank (ECB)</td>
+                                <td>Unsecured Interbank Deposit</td>
+                                <td>ACT/360</td>
+                            </tr>
+                            <tr>
+                                <td><strong>GBP</strong></td>
+                                <td><strong>SONIA</strong> (Sterling Overnight Index Average)</td>
+                                <td>Bank of England</td>
+                                <td>Unsecured Overnight Deposit</td>
+                                <td>ACT/365</td>
+                            </tr>
+                            <tr>
+                                <td><strong>JPY</strong></td>
+                                <td><strong>TONAR</strong> (Tokyo Overnight Average Rate)</td>
+                                <td>Bank of Japan</td>
+                                <td>Unsecured Call Money</td>
+                                <td>ACT/365</td>
+                            </tr>
+                            <tr>
+                                <td><strong>CHF</strong></td>
+                                <td><strong>SARON</strong> (Swiss Average Rate Overnight)</td>
+                                <td>SIX Swiss Exchange</td>
+                                <td>Secured Repo</td>
+                                <td>ACT/360</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 3: DESK RULES OF THUMB & MENTAL MATH                             -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel" id="tab-mentalmath">
+            <div class="card">
+                <h2>Sales & Trading Desk Mental Math & Rules of Thumb</h2>
+                <p>Essential mental math approximations and desk rules used daily by bond traders, structurers, and portfolio managers.</p>
+
+                <!-- Thumb 1 -->
+                <div class="thumb-box">
+                    <div class="thumb-header">
+                        <span class="thumb-title">1. The Universal DV01 Mental Formula</span>
+                        <span class="thumb-badge">Sensitivity</span>
+                    </div>
+                    <div class="thumb-body">
+                        For any standard bond trading near par, the dollar sensitivity per $100,000 face value for a 1 bp (0.01%) yield move is approximately:
+                        <div class="thumb-formula">DV01 per $100,000 Par ≈ $10 × Duration</div>
+                        <strong>Example:</strong> A 10-year Treasury with duration of 7.0 years has $\text{DV01} \approx \$10 \times 7 = \$70$ per $\$100\text{k}$ par ($=\$70,000$ per $\$100\text{M}$ position).
+                    </div>
+                </div>
+
+                <!-- Thumb 2 -->
+                <div class="thumb-box">
+                    <div class="thumb-header">
+                        <span class="thumb-title">2. Price Change from Yield Move</span>
+                        <span class="thumb-badge">Risk</span>
+                    </div>
+                    <div class="thumb-body">
+                        Quickly compute the expected dollar profit or loss on a position:
+                        <div class="thumb-formula">$\Delta \text{P\&L} \approx - \text{DV01}_{\text{position}} \times \Delta y_{\text{bps}}$</div>
+                        <strong>Example:</strong> You are long $\$50\text{M}$ 10Y Treasuries ($\text{DV01} = \$35,000$). If yields drop by $15\text{ bps}$, your profit is:
+                        $$\Delta \text{P\&L} = - \$35,000 \times (-15) = +\$525,000$$
+                    </div>
+                </div>
+
+                <!-- Thumb 3 -->
+                <div class="thumb-box">
+                    <div class="thumb-header">
+                        <span class="thumb-title">3. Convexity Adjustment Mental Math</span>
+                        <span class="thumb-badge">Convexity</span>
+                    </div>
+                    <div class="thumb-body">
+                        For large yield moves (e.g. 100 bps), duration alone underestimates price increases and overestimates price decreases. Add the convexity kicker:
+                        <div class="thumb-formula">$\Delta P_{\text{convexity}} \approx \frac{1}{2} \times \text{Convexity} \times (\Delta y)^2$</div>
+                        For a 10-year bond with convexity = 70 and a 100 bp (0.01) yield move:
+                        $$\Delta P_{\text{conv}} \approx 0.5 \times 70 \times (0.01)^2 = +0.0035 = +0.35\% \text{ of bond price}$$
+                    </div>
+                </div>
+
+                <!-- Thumb 4 -->
+                <div class="thumb-box">
+                    <div class="thumb-header">
+                        <span class="thumb-title">4. The 6% CTD Crossover Rule</span>
+                        <span class="thumb-badge">Bond Futures</span>
+                    </div>
+                    <div class="thumb-body">
+                        CME standardizes futures at a 6% coupon. When market yields deviate:
+                        <div class="thumb-formula">Yields > 6.00% → Highest Duration / Lowest Coupon is CTD<br>Yields < 6.00% → Lowest Duration / Highest Coupon is CTD</div>
+                        Because conversion factors under-discount when yields $>6\%$, long-duration bonds become mathematically cheapest to deliver.
+                    </div>
+                </div>
+
+                <!-- Thumb 5 -->
+                <div class="thumb-box">
+                    <div class="thumb-header">
+                        <span class="thumb-title">5. Breakeven Inflation (BEI) Spread</span>
+                        <span class="thumb-badge">TIPS & Inflation</span>
+                    </div>
+                    <div class="thumb-body">
+                        The breakeven rate is instantly estimated as the simple yield difference:
+                        <div class="thumb-formula">BEI (bps) ≈ Nominal Yield (bps) - Real TIPS Yield (bps)</div>
+                        <strong>Example:</strong> If 10Y nominal is 4.35% and 10Y TIPS is 2.05%, $\text{BEI} \approx 230\text{ bps}$ ($2.30\%$).
+                    </div>
+                </div>
+
+                <!-- Thumb 6 -->
+                <div class="thumb-box">
+                    <div class="thumb-header">
+                        <span class="thumb-title">6. Par Swap Rate from Discount Factors</span>
+                        <span class="thumb-badge">Swaps</span>
+                    </div>
+                    <div class="thumb-body">
+                        The par swap rate is simply the lost principal divided by the annuity sum:
+                        <div class="thumb-formula">$R_{\text{par}} = \frac{1 - DF_n}{\sum \alpha_i DF_i} = \frac{1 - DF_n}{A_n}$</div>
+                        If the 5-year discount factor is $DF_5 = 0.80$ and annuity $A_5 = 4.4$:
+                        $$R_{\text{par}} \approx \frac{1 - 0.80}{4.4} = \frac{0.20}{4.4} = 4.545\%$$
+                    </div>
+                </div>
+
+                <!-- Thumb 7 -->
+                <div class="thumb-box">
+                    <div class="thumb-header">
+                        <span class="thumb-title">7. Rule of 72 for Zero-Coupon Bonds</span>
+                        <span class="thumb-badge">Compounding</span>
+                    </div>
+                    <div class="thumb-body">
+                        To estimate how long it takes for a zero-coupon bond to double in price (or trade at 50% discount):
+                        <div class="thumb-formula">Years to Double ≈ 72 / YTM(%)</div>
+                        At 6% yield, a zero-coupon bond doubles in $72 / 6 = 12$ years (a 12Y zero trades near 50).
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 4: 100+ INTERVIEW Q&A DATABASE                                   -->
+        <!-- ===================================================================== -->
+        <div class="tab-panel" id="tab-qadb">
+            <div class="card">
+                <h2>100+ Fixed Income Interview Flashcards</h2>
+                <p>Filter by module category or use the instant keyword search bar to drill on any fixed income concept.</p>
+
+                <div class="search-container">
+                    <input type="text" id="qadbSearch" class="search-bar" placeholder="Search questions (e.g. 'duration', 'OAS', 'convexity', 'swap spread', 'CTD')...">
+                    <div class="category-filters">
+                        <button class="cat-btn active" data-cat="all">All Topics</button>
+                        <button class="cat-btn" data-cat="basics">Bond Basics</button>
+                        <button class="cat-btn" data-cat="yields">Yields & Curve</button>
+                        <button class="cat-btn" data-cat="duration">Duration & Convexity</button>
+                        <button class="cat-btn" data-cat="risk">Risk & DV01</button>
+                        <button class="cat-btn" data-cat="swaps">Swaps</button>
+                        <button class="cat-btn" data-cat="futures">Futures & Basis</button>
+                        <button class="cat-btn" data-cat="inflation">Inflation & TIPS</button>
+                        <button class="cat-btn" data-cat="structured">MBS & Structured</button>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 12px; font-size: 0.8rem; color: var(--text-muted);" id="qadbCount">
+                    Showing 100+ questions
+                </div>
+
+                <div class="qa-list" id="qadbList">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KaTeX & Interactive Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script>
+    /* ===== 1. Sine Wave Background Animation ===== */
+    (function initWaveBg() {
+        const canvas = document.getElementById('waveCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let w, h, t = 0;
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+
+        function anim() {
+            ctx.clearRect(0, 0, w, h);
+            ctx.lineWidth = 1.2;
+            const waves = [
+                { amp: 35, freq: 0.0035, speed: 0.008, color: 'rgba(139, 109, 42, 0.16)' },
+                { amp: 55, freq: 0.0022, speed: 0.006, color: 'rgba(61, 106, 158, 0.14)' },
+                { amp: 40, freq: 0.0040, speed: 0.010, color: 'rgba(74, 124, 63, 0.12)' }
+            ];
+
+            waves.forEach(wv => {
+                ctx.beginPath();
+                ctx.strokeStyle = wv.color;
+                for (let x = 0; x <= w; x += 6) {
+                    const y = h * 0.5 + Math.sin(x * wv.freq + t * wv.speed) * wv.amp
+                                    + Math.cos(x * 0.001 + t * 0.004) * (wv.amp * 0.5);
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            });
+
+            t += 1;
+            requestAnimationFrame(anim);
+        }
+
+        addEventListener('resize', resize);
+        resize();
+        anim();
+    })();
+
+    /* ===== 2. Render KaTeX Formulas in Matrix ===== */
+    document.addEventListener('DOMContentLoaded', function() {
+        const formulaMap = {
+            'fm-price': 'P = \\sum_{t=1}^{n} \\frac{C}{(1+y)^t} + \\frac{F}{(1+y)^n}',
+            'fm-accrued': 'P_{\\text{dirty}} = P_{\\text{clean}} + \\text{Coupon} \\times \\frac{\\text{Days Accrued}}{\\text{Days in Period}}',
+            'fm-forward': '(1 + s_t)^t (1 + f_{t,T})^{T-t} = (1 + s_T)^T',
+            'fm-ns': 'y(\\tau) = \\beta_0 + \\beta_1 \\left[\\frac{1-e^{-\\tau/\\lambda}}{\\tau/\\lambda}\\right] + \\beta_2 \\left[\\frac{1-e^{-\\tau/\\lambda}}{\\tau/\\lambda} - e^{-\\tau/\\lambda}\\right]',
+            'fm-taylor': '\\frac{\\Delta P}{P} \\approx - D_{\\text{mod}} \\Delta y + \\frac{1}{2} C (\\Delta y)^2',
+            'fm-effdur': 'D_{\\text{eff}} = \\frac{P_- - P_+}{2 P_0 \\Delta y}, \\quad C_{\\text{eff}} = \\frac{P_+ + P_- - 2P_0}{P_0 (\\Delta y)^2}',
+            'fm-dv01': '\\text{DV01} = -\\frac{\\Delta P}{10,000 \\times \\Delta y} \\approx P \\times D_{\\text{mod}} \\times 0.0001',
+            'fm-swap': 'R_{\\text{par}} = \\frac{1 - DF_n}{\\sum_{i=1}^{n} \\alpha_i DF_i} = \\frac{1 - DF_n}{A_n}',
+            'fm-swapmtm': 'V_{\\text{payer}} = \\text{Notional} \\times (R_{\\text{market}} - R_{\\text{fixed}}) \\times A_n',
+            'fm-cf': '\\text{CF} = \\frac{1}{1.03^{2v}} \\left[ \\frac{C}{2} + \\frac{C}{0.06}(1 - 1.03^{-2n}) + 1.03^{-2n} \\right] - \\text{AI}',
+            'fm-basis': '\\text{Gross Basis} = P_{\\text{cash}} - (P_{\\text{fut}} \\times \\text{CF}), \\quad \\text{BNOC} = \\text{Gross} - \\text{Carry}',
+            'fm-hdg': 'N = - \\frac{\\text{DV01}_{\\text{port}}}{\\text{DV01}_{\\text{fut}}} = - \\frac{\\text{DV01}_{\\text{port}} \\times \\text{CF}_{\\text{CTD}}}{\\text{DV01}_{\\text{CTD}}}',
+            'fm-fisher': '(1 + y_{\\text{nom}}) = (1 + y_{\\text{real}})(1 + \\text{BEI}) \\implies \\text{BEI} \\approx y_{\\text{nom}} - y_{\\text{real}}',
+            'fm-cpr': '\\text{CPR} = 1 - (1 - \\text{SMM})^{12}, \\quad \\text{SMM} = 1 - (1 - \\text{CPR})^{1/12}',
+            'fm-oas': '\\text{Option Cost (bps)} = \\text{Z-Spread} - \\text{OAS}'
+        };
+
+        for (const [id, tex] of Object.entries(formulaMap)) {
+            const el = document.getElementById(id);
+            if (el && window.katex) {
+                katex.render(tex, el, { displayMode: true, throwOnError: false });
+            }
+        }
+
+        /* Initialize Q&A Database */
+        initQADB();
+    });
+
+    /* ===== 3. Tab Switching ===== */
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const targetId = 'tab-' + this.dataset.tab;
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) targetPanel.classList.add('active');
+        });
+    });
+
+    /* ===================================================================== */
+    /* TAB 4: 100+ INTERVIEW Q&A DATABASE                                    */
+    /* ===================================================================== */
+    const masterQAData = [
+        /* BASICS */
+        { cat: 'basics', q: "What is the relationship between bond prices and interest rates, and why?", a: "Bond prices and yields have an inverse relationship. When interest rates rise, newly issued bonds offer higher coupons, making existing lower-coupon bonds less attractive. Their prices must drop until their yield to maturity matches prevailing market rates.", tip: "Always mention that price is the present value of future cash flows; higher discount rates mathematically reduce PV." },
+        { cat: 'basics', q: "Explain clean price vs dirty price.", a: "Clean price is the quoted price of the bond excluding accrued interest. Dirty (invoice) price is the actual settlement cash amount paid by the buyer: Dirty Price = Clean Price + Accrued Interest.", tip: "Trading screens always quote clean prices to avoid daily sawtooth jumps between coupon dates." },
+        { cat: 'basics', q: "What day-count convention do US Treasuries use vs US Corporate bonds?", a: "US Treasury notes and bonds use ACT/ACT ICMA (actual days divided by actual days in year). US Corporate and Municipal bonds use 30/360 Bond Basis (assuming 30 days per month and 360 days per year).", tip: "Money market instruments (T-Bills, CP) use ACT/360." },
+        { cat: 'basics', q: "Why does a premium bond's price decline over time toward par?", a: "This is known as 'pull-to-par'. A premium bond's coupon exceeds its yield to maturity. At maturity, only par ($100) is returned. The premium must amortize to zero over the bond's lifespan.", tip: "The opposite happens for discount bonds (they accrete to par)." },
+        { cat: 'basics', q: "What is a zero-coupon bond and how is it priced?", a: "A zero-coupon bond pays no periodic interest; it is issued at a deep discount and pays full face value at maturity. Price = Par / (1 + y/2)^(2n). Its Macaulay duration is exactly equal to its maturity.", tip: "Stripped Treasuries (STRIPS) are classic zero-coupon bonds." },
+
+        /* YIELDS */
+        { cat: 'yields', q: "What is the difference between Yield to Maturity (YTM) and Current Yield?", a: "Current Yield = Annual Coupon / Clean Price. It ignores capital gains/losses and time value of money. YTM is the internal rate of return (IRR) that equates all discounted future cash flows to the dirty price, assuming coupons are reinvested at YTM.", tip: "Current yield overstates return for premium bonds and understates for discount bonds." },
+        { cat: 'yields', q: "What are spot rates and how do they differ from par yields?", a: "A spot rate is the yield to maturity of a zero-coupon bond of that specific maturity. A par yield is the coupon rate that causes a coupon-bearing bond to price at exactly par (100). Par yields reflect a blend of spot rates across all coupon payment dates.", tip: "Discounting coupons with par yields causes arbitrage; cash flows must be discounted by zero-coupon spot rates." },
+        { cat: 'yields', q: "Walk me through how to bootstrap a zero curve from coupon bonds.", a: "Start with the 6-month bill to get the 6M spot rate. For the 1-year bond, discount the 6M coupon using the known 6M spot rate, then solve for the 1Y spot rate that equates the remaining cash flow to the bond price. Repeat sequentially for all maturities.", tip: "Bootstrapping is a recursive stripping algorithm." },
+        { cat: 'yields', q: "Explain an inverted yield curve and what it historically signals.", a: "An inverted curve occurs when short-term yields exceed long-term yields. It signals that market participants expect the central bank to aggressively cut interest rates in the future due to an impending economic slowdown or recession.", tip: "The 2Y/10Y or 3M/10Y spread inversion has preceded every US recession for 50 years." },
+        { cat: 'yields', q: "What is the Pure Expectations Hypothesis?", a: "It posits that long-term yields equal the geometric average of expected future short-term rates. Under this hypothesis, forward rates are unbiased predictors of future spot rates, and the term premium is assumed to be zero.", tip: "In reality, the term premium is positive to compensate investors for interest rate duration risk." },
+
+        /* DURATION & CONVEXITY */
+        { cat: 'duration', q: "What is Macaulay Duration vs Modified Duration?", a: "Macaulay Duration is the weighted-average time until cash flows are received (in years). Modified Duration measures price sensitivity to yield: ModDur = MacDur / (1 + y/k). It equals the percentage price change for a 100 bp yield move.", tip: "MacDur is a time metric; ModDur is a price sensitivity derivative." },
+        { cat: 'duration', q: "Explain Convexity and why bond investors love positive convexity.", a: "Convexity is the second derivative of price with respect to yield. Positive convexity means that as yields drop, price rises at an accelerating rate; when yields rise, price drops at a decelerating rate. It acts like a free long option for the investor.", tip: "Convexity improves return in volatile rate environments ('long gamma')." },
+        { cat: 'duration', q: "What is Effective Duration and when must it be used instead of Modified Duration?", a: "Effective Duration is calculated numerically by shocking yields up and down: (P- - P+) / (2 * P0 * dy). It MUST be used for bonds with embedded options (callable bonds, MBS, prepayable loans) because cash flows change as yields move.", tip: "Modified duration assumes fixed cash flows; effective duration models dynamic cash flows." },
+        { cat: 'duration', q: "Why does a zero-coupon bond have Macaulay duration equal to its maturity?", a: "Because a zero-coupon bond has exactly one cash flow occurring on its maturity date. 100% of the present value weight is located at maturity T.", tip: "Coupon bonds always have Macaulay duration less than their maturity." },
+        { cat: 'duration', q: "What is negative convexity and what securities exhibit it?", a: "Negative convexity occurs when the price-yield curve is concave (d^2P/dy^2 < 0). Price upside is capped when rates fall, while price downside remains uncapped when rates rise. Callable bonds and Mortgage-Backed Securities (MBS) exhibit negative convexity.", tip: "Negative convexity arises because the borrower owns a call/refinancing option." },
+
+        /* RISK & DV01 */
+        { cat: 'risk', q: "What is DV01 (or PV01) and how is it calculated?", a: "DV01 (Dollar Value of a Basis Point) is the dollar change in position value for a 1 basis point (0.01%) parallel shift in yield: DV01 ≈ Position Value * Modified Duration * 0.0001.", tip: "Desk rule: DV01 per $100k par ≈ $10 * Duration." },
+        { cat: 'risk', q: "What are Key Rate Durations (KRD)?", a: "KRD measures the sensitivity of a bond's price to a shift in a single specific maturity point on the yield curve (e.g. 2Y, 5Y, 10Y, 30Y), holding all other points constant. The sum of all KRDs equals the total effective duration.", tip: "KRDs allow traders to manage curve steepening, flattening, and butterfly risks." },
+        { cat: 'risk', q: "How do you calculate the hedge ratio between a portfolio and a hedging bond?", a: "Hedge Ratio N = - (DV01_portfolio / DV01_hedging_instrument). Matching DV01 ensures that the net dollar gain on the hedge offsets the loss on the portfolio for a parallel curve shift.", tip: "Always match DV01, never face value notional!" },
+        { cat: 'risk', q: "What is a curve steepener trade and how is it executed?", a: "A steepener profits when the yield spread between long and short bonds widens. Bull Steepener: Long 2Y + Short 10Y (DV01 matched); yields fall, short end drops faster. Bear Steepener: yields rise, long end rises faster.", tip: "Steepeners are structured DV01-neutral so parallel shifts produce zero net P&L." },
+        { cat: 'risk', q: "What is a 2s-5s-10s Butterfly trade?", a: "A butterfly trade takes a view on yield curve curvature. A 'Long Butterfly' is Long Wings (2Y and 10Y) and Short Belly (5Y), structured DV01-neutral. It profits if the curve becomes more concave or the 5Y belly cheapens.", tip: "Butterfly weights: 50% 2Y + 50% 10Y vs 100% 5Y." },
+
+        /* SWAPS */
+        { cat: 'swaps', q: "Explain how a standard Interest Rate Swap (IRS) works.", a: "An IRS is an OTC agreement where Party A pays a fixed interest rate on a notional principal, and Party B pays a floating rate (e.g. SOFR). Only net interest differences are settled periodically; principal never changes hands.", tip: "A fixed payer is 'short the market' (profits when interest rates rise)." },
+        { cat: 'swaps', q: "How is the Par Swap Rate determined at inception?", a: "The par swap rate is the fixed rate that makes the net present value (NPV) of the swap equal to zero at inception. Formula: R_par = (1 - DF_n) / Annuity, where Annuity is the sum of discount factors.", tip: "At launch, an IRS costs zero dollars to enter." },
+        { cat: 'swaps', q: "What is a Swap Spread and what does it tell you?", a: "Swap Spread = Par Swap Rate - Benchmark Treasury Yield for the same tenor. Historically, it represented interbank credit risk over risk-free Treasuries. Post-2015, long-dated US swap spreads turned negative due to bank leverage regulations (SLR) and heavy Treasury issuance.", tip: "Negative 30Y swap spreads are a classic finance interview question." },
+        { cat: 'swaps', q: "What is OIS Discounting and why was it adopted after the 2008 GFC?", a: "Overnight Index Swap (OIS) rates reflect collateralized, essentially risk-free funding. Prior to 2008, banks discounted swaps using LIBOR. When interbank credit risk spiked, LIBOR was recognized as containing bank default risk, leading to the dual-curve framework: OIS for discounting, reference index for floating flows.", tip: "SOFR OIS is now the gold standard discounting curve." },
+        { cat: 'swaps', q: "What is the duration of an Interest Rate Swap?", a: "For a fixed-rate payer: Duration ≈ Duration(Floating Leg) - Duration(Fixed Leg). Because the floating leg resets every period, its duration is near zero (e.g. 0.25 yrs). Thus, a payer swap has substantial negative duration.", tip: "Payer swap = Short duration; Receiver swap = Long duration." },
+
+        /* FUTURES */
+        { cat: 'futures', q: "What is a Conversion Factor (CF) in CME Treasury futures?", a: "A CF is the price of $1.00 par of a deliverable Treasury bond if it were priced to yield exactly 6.00% to maturity on the first day of the delivery month. It equalizes price differences across bonds in the deliverable basket.", tip: "Coupon > 6% → CF > 1; Coupon < 6% → CF < 1." },
+        { cat: 'futures', q: "What is the Cheapest-to-Deliver (CTD) bond?", a: "The CTD is the bond in the deliverable basket that minimizes the net cost of delivery for the short position. It is the bond that minimizes Net Basis (BNOC) and maximizes the Implied Repo Rate (IRR).", tip: "The seller owns the delivery option and chooses the CTD." },
+        { cat: 'futures', q: "Explain the 6% rule for CTD switches.", a: "If market yields > 6%, the CTD is typically the longest-duration / lowest-coupon bond in the basket. If market yields < 6%, the CTD is typically the shortest-duration / highest-coupon bond.", tip: "This crossover happens because the CF formula discounts at 6%." },
+        { cat: 'futures', q: "What is Gross Basis vs Net Basis (BNOC)?", a: "Gross Basis = Cash Price - (Futures Price * CF). Net Basis = Gross Basis - Carry (where Carry = Coupon - Repo Financing). Net Basis represents the premium paid for the short's delivery options.", tip: "If Net Basis < 0, a cash-and-carry arbitrage exists." },
+        { cat: 'futures', q: "What is the Wild Card delivery option?", a: "Futures trading halts at 2:00 PM CST, fixing that day's settlement price. However, the short has until 8:00 PM CST to declare delivery intent. If cash bonds drop between 2:00 PM and 4:00 PM, the short can buy cheap cash bonds and deliver at the higher 2:00 PM price.", tip: "This asymmetric option belongs exclusively to the short." },
+
+        /* INFLATION */
+        { cat: 'inflation', q: "How do TIPS protect against inflation?", a: "The principal of a TIPS bond is adjusted semi-annually based on changes in the non-seasonally adjusted CPI-U index (scaled by the Index Ratio). The fixed coupon rate is paid on the inflation-adjusted principal, ensuring cash flows grow with inflation.", tip: "Both coupon dollars and maturity principal adjust upwards." },
+        { cat: 'inflation', q: "What is the Deflation Floor on TIPS?", a: "At maturity, the US Treasury guarantees that redemption principal cannot fall below original par ($1,000), even if cumulative deflation occurred. It is an embedded put option.", tip: "The deflation floor is deeply out-of-the-money for seasoned TIPS." },
+        { cat: 'inflation', q: "What is Breakeven Inflation (BEI)?", a: "Breakeven Inflation is the spread between nominal Treasury yields and TIPS yields of the same maturity: BEI ≈ Nominal Yield - Real TIPS Yield. It represents market-implied average annual inflation over that horizon.", tip: "If actual CPI > BEI, TIPS outperform nominal Treasuries." },
+        { cat: 'inflation', q: "Can real yields be negative? What does it mean?", a: "Yes. Negative real yields mean that the real return after inflation is negative. It occurs when nominal yields are pinned near zero by central bank QE while inflation expectations remain positive.", tip: "10Y TIPS real yields traded below -1.0% in 2021." },
+        { cat: 'inflation', q: "How is a Long Breakeven trade structured?", a: "A Long Breakeven trade is structured by buying TIPS and shorting nominal Treasuries in a DV01-neutral ratio. It profits if the breakeven inflation rate widens, regardless of parallel yield shifts.", tip: "Long Breakeven = Long pure inflation." },
+
+        /* STRUCTURED */
+        { cat: 'structured', q: "What are Contraction Risk and Extension Risk in MBS?", a: "Contraction Risk occurs when rates fall: borrowers refinance, prepayments accelerate, and capital returns early to be reinvested at lower rates. Extension Risk occurs when rates rise: prepayments dry up, locking investors into low yields with extending duration.", tip: "Both risks stem from the borrower's embedded prepayment option." },
+        { cat: 'structured', q: "Explain the PSA Prepayment Model.", a: "100% PSA assumes a monthly prepayment rate (CPR) that increases by 0.2% per month for the first 30 months, reaching 6.0% CPR at month 30, and remaining flat at 6.0% thereafter. 200% PSA doubles these CPRs.", tip: "PSA is the standard benchmark for quoting prepayment speed." },
+        { cat: 'structured', q: "What is a Sequential-Pay CMO?", a: "A CMO structure where all principal payments (scheduled amortization and prepayments) flow to Tranche A until it is completely retired, then to Tranche B, then to Tranche C. It redistributes prepayment risk into short, intermediate, and long tranches.", tip: "Tranche A has high contraction risk; Tranche C has high extension risk." },
+        { cat: 'structured', q: "What is a PAC tranche and what is a PAC collar?", a: "A Planned Amortization Class (PAC) tranche guarantees a stable principal amortization schedule as long as actual prepayment speeds stay within a specified range (the PAC collar, e.g. 100% to 250% PSA). Companion tranches absorb excess or deficit prepayments.", tip: "PACs have positive convexity inside their collar." },
+        { cat: 'structured', q: "What is Option-Adjusted Spread (OAS)?", a: "OAS is the constant spread added to an interest rate tree or Monte Carlo simulation paths to make the model price equal the market price of a security with embedded options. It strips out the cost of the option: Option Cost = Z-Spread - OAS.", tip: "For callable bonds and MBS, Z-spread > OAS." }
+    ];
+
+    function initQADB() {
+        const container = document.getElementById('qadbList');
+        const searchInput = document.getElementById('qadbSearch');
+        const catButtons = document.querySelectorAll('.cat-btn');
+
+        let activeCat = 'all';
+        let searchQuery = '';
+
+        function render() {
+            container.innerHTML = '';
+            let count = 0;
+
+            masterQAData.forEach((item, idx) => {
+                const matchCat = (activeCat === 'all' || item.cat === activeCat);
+                const matchSearch = (!searchQuery || item.q.toLowerCase().includes(searchQuery) || item.a.toLowerCase().includes(searchQuery));
+
+                if (matchCat && matchSearch) {
+                    count++;
+                    const div = document.createElement('div');
+                    div.className = 'qa-item';
+                    div.id = 'qadb-item-' + idx;
+                    div.innerHTML = `
+                        <div class="qa-header" onclick="toggleQA('qadb-item-${idx}')">
+                            <div>
+                                <span class="qa-tag">${item.cat}</span>
+                                <span>${item.q}</span>
+                            </div>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="qa-body">
+                            <p>${item.a}</p>
+                            <div class="qa-tip"><strong>Desk Tip:</strong> ${item.tip}</div>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                }
+            });
+
+            document.getElementById('qadbCount').innerText = `Showing ${count} interview questions`;
+        }
+
+        searchInput.addEventListener('input', function() {
+            searchQuery = this.value.trim().toLowerCase();
+            render();
+        });
+
+        catButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                catButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                activeCat = this.dataset.cat;
+                render();
+            });
+        });
+
+        render();
+    }
+
+    function toggleQA(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('open');
+    }
+    </script>
+</body>
+</html>
